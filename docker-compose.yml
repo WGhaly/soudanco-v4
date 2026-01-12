@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: soudanco_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: soudanco
+      POSTGRES_PASSWORD: localdev123
+      POSTGRES_DB: soudanco_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - soudanco_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U soudanco -d soudanco_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  soudanco_data:
+    driver: local
