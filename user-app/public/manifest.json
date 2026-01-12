@@ -1,0 +1,24 @@
+{
+  "name": "Suntop - سودانكو",
+  "short_name": "Suntop",
+  "description": "Suntop Mobile Application",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FD7E14",
+  "theme_color": "#FD7E14",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
