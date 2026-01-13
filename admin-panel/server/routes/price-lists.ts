@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { db, priceLists, priceListItems, products } from '../db';
+import { db, priceLists, priceListItems, products, customers, categories } from '../db';
 import { eq, desc, sql } from 'drizzle-orm';
 import { authenticateToken, AuthenticatedRequest, requireSupervisor } from '../middleware/auth';
 
@@ -20,7 +20,9 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
         isDefault: priceLists.isDefault,
         isActive: priceLists.isActive,
         createdAt: priceLists.createdAt,
+        updatedAt: priceLists.updatedAt,
         itemCount: sql<number>`(SELECT COUNT(*) FROM price_list_items WHERE price_list_id = ${priceLists.id})`,
+        customerCount: sql<number>`(SELECT COUNT(*) FROM customers WHERE price_list_id = ${priceLists.id})`,
       })
       .from(priceLists)
       .orderBy(desc(priceLists.createdAt));
@@ -52,16 +54,20 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
         id: priceListItems.id,
         productId: priceListItems.productId,
         price: priceListItems.price,
-        product: {
-          id: products.id,
-          sku: products.sku,
-          name: products.name,
-          nameAr: products.nameAr,
-          basePrice: products.basePrice,
-        },
+        productSku: products.sku,
+        productName: products.name,
+        productNameAr: products.nameAr,
+        productBasePrice: products.basePrice,
+        productUnit: products.unit,
+        productUnitsPerCase: products.unitsPerCase,
+        productImageUrl: products.imageUrl,
+        categoryId: products.categoryId,
+        categoryName: categories.name,
+        categoryNameAr: categories.nameAr,
       })
       .from(priceListItems)
       .leftJoin(products, eq(priceListItems.productId, products.id))
+      .leftJoin(categories, eq(products.categoryId, categories.id))
       .where(eq(priceListItems.priceListId, id));
 
     return res.json({ success: true, data: { ...priceList, items } });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import { ArrowRight, Edit, Loader2 } from "lucide-react";
@@ -13,6 +13,27 @@ export default function PriceListDetails() {
   const { data: priceListData, isLoading, error } = usePriceList(id);
   const priceList = priceListData?.data;
   const items = priceList?.items || [];
+
+  // Get unique categories from items
+  const categories = useMemo(() => {
+    const uniqueCategories = new Map<string, { id: string; name: string; nameAr: string }>();
+    items.forEach((item: any) => {
+      if (item.categoryId && !uniqueCategories.has(item.categoryId)) {
+        uniqueCategories.set(item.categoryId, {
+          id: item.categoryId,
+          name: item.categoryName || '',
+          nameAr: item.categoryNameAr || '',
+        });
+      }
+    });
+    return Array.from(uniqueCategories.values());
+  }, [items]);
+
+  // Filter items by selected category
+  const filteredItems = useMemo(() => {
+    if (!selectedCategory) return items;
+    return items.filter((item: any) => item.categoryId === selectedCategory);
+  }, [items, selectedCategory]);
 
   const formatCurrency = (amount: string | number) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -82,10 +103,13 @@ export default function PriceListDetails() {
           </div>
 
           {/* Price List Name */}
-          <div className="flex items-center justify-end gap-2 mb-8">
+          <div className="flex flex-col items-end gap-2 mb-8">
             <h2 className="text-2xl font-medium text-secondary">
               {priceList.nameAr || priceList.name}
             </h2>
+            {priceList.description && (
+              <p className="text-base text-gray-600">{priceList.description}</p>
+            )}
           </div>
 
           {/* Category Dropdown */}
@@ -99,9 +123,12 @@ export default function PriceListDetails() {
                 onChange={(e) => setSelectedCategory(e.target.value)}
                 className="w-full px-4 py-3 pr-4 pl-10 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 text-right appearance-none bg-white text-gray-400"
               >
-                <option value="">يرجي الاختيار</option>
-                <option value="juices">عصائر</option>
-                <option value="snacks">وجبات خفيفة</option>
+                <option value="">الكل ({items.length})</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.nameAr || category.name} ({items.filter((item: any) => item.categoryId === category.id).length})
+                  </option>
+                ))}
               </select>
               <svg
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
@@ -142,10 +169,10 @@ export default function PriceListDetails() {
 
               {/* Table Body */}
               <div className="divide-y divide-gray-200">
-                {items.length === 0 ? (
-                  <div className="px-4 py-8 text-center text-gray-500">لا توجد منتجات في هذه القائمة</div>
+                {filteredItems.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-gray-500">لا توجد منتجات {selectedCategory ? 'في هذا الصنف' : 'في هذه القائمة'}</div>
                 ) : (
-                  items.map((item: any) => (
+                  filteredItems.map((item: any) => (
                     <div
                       key={item.id}
                       className="flex items-center gap-8 px-4 py-4 hover:bg-gray-50 transition-colors"
@@ -157,7 +184,7 @@ export default function PriceListDetails() {
 
                       {/* Size/Unit */}
                       <div className="flex-1 text-base font-bold text-gray-900 text-right">
-                        -
+                        {item.productUnitsPerCase ? `${item.productUnitsPerCase} ${item.productUnit || 'وحدة'}` : '-'}
                       </div>
 
                       {/* Product Code */}
@@ -167,14 +194,22 @@ export default function PriceListDetails() {
 
                       {/* Product Name */}
                       <div className="flex-1 text-base text-gray-900 text-right">
-                        {item.productName || '-'}
+                        {item.productNameAr || item.productName || '-'}
                       </div>
 
                       {/* Product Image */}
                       <div className="flex-1 flex justify-end">
-                        <div className="h-14 w-14 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
-                          صورة
-                        </div>
+                        {item.productImageUrl ? (
+                          <img 
+                            src={item.productImageUrl} 
+                            alt={item.productName} 
+                            className="h-14 w-14 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="h-14 w-14 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
+                            صورة
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))
@@ -231,22 +266,30 @@ export default function PriceListDetails() {
 
             {/* Mobile Cards */}
             <div className="flex md:hidden flex-col gap-4">
-              {items.length === 0 ? (
-                <div className="text-center text-gray-500 py-8">لا توجد منتجات في هذه القائمة</div>
+              {filteredItems.length === 0 ? (
+                <div className="text-center text-gray-500 py-8">لا توجد منتجات {selectedCategory ? 'في هذا الصنف' : 'في هذه القائمة'}</div>
               ) : (
-                items.map((item: any) => (
+                filteredItems.map((item: any) => (
                   <div
                     key={item.id}
                     className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col gap-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-16 w-16 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
-                        صورة
-                      </div>
+                      {item.productImageUrl ? (
+                        <img 
+                          src={item.productImageUrl} 
+                          alt={item.productName} 
+                          className="h-16 w-16 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="h-16 w-16 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
+                          صورة
+                        </div>
+                      )}
                       <div className="flex-1">
                         <div className="text-sm text-gray-500 mb-1">اسم المنتج</div>
                         <div className="text-base font-medium text-gray-900">
-                          {item.productName || '-'}
+                          {item.productNameAr || item.productName || '-'}
                         </div>
                       </div>
                     </div>
@@ -261,7 +304,7 @@ export default function PriceListDetails() {
                       <div className="flex-1">
                         <div className="text-sm text-gray-500 mb-1">حجم العبوة</div>
                         <div className="text-base font-bold text-gray-900">
-                          -
+                          {item.productUnitsPerCase ? `${item.productUnitsPerCase} ${item.productUnit || 'وحدة'}` : '-'}
                         </div>
                       </div>
                     </div>

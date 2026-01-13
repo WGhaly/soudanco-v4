@@ -65,7 +65,9 @@ export default function PriceListsTable({ priceLists, pagination }: PriceListsTa
         {/* Table Header */}
         <div className="flex items-center gap-8 px-4 py-3 bg-gray-200 rounded-t-lg">
           <div className="flex-1 text-sm text-secondary text-right">اسم القائمة</div>
+          <div className="flex-1 text-sm text-secondary text-right">الوصف</div>
           <div className="w-32 text-sm text-secondary text-center">عدد المنتجات</div>
+          <div className="w-32 text-sm text-secondary text-center">عدد العملاء</div>
           <div className="w-24 text-sm text-secondary text-center">الحالة</div>
           <div className="flex-1 text-sm text-secondary text-right">آخر تحديث</div>
           <div className="w-8"></div>
@@ -84,9 +86,19 @@ export default function PriceListsTable({ priceLists, pagination }: PriceListsTa
                 {priceList.nameAr || priceList.name}
               </div>
 
+              {/* Description */}
+              <div className="flex-1 text-sm text-gray-600 text-right truncate">
+                {priceList.description || '-'}
+              </div>
+
               {/* Item Count */}
               <div className="w-32 text-base font-bold text-gray-900 text-center">
                 {priceList.itemCount || priceList.items?.length || 0}
+              </div>
+
+              {/* Customer Count */}
+              <div className="w-32 text-base font-bold text-blue-600 text-center">
+                {priceList.customerCount || 0}
               </div>
 
               {/* Status */}
@@ -144,6 +156,12 @@ export default function PriceListsTable({ priceLists, pagination }: PriceListsTa
                 {priceList.itemCount || priceList.items?.length || 0}
               </span>
               <span className="text-gray-500 text-sm">عدد المنتجات:</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="font-bold text-blue-600">
+                {priceList.customerCount || 0}
+              </span>
+              <span className="text-gray-500 text-sm">عدد العملاء:</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">{formatDate(priceList.updatedAt)}</span>
