@@ -1,20 +1,32 @@
-import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Loader2, X } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
-import { useAddresses, useUpdateAddress, useDeleteAddress } from "@/hooks/useProfile";
+import { useAddresses, useAddAddress, useUpdateAddress, useDeleteAddress } from "@/hooks/useProfile";
 
 export default function Addresses() {
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formData, setFormData] = useState({
+    label: '',
+    addressLine1: '',
+    addressLine2: '',
+    city: '',
+    region: '',
+    postalCode: '',
+    country: 'السعودية',
+    isDefault: false,
+  });
+
   // Fetch addresses from API
   const { data: addressesData, isLoading, error } = useAddresses();
   const addresses = addressesData?.data || [];
 
+  const addAddress = useAddAddress();
   const updateAddress = useUpdateAddress();
   const deleteAddress = useDeleteAddress();
 
   const setPrimaryAddress = (id: string) => {
-    // Find the address and update it as default
     const address = addresses.find(a => a.id === id);
     if (address) {
-      // First unset all other defaults, then set this one
       updateAddress.mutate({
         ...address,
         isDefault: true,
@@ -26,6 +38,29 @@ export default function Addresses() {
     if (confirm('هل تريد حذف هذا العنوان؟')) {
       deleteAddress.mutate(id);
     }
+  };
+
+  const handleSubmitAddress = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.label || !formData.addressLine1 || !formData.city) {
+      alert('يرجى ملء الحقول المطلوبة');
+      return;
+    }
+    addAddress.mutate(formData, {
+      onSuccess: () => {
+        setShowAddModal(false);
+        setFormData({
+          label: '',
+          addressLine1: '',
+          addressLine2: '',
+          city: '',
+          region: '',
+          postalCode: '',
+          country: 'السعودية',
+          isDefault: false,
+        });
+      },
+    });
   };
 
   if (isLoading) {
@@ -167,15 +202,125 @@ export default function Addresses() {
       </div>
       
       <div className="flex flex-col items-end gap-2.5 w-full">
-        <button className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-[#FD7E14] hover:bg-[#E56D04] transition-colors w-full">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-[#FD7E14] hover:bg-[#E56D04] transition-colors w-full"
+        >
           <span className="text-white text-center text-base font-normal leading-[130%]">
             اضافة عنوان جديد
           </span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
         </button>
       </div>
+
+      {/* Add Address Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b">
+              <button onClick={() => setShowAddModal(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                <X className="w-6 h-6" />
+              </button>
+              <h2 className="text-lg font-medium">إضافة عنوان جديد</h2>
+            </div>
+            
+            <form onSubmit={handleSubmitAddress} className="p-4 space-y-4">
+              <div className="space-y-2">
+                <label className="block text-right text-sm font-medium text-gray-700">اسم العنوان *</label>
+                <input
+                  type="text"
+                  value={formData.label}
+                  onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                  placeholder="مثال: المنزل، العمل"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-right text-sm font-medium text-gray-700">العنوان *</label>
+                <input
+                  type="text"
+                  value={formData.addressLine1}
+                  onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
+                  placeholder="الشارع، رقم المبنى"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-right text-sm font-medium text-gray-700">تفاصيل إضافية</label>
+                <input
+                  type="text"
+                  value={formData.addressLine2}
+                  onChange={(e) => setFormData({ ...formData, addressLine2: e.target.value })}
+                  placeholder="رقم الشقة، الطابق (اختياري)"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-right text-sm font-medium text-gray-700">المدينة *</label>
+                <input
+                  type="text"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  placeholder="المدينة"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-right text-sm font-medium text-gray-700">الرمز البريدي</label>
+                  <input
+                    type="text"
+                    value={formData.postalCode}
+                    onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                    placeholder="12345"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-right text-sm font-medium text-gray-700">المنطقة</label>
+                  <input
+                    type="text"
+                    value={formData.region}
+                    onChange={(e) => setFormData({ ...formData, region: e.target.value })}
+                    placeholder="المنطقة"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <label className="text-sm text-gray-700">تعيين كعنوان أساسي</label>
+                <input
+                  type="checkbox"
+                  checked={formData.isDefault}
+                  onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
+                  className="w-4 h-4 text-[#FD7E14] rounded focus:ring-[#FD7E14]"
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={addAddress.isPending}
+                  className="flex-1 px-4 py-2.5 bg-[#FD7E14] text-white rounded-full hover:bg-[#E56D04] disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {addAddress.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'إضافة العنوان'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

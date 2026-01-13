@@ -1,18 +1,49 @@
-import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Loader2, X } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
-import { usePaymentMethods, useDeletePaymentMethod } from "@/hooks/useProfile";
+import { usePaymentMethods, useAddPaymentMethod, useDeletePaymentMethod } from "@/hooks/useProfile";
 
 export default function PaymentMethods() {
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formData, setFormData] = useState({
+    type: 'credit' as 'credit' | 'bank_transfer' | 'cash',
+    label: '',
+    lastFour: '',
+    expiryDate: '',
+    isDefault: false,
+  });
+
   // Fetch payment methods from API
   const { data: methodsData, isLoading, error } = usePaymentMethods();
   const methods = methodsData?.data || [];
   
+  const addMethod = useAddPaymentMethod();
   const deleteMethod = useDeletePaymentMethod();
 
   const handleDeleteMethod = (id: string) => {
     if (confirm('هل تريد حذف وسيلة الدفع هذه؟')) {
       deleteMethod.mutate(id);
     }
+  };
+
+  const handleSubmitMethod = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.label) {
+      alert('يرجى إدخال اسم وسيلة الدفع');
+      return;
+    }
+    addMethod.mutate(formData, {
+      onSuccess: () => {
+        setShowAddModal(false);
+        setFormData({
+          type: 'credit',
+          label: '',
+          lastFour: '',
+          expiryDate: '',
+          isDefault: false,
+        });
+      },
+    });
   };
 
   const getTypeLabel = (type: string) => {
@@ -147,15 +178,108 @@ export default function PaymentMethods() {
       </div>
       
       <div className="flex flex-col items-end gap-2.5 w-full">
-        <button className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-[#FD7E14] w-full">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
+        <button 
+          onClick={() => setShowAddModal(true)}
+          className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-[#FD7E14] hover:bg-[#E56D04] transition-colors w-full"
+        >
           <span className="text-white text-center text-base font-normal leading-[130%]">
             اضافة وسيلة دفع
           </span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 3V13M3 8H13" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
         </button>
       </div>
+
+      {/* Add Payment Method Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b">
+              <button onClick={() => setShowAddModal(false)} className="p-1 hover:bg-gray-100 rounded-full">
+                <X className="w-6 h-6" />
+              </button>
+              <h2 className="text-lg font-medium">إضافة وسيلة دفع جديدة</h2>
+            </div>
+            
+            <form onSubmit={handleSubmitMethod} className="p-4 space-y-4">
+              <div className="space-y-2">
+                <label className="block text-right text-sm font-medium text-gray-700">نوع وسيلة الدفع *</label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({ ...formData, type: e.target.value as 'credit' | 'bank_transfer' | 'cash' })}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                >
+                  <option value="credit">بطاقة ائتمان</option>
+                  <option value="bank_transfer">تحويل بنكي</option>
+                  <option value="cash">نقدي</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-right text-sm font-medium text-gray-700">اسم وسيلة الدفع *</label>
+                <input
+                  type="text"
+                  value={formData.label}
+                  onChange={(e) => setFormData({ ...formData, label: e.target.value })}
+                  placeholder="مثال: بطاقة الراجحي"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                  required
+                />
+              </div>
+              {formData.type === 'credit' && (
+                <>
+                  <div className="space-y-2">
+                    <label className="block text-right text-sm font-medium text-gray-700">آخر 4 أرقام</label>
+                    <input
+                      type="text"
+                      value={formData.lastFour}
+                      onChange={(e) => setFormData({ ...formData, lastFour: e.target.value.slice(0, 4) })}
+                      placeholder="1234"
+                      maxLength={4}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-right text-sm font-medium text-gray-700">تاريخ الانتهاء</label>
+                    <input
+                      type="text"
+                      value={formData.expiryDate}
+                      onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                      placeholder="12/25"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                    />
+                  </div>
+                </>
+              )}
+              <div className="flex items-center justify-end gap-2">
+                <label className="text-sm text-gray-700">تعيين كوسيلة دفع أساسية</label>
+                <input
+                  type="checkbox"
+                  checked={formData.isDefault}
+                  onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
+                  className="w-4 h-4 text-[#FD7E14] rounded focus:ring-[#FD7E14]"
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={addMethod.isPending}
+                  className="flex-1 px-4 py-2.5 bg-[#FD7E14] text-white rounded-full hover:bg-[#E56D04] disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {addMethod.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : 'إضافة'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

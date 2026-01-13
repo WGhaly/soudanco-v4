@@ -101,10 +101,17 @@ export function useAddPaymentMethod() {
   const authFetch = useAuthFetch();
   
   return useMutation({
-    mutationFn: async (data: Omit<PaymentMethod, 'id'>) => {
+    mutationFn: async (data: { type: 'credit' | 'bank_transfer' | 'cash'; label: string; lastFour?: string; expiryDate?: string; isDefault?: boolean }) => {
+      // Transform to backend format - details as JSON object
+      const payload = {
+        type: data.type,
+        label: data.label,
+        isDefault: data.isDefault || false,
+        details: data.lastFour || data.expiryDate ? { lastFour: data.lastFour, expiryDate: data.expiryDate } : null,
+      };
       return authFetch('/api/profile/payment-methods', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
     },
     onSuccess: () => {

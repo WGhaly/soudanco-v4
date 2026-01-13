@@ -99,8 +99,8 @@ export default function Customers() {
                 onClick={() => navigate("/customers/new")}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors"
               >
-                <Plus className="w-5 h-5" />
                 <span>إضافة عميل</span>
+                <Plus className="w-5 h-5" />
               </button>
             </div>
           </div>
