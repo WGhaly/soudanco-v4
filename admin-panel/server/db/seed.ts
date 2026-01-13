@@ -197,7 +197,7 @@ async function seed() {
       { sku: 'SPORT-500', name: 'Sports Drink 500ml', nameAr: 'مشروب رياضي 500 مل', categoryId: energyCategory.id, basePrice: '7.00', stockQuantity: 180, unitsPerCase: 24 },
     ];
 
-    const createdProducts: { id: string; sku: string; basePrice: string }[] = [];
+    const createdProducts: { id: string; sku: string; name: string; basePrice: string }[] = [];
     for (const product of productData) {
       // Calculate stock status
       let stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock' = 'in_stock';
@@ -214,7 +214,7 @@ async function seed() {
         lowStockThreshold: 10,
         isActive: true,
       }).returning();
-      createdProducts.push({ id: created.id, sku: created.sku, basePrice: product.basePrice });
+      createdProducts.push({ id: created.id, sku: created.sku, name: created.name, basePrice: product.basePrice });
     }
     console.log(`✓ ${createdProducts.length} products created`);
 
@@ -594,8 +594,9 @@ async function seed() {
         await db.insert(orderItems).values({
           orderId: order1.id,
           productId: product.id,
+          productName: product.name,
           quantity: item.quantity,
-          price: item.price,
+          unitPrice: item.price,
           totalPrice: (parseFloat(item.price) * item.quantity).toFixed(2),
         });
       }
@@ -644,8 +645,9 @@ async function seed() {
         await db.insert(orderItems).values({
           orderId: order2.id,
           productId: product.id,
+          productName: product.name,
           quantity: item.quantity,
-          price: item.price,
+          unitPrice: item.price,
           totalPrice: (parseFloat(item.price) * item.quantity).toFixed(2),
         });
       }
@@ -695,8 +697,9 @@ async function seed() {
         await db.insert(orderItems).values({
           orderId: order3.id,
           productId: product.id,
+          productName: product.name,
           quantity: item.quantity,
-          price: item.price,
+          unitPrice: item.price,
           totalPrice: (parseFloat(item.price) * item.quantity).toFixed(2),
         });
       }
@@ -745,8 +748,9 @@ async function seed() {
         await db.insert(orderItems).values({
           orderId: order4.id,
           productId: product.id,
+          productName: product.name,
           quantity: item.quantity,
-          price: item.price,
+          unitPrice: item.price,
           totalPrice: (parseFloat(item.price) * item.quantity).toFixed(2),
         });
       }
