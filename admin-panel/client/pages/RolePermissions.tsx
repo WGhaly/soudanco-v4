@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { useSupervisor } from "../hooks/useSupervisors";
 
@@ -94,7 +94,7 @@ export default function RolePermissions() {
               onClick={() => navigate(-1)}
               className="flex items-center justify-center w-10 h-10 rounded-full bg-primary hover:bg-primary/90 transition-colors order-1 md:order-2"
             >
-              <ArrowLeft className="w-5 h-5 text-white" />
+              <ArrowRight className="w-5 h-5 text-white" />
             </button>
           </div>
 

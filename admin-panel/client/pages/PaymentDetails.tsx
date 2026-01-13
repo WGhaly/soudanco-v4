@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { usePayment } from "@/hooks/usePayments";
 
@@ -80,7 +80,7 @@ export default function PaymentDetails() {
               onClick={() => navigate("/payments")}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-primary hover:bg-primary/90 transition-colors"
             >
-              <ArrowLeft className="w-5 h-5 text-white" />
+              <ArrowRight className="w-5 h-5 text-white" />
             </button>
             
             <h1 className="text-[2rem] font-medium text-primary">بيانات الدفع</h1>

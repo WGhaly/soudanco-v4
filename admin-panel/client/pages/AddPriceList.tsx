@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { ArrowLeft, Edit, Check, Loader2 } from "lucide-react";
+import { ArrowRight, Edit, Check, Loader2 } from "lucide-react";
 import { useProducts, Product } from "../hooks/useProducts";
 import { usePriceList, useCreatePriceList, useUpdatePriceList } from "../hooks/usePriceLists";
 
@@ -139,7 +139,7 @@ export default function AddPriceList() {
       <div className="lg:hidden fixed top-0 right-0 left-0 bg-white border-b border-gray-200 px-4 py-3 z-10">
         <div className="flex items-center justify-between">
           <button onClick={() => navigate(-1)} className="p-2">
-            <ArrowLeft className="w-6 h-6" />
+            <ArrowRight className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-medium text-primary">
             {isEditMode ? "تعديل قائمة اسعار" : "اضافة قائمة اسعار"}
@@ -158,7 +158,7 @@ export default function AddPriceList() {
                 onClick={() => navigate("/price-lists")}
                 className="w-10 h-10 flex items-center justify-center bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowRight className="w-5 h-5" />
               </button>
               <button
                 onClick={handleSave}

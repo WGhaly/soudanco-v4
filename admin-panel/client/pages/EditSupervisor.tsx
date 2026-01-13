@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Save, RotateCcw } from "lucide-react";
+import { ArrowRight, Save, RotateCcw } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 
 export default function EditSupervisor() {
@@ -71,7 +71,7 @@ export default function EditSupervisor() {
                 onClick={handleCancel}
                 className="flex items-center justify-center w-10 h-10 rounded-full bg-primary hover:bg-primary/90 transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 text-white" />
+                <ArrowRight className="w-5 h-5 text-white" />
               </button>
             </div>
           </div>

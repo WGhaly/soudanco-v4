@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Edit, RotateCcw, Loader2 } from "lucide-react";
+import { ArrowRight, Edit, RotateCcw, Loader2 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { useSupervisor } from "@/hooks/useSupervisors";
 
@@ -56,7 +56,7 @@ export default function SupervisorDetails() {
                 onClick={() => navigate("/supervisors")}
                 className="flex items-center justify-center w-10 h-10 rounded-full bg-primary hover:bg-primary/90 transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 text-white" />
+                <ArrowRight className="w-5 h-5 text-white" />
               </button>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Check, ArrowLeft, ChevronDown, Calendar } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, ArrowLeft, ArrowRight, ChevronDown, Calendar } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 
 type DiscountType = "buy-get" | "spend-bonus" | null;
@@ -72,7 +72,7 @@ export default function AddDiscount() {
                   disabled={!selectedType}
                   className="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4" />
                   <span className="text-base">المتابعة</span>
                 </button>
                 
@@ -166,7 +166,7 @@ export default function AddDiscount() {
 
             {/* Back Arrow */}
             <button onClick={() => setStep("select-type")}>
-              <ChevronRight className="w-6 h-6 text-primary" />
+              <ChevronLeft className="w-6 h-6 text-primary" />
             </button>
           </div>
 
