@@ -16,6 +16,7 @@ import {
   orderItems,
   payments,
 } from './schema';
+import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 
 async function seed() {
@@ -535,6 +536,237 @@ async function seed() {
     }
     console.log('✓ Discounts created');
 
+    // ============================================
+    // 9. CREATE ORDERS WITH PAYMENTS
+    // ============================================
+    console.log('Creating orders with payments...');
+    
+    // Helper function to generate order number
+    function generateOrderNumber(): string {
+      const date = new Date();
+      const year = date.getFullYear().toString().slice(-2);
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+      return `ORD-${year}${month}-${random}`;
+    }
+
+    // Helper function to generate payment number
+    function generatePaymentNumber(): string {
+      const date = new Date();
+      const year = date.getFullYear().toString().slice(-2);
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+      return `PAY-${year}${month}-${random}`;
+    }
+
+    // Get customer addresses
+    const [customer1Address] = await db.select().from(customerAddresses).where(eq(customerAddresses.customerId, customer1.id)).limit(1);
+    const [customer2Address] = await db.select().from(customerAddresses).where(eq(customerAddresses.customerId, customer2.id)).limit(1);
+    const [customer3Address] = await db.select().from(customerAddresses).where(eq(customerAddresses.customerId, customer3.id)).limit(1);
+
+    // Order 1 - Customer 1 - Delivered with full payment
+    const [order1] = await db.insert(orders).values({
+      orderNumber: generateOrderNumber(),
+      customerId: customer1.id,
+      addressId: customer1Address.id,
+      subtotal: '1200.00',
+      tax: '180.00',
+      shipping: '50.00',
+      discount: '0.00',
+      total: '1430.00',
+      paidAmount: '1430.00',
+      status: 'delivered',
+      paymentMethod: 'credit',
+      notes: 'Urgent delivery requested',
+      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
+      updatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+    }).returning();
+
+    // Order 1 items
+    const order1Products = [
+      { productSku: 'COLA-330', quantity: 10, price: '2.50' },
+      { productSku: 'WATER-500', quantity: 20, price: '1.00' },
+      { productSku: 'ORANGE-J-1L', quantity: 15, price: '8.00' },
+    ];
+    for (const item of order1Products) {
+      const product = createdProducts.find(p => p.sku === item.productSku);
+      if (product) {
+        await db.insert(orderItems).values({
+          orderId: order1.id,
+          productId: product.id,
+          quantity: item.quantity,
+          price: item.price,
+          totalPrice: (parseFloat(item.price) * item.quantity).toFixed(2),
+        });
+      }
+    }
+
+    // Payment for Order 1
+    await db.insert(payments).values({
+      paymentNumber: generatePaymentNumber(),
+      customerId: customer1.id,
+      orderId: order1.id,
+      amount: '1430.00',
+      method: 'credit',
+      status: 'completed',
+      reference: 'VISA-****4532',
+      notes: 'Paid in full',
+      processedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+    });
+
+    // Order 2 - Customer 2 - Processing with partial payment
+    const [order2] = await db.insert(orders).values({
+      orderNumber: generateOrderNumber(),
+      customerId: customer2.id,
+      addressId: customer2Address.id,
+      subtotal: '2500.00',
+      tax: '375.00',
+      shipping: '75.00',
+      discount: '250.00',
+      total: '2700.00',
+      paidAmount: '1500.00',
+      status: 'processing',
+      paymentMethod: 'bank_transfer',
+      notes: 'Large order - handle with care',
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+      updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+    }).returning();
+
+    // Order 2 items
+    const order2Products = [
+      { productSku: 'COLA-1L', quantity: 25, price: '5.00' },
+      { productSku: 'ENERGY-250', quantity: 30, price: '6.00' },
+      { productSku: 'WATER-1.5L', quantity: 40, price: '2.00' },
+    ];
+    for (const item of order2Products) {
+      const product = createdProducts.find(p => p.sku === item.productSku);
+      if (product) {
+        await db.insert(orderItems).values({
+          orderId: order2.id,
+          productId: product.id,
+          quantity: item.quantity,
+          price: item.price,
+          totalPrice: (parseFloat(item.price) * item.quantity).toFixed(2),
+        });
+      }
+    }
+
+    // Partial payment for Order 2
+    await db.insert(payments).values({
+      paymentNumber: generatePaymentNumber(),
+      customerId: customer2.id,
+      orderId: order2.id,
+      amount: '1500.00',
+      method: 'bank_transfer',
+      status: 'completed',
+      reference: 'TRF-20260110-1234',
+      notes: 'Partial payment - balance pending',
+      processedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+    });
+
+    // Order 3 - Customer 3 - Confirmed with full payment
+    const [order3] = await db.insert(orders).values({
+      orderNumber: generateOrderNumber(),
+      customerId: customer3.id,
+      addressId: customer3Address.id,
+      subtotal: '5000.00',
+      tax: '750.00',
+      shipping: '100.00',
+      discount: '500.00',
+      total: '5350.00',
+      paidAmount: '5350.00',
+      status: 'confirmed',
+      paymentMethod: 'cash',
+      notes: 'Wholesale order - priority delivery',
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    }).returning();
+
+    // Order 3 items
+    const order3Products = [
+      { productSku: 'COLA-330', quantity: 50, price: '2.00' },
+      { productSku: 'WATER-500', quantity: 100, price: '0.80' },
+      { productSku: 'ORANGE-J-1L', quantity: 40, price: '7.20' },
+      { productSku: 'MANGO-J-1L', quantity: 30, price: '8.10' },
+    ];
+    for (const item of order3Products) {
+      const product = createdProducts.find(p => p.sku === item.productSku);
+      if (product) {
+        await db.insert(orderItems).values({
+          orderId: order3.id,
+          productId: product.id,
+          quantity: item.quantity,
+          price: item.price,
+          totalPrice: (parseFloat(item.price) * item.quantity).toFixed(2),
+        });
+      }
+    }
+
+    // Payment for Order 3
+    await db.insert(payments).values({
+      paymentNumber: generatePaymentNumber(),
+      customerId: customer3.id,
+      orderId: order3.id,
+      amount: '5350.00',
+      method: 'cash',
+      status: 'completed',
+      reference: 'CASH-001',
+      notes: 'Cash on delivery - full amount received',
+      processedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    });
+
+    // Order 4 - Customer 1 - Pending without payment yet
+    const [order4] = await db.insert(orders).values({
+      orderNumber: generateOrderNumber(),
+      customerId: customer1.id,
+      addressId: customer1Address.id,
+      subtotal: '800.00',
+      tax: '120.00',
+      shipping: '50.00',
+      discount: '0.00',
+      total: '970.00',
+      paidAmount: '0.00',
+      status: 'pending',
+      paymentMethod: 'credit',
+      notes: 'Awaiting payment confirmation',
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+      updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    }).returning();
+
+    // Order 4 items
+    const order4Products = [
+      { productSku: 'LEMON-330', quantity: 20, price: '2.50' },
+      { productSku: 'APPLE-J-1L', quantity: 10, price: '8.00' },
+      { productSku: 'SPORT-500', quantity: 15, price: '7.00' },
+    ];
+    for (const item of order4Products) {
+      const product = createdProducts.find(p => p.sku === item.productSku);
+      if (product) {
+        await db.insert(orderItems).values({
+          orderId: order4.id,
+          productId: product.id,
+          quantity: item.quantity,
+          price: item.price,
+          totalPrice: (parseFloat(item.price) * item.quantity).toFixed(2),
+        });
+      }
+    }
+
+    // Standalone payment (not linked to order) - Customer advance payment
+    await db.insert(payments).values({
+      paymentNumber: generatePaymentNumber(),
+      customerId: customer2.id,
+      orderId: null,
+      amount: '2000.00',
+      method: 'bank_transfer',
+      status: 'completed',
+      reference: 'TRF-20260112-5678',
+      notes: 'Advance payment for future orders',
+      processedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    });
+
+    console.log('✓ Orders and payments created');
+
     console.log('\n✅ Database seeding completed successfully!');
     console.log('\n📋 Test Credentials:');
     console.log('  Admin: admin@soudanco.com / admin123');
@@ -542,6 +774,9 @@ async function seed() {
     console.log('  Customer: aljawhra@example.com / customer123');
     console.log('  Customer: basma@example.com / customer123');
     console.log('  Customer: alnoor@example.com / customer123');
+    console.log('\n📦 Sample Data:');
+    console.log('  - 4 Orders created with various statuses');
+    console.log('  - 5 Payments created (4 linked to orders, 1 standalone)');
 
   } catch (error) {
     console.error('❌ Seeding failed:', error);
