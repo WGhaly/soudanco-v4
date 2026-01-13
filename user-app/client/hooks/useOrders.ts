@@ -19,25 +19,19 @@ export interface Order {
   orderNumber: string;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   subtotal: string;
-  discount: string;
-  discountType?: string;
+  discountAmount: string;
+  taxAmount?: string;
   total: string;
   notes?: string;
-  deliveryDate?: string;
+  paymentMethod?: string;
+  paidAmount?: string;
   createdAt: string;
   updatedAt: string;
   items?: OrderItem[];
   itemCount?: number;
-  address?: {
-    id: string;
-    label: string;
-    street: string;
-    city: string;
-    state?: string;
-    postalCode?: string;
-    country: string;
-    isDefault: boolean;
-  };
+  addressLabel?: string;
+  addressLine1?: string;
+  city?: string;
 }
 
 export interface OrdersResponse {

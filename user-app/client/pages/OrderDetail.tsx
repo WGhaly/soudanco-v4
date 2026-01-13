@@ -207,7 +207,7 @@ export default function OrderDetail() {
 
             <div className="flex h-[67px] flex-col items-end gap-2 w-full border-b border-dashed border-[#212529]">
               <span className="text-[#363636] text-right text-base font-medium leading-[120%]">خصم العروض</span>
-              <span className="text-[#212529] text-right text-base font-bold leading-[150%] w-full">- {formatCurrency(order.discount)}</span>
+              <span className="text-[#212529] text-right text-base font-bold leading-[150%] w-full">- {formatCurrency(order.discountAmount || '0')}</span>
             </div>
 
             <div className="flex h-[67px] flex-col items-end gap-3 w-full border-b border-dashed border-[#212529]">

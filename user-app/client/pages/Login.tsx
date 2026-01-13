@@ -24,8 +24,12 @@ export default function Login() {
     
     setIsLoading(true);
     try {
-      await login(email, password);
-      navigate("/home");
+      const result = await login(email, password);
+      if (result.success) {
+        navigate("/home");
+      } else {
+        setError(result.error || "فشل تسجيل الدخول");
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "فشل تسجيل الدخول");
     } finally {

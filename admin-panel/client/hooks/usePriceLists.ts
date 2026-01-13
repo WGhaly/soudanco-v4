@@ -23,6 +23,26 @@ export interface PriceList {
   updatedAt: string;
 }
 
+// Input type for creating/updating price list items (no id required)
+export interface PriceListItemInput {
+  productId: string;
+  price: number;
+}
+
+// Input type for creating a price list
+export interface CreatePriceListInput {
+  name: string;
+  nameAr?: string;
+  description?: string;
+  isActive?: boolean;
+  items?: PriceListItemInput[];
+}
+
+// Input type for updating a price list
+export interface UpdatePriceListInput extends CreatePriceListInput {
+  id: string;
+}
+
 export interface PriceListsResponse {
   success: boolean;
   data: PriceList[];
@@ -73,7 +93,7 @@ export function useCreatePriceList() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (data: Partial<PriceList> & { items?: { productId: string; price: number }[] }) =>
+    mutationFn: (data: CreatePriceListInput) =>
       fetchWithAuth('/api/price-lists', {
         method: 'POST',
         body: JSON.stringify(data),
@@ -88,7 +108,7 @@ export function useUpdatePriceList() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ id, ...data }: Partial<PriceList> & { id: string; items?: { productId: string; price: number }[] }) =>
+    mutationFn: ({ id, ...data }: UpdatePriceListInput) =>
       fetchWithAuth(`/api/price-lists/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),

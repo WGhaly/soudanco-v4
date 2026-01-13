@@ -144,7 +144,7 @@ export default function Orders() {
                             {order.itemCount || 0} منتجات
                           </span>
                           <span className="text-[#C0C0C0] text-right text-sm font-normal leading-[150%] w-full">
-                            {order.deliveryDate ? `موعد التوصيل: ${new Date(order.deliveryDate).toLocaleDateString('ar-EG')}` : ''}
+                            {order.addressLabel ? `${order.addressLabel} - ${order.city}` : ''}
                           </span>
                         </div>
                       </div>

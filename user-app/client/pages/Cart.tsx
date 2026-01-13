@@ -197,12 +197,12 @@ export default function Cart() {
             <div className="flex flex-col items-start gap-[23px] w-full">
               <div className="flex flex-row-reverse justify-between items-center w-full">
                 <span className="text-[#6C757D] text-sm">
-                  {cart?.itemCount} منتجات ({cart?.totalQuantity} قطعة)
+                  {cart?.summary?.itemCount || cartItems.length} منتجات
                 </span>
               </div>
               <div className="flex flex-row-reverse justify-between items-center w-full">
                 <span className="text-[#FD7E14] text-xl font-medium leading-[120%]">
-                  <b>{cart?.subtotal} جم</b>
+                  <b>{cart?.summary?.total || cart?.summary?.subtotal} جم</b>
                 </span>
                 <span className="flex-1 text-[#212529] text-right text-xl font-medium leading-[120%] max-sm:mr-auto">
                   المجموع الكلي

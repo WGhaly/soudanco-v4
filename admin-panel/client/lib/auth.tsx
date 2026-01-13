@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 
 // Types
 interface User {
@@ -188,6 +189,7 @@ export function RequireAuth({
   allowedRoles?: ('admin' | 'supervisor' | 'customer')[];
 }) {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -198,9 +200,8 @@ export function RequireAuth({
   }
 
   if (!isAuthenticated) {
-    // Redirect to login
-    window.location.href = '/login';
-    return null;
+    // Redirect to login, preserving the intended destination
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {

@@ -17,7 +17,7 @@ export default function PaymentMethods() {
 
   const getTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      credit_card: 'بطاقة ائتمان',
+      credit: 'بطاقة ائتمان',
       bank_transfer: 'تحويل بنكي',
       cash: 'نقدي',
     };

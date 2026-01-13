@@ -16,11 +16,16 @@ export interface CartItem {
   stockQuantity: number;
 }
 
+export interface CartSummary {
+  itemCount: number;
+  subtotal: string;
+  discount: string;
+  total: string;
+}
+
 export interface Cart {
   items: CartItem[];
-  subtotal: string;
-  itemCount: number;
-  totalQuantity: number;
+  summary: CartSummary;
 }
 
 export interface CartResponse {

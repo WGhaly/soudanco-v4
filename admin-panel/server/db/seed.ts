@@ -3,6 +3,8 @@ import {
   users,
   customers,
   customerAddresses,
+  customerPaymentMethods,
+  notifications,
   supervisors,
   categories,
   products,
@@ -10,6 +12,9 @@ import {
   priceListItems,
   discounts,
   discountProducts,
+  orders,
+  orderItems,
+  payments,
 } from './schema';
 import bcrypt from 'bcrypt';
 
@@ -17,6 +22,30 @@ async function seed() {
   console.log('🌱 Starting database seed...');
 
   try {
+    // ============================================
+    // 0. CLEAN UP EXISTING DATA
+    // ============================================
+    console.log('Cleaning up existing data...');
+    
+    // Delete in order to respect foreign key constraints
+    await db.delete(orderItems);
+    await db.delete(payments);
+    await db.delete(orders);
+    await db.delete(notifications);
+    await db.delete(customerPaymentMethods);
+    await db.delete(customerAddresses);
+    await db.delete(discountProducts);
+    await db.delete(discounts);
+    await db.delete(priceListItems);
+    await db.delete(customers);
+    await db.delete(supervisors);
+    await db.delete(users);
+    await db.delete(products);
+    await db.delete(categories);
+    await db.delete(priceLists);
+    
+    console.log('✓ Existing data cleaned');
+
     // ============================================
     // 1. CREATE ADMIN USER
     // ============================================
@@ -328,6 +357,121 @@ async function seed() {
       isDefault: true,
     });
     console.log('✓ Customers created with addresses');
+
+    // ============================================
+    // 7.5 CREATE PAYMENT METHODS
+    // ============================================
+    console.log('Creating payment methods...');
+    
+    // Customer 1 payment methods
+    await db.insert(customerPaymentMethods).values({
+      customerId: customer1.id,
+      type: 'credit',
+      label: 'Visa Card',
+      details: JSON.stringify({ lastFour: '4532', expiryDate: '12/27' }),
+      isDefault: true,
+    });
+    await db.insert(customerPaymentMethods).values({
+      customerId: customer1.id,
+      type: 'bank_transfer',
+      label: 'Bank Account - Al Rajhi',
+      details: JSON.stringify({ bankName: 'Al Rajhi Bank' }),
+      isDefault: false,
+    });
+
+    // Customer 2 payment methods
+    await db.insert(customerPaymentMethods).values({
+      customerId: customer2.id,
+      type: 'credit',
+      label: 'Mastercard',
+      details: JSON.stringify({ lastFour: '8891', expiryDate: '06/26' }),
+      isDefault: true,
+    });
+
+    // Customer 3 payment methods
+    await db.insert(customerPaymentMethods).values({
+      customerId: customer3.id,
+      type: 'cash',
+      label: 'Cash on Delivery',
+      details: null,
+      isDefault: true,
+    });
+    await db.insert(customerPaymentMethods).values({
+      customerId: customer3.id,
+      type: 'bank_transfer',
+      label: 'Bank Account - NCB',
+      details: JSON.stringify({ bankName: 'National Commercial Bank' }),
+      isDefault: false,
+    });
+    console.log('✓ Payment methods created');
+
+    // ============================================
+    // 7.6 CREATE NOTIFICATIONS
+    // ============================================
+    console.log('Creating notifications...');
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+
+    // Notifications for customer 1
+    await db.insert(notifications).values([
+      {
+        userId: customer1User.id,
+        title: 'مرحباً بك في سودانكو',
+        message: 'شكراً لانضمامك إلينا! استمتع بالتسوق واحصل على خصومات حصرية.',
+        type: 'system',
+        isRead: true,
+        createdAt: twoDaysAgo,
+      },
+      {
+        userId: customer1User.id,
+        title: 'خصم صيفي 15%',
+        message: 'استمتع بخصم 15% على جميع المشروبات الغازية لفترة محدودة!',
+        type: 'discount',
+        isRead: false,
+        createdAt: yesterday,
+      },
+      {
+        userId: customer1User.id,
+        title: 'طلبك في الطريق',
+        message: 'تم شحن طلبك رقم #1234 وسيصل خلال 2-3 أيام عمل.',
+        type: 'order',
+        isRead: false,
+        createdAt: new Date(),
+      },
+    ]);
+
+    // Notifications for customer 2
+    await db.insert(notifications).values([
+      {
+        userId: customer2User.id,
+        title: 'مرحباً بك في سودانكو',
+        message: 'شكراً لانضمامك إلينا! استمتع بالتسوق واحصل على خصومات حصرية.',
+        type: 'system',
+        isRead: true,
+        createdAt: twoDaysAgo,
+      },
+      {
+        userId: customer2User.id,
+        title: 'عرض خاص لعملاء VIP',
+        message: 'بصفتك عميل VIP، احصل على خصم إضافي 5% على طلبك القادم!',
+        type: 'discount',
+        isRead: false,
+        createdAt: new Date(),
+      },
+    ]);
+
+    // Notifications for customer 3
+    await db.insert(notifications).values([
+      {
+        userId: customer3User.id,
+        title: 'مرحباً بك في سودانكو',
+        message: 'شكراً لانضمامك إلينا! استمتع بالتسوق واحصل على خصومات حصرية.',
+        type: 'system',
+        isRead: true,
+        createdAt: twoDaysAgo,
+      },
+    ]);
+    console.log('✓ Notifications created');
 
     // ============================================
     // 8. CREATE DISCOUNTS

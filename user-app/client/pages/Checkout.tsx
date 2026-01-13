@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useCart } from "@/hooks/useCart";
 import { useCreateOrder } from "@/hooks/useOrders";
+import { useAddresses, usePaymentMethods } from "@/hooks/useProfile";
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -13,11 +14,24 @@ export default function Checkout() {
   const { data: cartData, isLoading: cartLoading, error: cartError } = useCart();
   const cart = cartData?.data;
 
+  // Fetch addresses and payment methods
+  const { data: addressesData } = useAddresses();
+  const { data: paymentMethodsData } = usePaymentMethods();
+  
+  const addresses = addressesData?.data || [];
+  const paymentMethods = paymentMethodsData?.data || [];
+  
+  // Get default address and payment method
+  const defaultAddress = addresses.find(a => a.isDefault) || addresses[0];
+  const defaultPaymentMethod = paymentMethods.find(m => m.isDefault) || paymentMethods[0];
+
   // Create order mutation
   const createOrder = useCreateOrder();
 
-  const formatCurrency = (amount: string | number) => {
+  const formatCurrency = (amount: string | number | undefined | null) => {
+    if (amount === undefined || amount === null) return '0 جم';
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+    if (isNaN(num)) return '0 جم';
     return `${num.toLocaleString('ar-EG')} جم`;
   };
 
@@ -97,11 +111,21 @@ export default function Checkout() {
                   }`}
                 >
                   <div className="flex flex-row items-start gap-3 w-full justify-end">
-                    <img
-                      src={item.imageUrl || "https://via.placeholder.com/62x66"}
-                      alt={item.productNameAr || item.productName}
-                      className="w-[62px] h-[66px] rounded-lg object-cover"
-                    />
+                    {item.imageUrl ? (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.productNameAr || item.productName}
+                        className="w-[62px] h-[66px] rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-[62px] h-[66px] rounded-lg bg-gray-100 flex items-center justify-center">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#FD7E14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M8.5 10C9.32843 10 10 9.32843 10 8.5C10 7.67157 9.32843 7 8.5 7C7.67157 7 7 7.67157 7 8.5C7 9.32843 7.67157 10 8.5 10Z" stroke="#FD7E14" strokeWidth="2"/>
+                          <path d="M21 15L16 10L5 21" stroke="#FD7E14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                    )}
                     <div className="flex flex-col items-end gap-1.5 flex-1">
                       <span className="text-[#363636] text-right text-base font-normal leading-[130%] w-full">
                         {item.productNameAr || item.productName}
@@ -130,30 +154,38 @@ export default function Checkout() {
             onClick={() => navigate("/address")}
             className="flex p-4 flex-col justify-center items-center gap-6 w-full rounded-xl border border-[#DEE2E6] bg-white shadow-[0_0_15px_0_rgba(0,0,0,0.1)] hover:shadow-[0_0_20px_0_rgba(0,0,0,0.15)] transition-shadow"
           >
-            <div className="flex flex-col items-end gap-3 w-full">
-              <div className="flex flex-row-reverse items-center gap-1.5 w-full max-sm:justify-end max-sm:items-center">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="max-sm:mr-auto max-sm:flex max-sm:flex-col max-sm:items-stretch">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M11.3536 1.64645C11.5488 1.84171 11.5488 2.15829 11.3536 2.35355L5.70711 8L11.3536 13.6464C11.5488 13.8417 11.5488 14.1583 11.3536 14.3536C11.1583 14.5488 10.8417 14.5488 10.6464 14.3536L4.64645 8.35355C4.45118 8.15829 4.45118 7.84171 4.64645 7.64645L10.6464 1.64645C10.8417 1.45118 11.1583 1.45118 11.3536 1.64645Z" fill="#6C757D"/>
-                </svg>
-                <div className="max-sm:flex max-sm:flex-row"></div>
-                <span className="text-[#212529] text-right text-base font-normal leading-[130%] max-sm:ml-auto">
-                  الوحدة العلية
-                </span>
-                <div className="flex justify-end items-center flex-1 max-sm:w-auto max-sm:flex-grow-0">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M12.1658 8.93977C11.6418 10.0015 10.9325 11.0601 10.2058 12.01C9.48132 12.957 8.75442 13.7768 8.20768 14.3605C8.13503 14.438 8.06566 14.5113 8 14.5801C7.93434 14.5113 7.86497 14.438 7.79232 14.3605C7.24558 13.7768 6.51868 12.957 5.79425 12.01C5.06754 11.0601 4.35825 10.0015 3.83423 8.93977C3.3048 7.86708 3 6.86191 3 6C3 3.23858 5.23858 1 8 1C10.7614 1 13 3.23858 13 6C13 6.86191 12.6952 7.86708 12.1658 8.93977ZM8 16C8 16 14 10.3137 14 6C14 2.68629 11.3137 0 8 0C4.68629 0 2 2.68629 2 6C2 10.3137 8 16 8 16Z" fill="#FD7E14"/>
-                    <path d="M8 8C6.89543 8 6 7.10457 6 6C6 4.89543 6.89543 4 8 4C9.10457 4 10 4.89543 10 6C10 7.10457 9.10457 8 8 8ZM8 9C9.65685 9 11 7.65685 11 6C11 4.34315 9.65685 3 8 3C6.34315 3 5 4.34315 5 6C5 7.65685 6.34315 9 8 9Z" fill="#FD7E14"/>
+            {defaultAddress ? (
+              <div className="flex flex-col items-end gap-3 w-full">
+                <div className="flex flex-row-reverse items-center gap-1.5 w-full max-sm:justify-end max-sm:items-center">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="max-sm:mr-auto max-sm:flex max-sm:flex-col max-sm:items-stretch">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M11.3536 1.64645C11.5488 1.84171 11.5488 2.15829 11.3536 2.35355L5.70711 8L11.3536 13.6464C11.5488 13.8417 11.5488 14.1583 11.3536 14.3536C11.1583 14.5488 10.8417 14.5488 10.6464 14.3536L4.64645 8.35355C4.45118 8.15829 4.45118 7.84171 4.64645 7.64645L10.6464 1.64645C10.8417 1.45118 11.1583 1.45118 11.3536 1.64645Z" fill="#6C757D"/>
                   </svg>
+                  <span className="text-[#212529] text-right text-base font-normal leading-[130%] max-sm:ml-auto">
+                    {defaultAddress.label}
+                  </span>
+                  <div className="flex justify-end items-center flex-1 max-sm:w-auto max-sm:flex-grow-0">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M12.1658 8.93977C11.6418 10.0015 10.9325 11.0601 10.2058 12.01C9.48132 12.957 8.75442 13.7768 8.20768 14.3605C8.13503 14.438 8.06566 14.5113 8 14.5801C7.93434 14.5113 7.86497 14.438 7.79232 14.3605C7.24558 13.7768 6.51868 12.957 5.79425 12.01C5.06754 11.0601 4.35825 10.0015 3.83423 8.93977C3.3048 7.86708 3 6.86191 3 6C3 3.23858 5.23858 1 8 1C10.7614 1 13 3.23858 13 6C13 6.86191 12.6952 7.86708 12.1658 8.93977ZM8 16C8 16 14 10.3137 14 6C14 2.68629 11.3137 0 8 0C4.68629 0 2 2.68629 2 6C2 10.3137 8 16 8 16Z" fill="#FD7E14"/>
+                      <path d="M8 8C6.89543 8 6 7.10457 6 6C6 4.89543 6.89543 4 8 4C9.10457 4 10 4.89543 10 6C10 7.10457 9.10457 8 8 8ZM8 9C9.65685 9 11 7.65685 11 6C11 4.34315 9.65685 3 8 3C6.34315 3 5 4.34315 5 6C5 7.65685 6.34315 9 8 9Z" fill="#FD7E14"/>
+                    </svg>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col items-end gap-1.5 w-full px-3">
+                  <span className="text-[#CED4DA] text-right text-sm font-normal leading-[150%] w-full">
+                    {defaultAddress.addressLine1}
+                    {defaultAddress.addressLine2 && `, ${defaultAddress.addressLine2}`}
+                    {`, ${defaultAddress.city}`}
+                    {defaultAddress.region && `, ${defaultAddress.region}`}
+                  </span>
                 </div>
               </div>
-              
-              <div className="flex flex-col items-end gap-1.5 w-full px-3">
-                <span className="text-[#CED4DA] text-right text-sm font-normal leading-[150%] w-full">
-                  <span className="text-[#212529] font-medium">اسم المسوؤل</span><br />
-                  15 شارع بيروتو الكوربة, هليوبوليس , مصر الجديدة
-                </span>
+            ) : (
+              <div className="flex flex-col items-center gap-2 w-full py-2">
+                <span className="text-[#6C757D] text-center text-sm">لا يوجد عنوان محدد</span>
+                <span className="text-[#FD7E14] text-center text-sm font-medium">إضافة عنوان</span>
               </div>
-            </div>
+            )}
           </button>
         </div>
         
@@ -167,22 +199,29 @@ export default function Checkout() {
             onClick={() => navigate("/payment")}
             className="flex flex-row-reverse px-4 py-2.5 justify-end items-center gap-2.5 w-full rounded-xl border border-[#DEE2E6] bg-white shadow-[0_0_15px_0_rgba(0,0,0,0.1)] hover:shadow-[0_0_20px_0_rgba(0,0,0,0.15)] transition-shadow"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path fillRule="evenodd" clipRule="evenodd" d="M11.3536 1.64645C11.5488 1.84171 11.5488 2.15829 11.3536 2.35355L5.70711 8L11.3536 13.6464C11.5488 13.8417 11.5488 14.1583 11.3536 14.3536C11.1583 14.5488 10.8417 14.5488 10.6464 14.3536L4.64645 8.35355C4.45118 8.15829 4.45118 7.84171 4.64645 7.64645L10.6464 1.64645C10.8417 1.45118 11.1583 1.45118 11.3536 1.64645Z" fill="#6C757D"/>
-            </svg>
-            <div className="flex flex-col justify-center items-end flex-1">
-              <span className="text-[#363636] text-right text-base font-normal leading-[130%] w-full">
-                Master card
-              </span>
-              <span className="text-[#6C757D] text-right text-sm font-normal leading-[150%] w-full">
-                .... 2544
-              </span>
-            </div>
-            <img
-              src="https://api.builder.io/api/v1/image/assets/TEMP/038a9121ec56823bfad89a24826e1b1af5ebbe78"
-              alt="Mastercard"
-              className="w-10 h-6 rounded-md"
-            />
+            {defaultPaymentMethod ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path fillRule="evenodd" clipRule="evenodd" d="M11.3536 1.64645C11.5488 1.84171 11.5488 2.15829 11.3536 2.35355L5.70711 8L11.3536 13.6464C11.5488 13.8417 11.5488 14.1583 11.3536 14.3536C11.1583 14.5488 10.8417 14.5488 10.6464 14.3536L4.64645 8.35355C4.45118 8.15829 4.45118 7.84171 4.64645 7.64645L10.6464 1.64645C10.8417 1.45118 11.1583 1.45118 11.3536 1.64645Z" fill="#6C757D"/>
+                </svg>
+                <div className="flex flex-col justify-center items-end flex-1">
+                  <span className="text-[#363636] text-right text-base font-normal leading-[130%] w-full">
+                    {defaultPaymentMethod.label}
+                  </span>
+                  <span className="text-[#6C757D] text-right text-sm font-normal leading-[150%] w-full">
+                    {defaultPaymentMethod.lastFour ? `.... ${defaultPaymentMethod.lastFour}` : defaultPaymentMethod.type === 'cash' ? 'نقدي' : defaultPaymentMethod.type === 'bank_transfer' ? 'تحويل بنكي' : ''}
+                  </span>
+                </div>
+                <div className="w-10 h-6 rounded-md bg-gray-200 flex items-center justify-center text-xs text-gray-500">
+                  {defaultPaymentMethod.type === 'credit' ? '💳' : defaultPaymentMethod.type === 'cash' ? '💵' : '🏦'}
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-1 w-full py-2">
+                <span className="text-[#6C757D] text-center text-sm w-full">لا توجد وسيلة دفع محددة</span>
+                <span className="text-[#FD7E14] text-center text-sm font-medium w-full">إضافة وسيلة دفع</span>
+              </div>
+            )}
           </button>
         </div>
         
@@ -241,8 +280,8 @@ export default function Checkout() {
         <div className="flex px-6 flex-col items-end gap-[26px] w-full">
           <div className="flex flex-col items-end gap-[23px] w-full">
             <div className="flex flex-row-reverse justify-center items-center gap-2.5 w-full">
-              <span className="text-[#262626] text-base font-normal leading-[130%]">{formatCurrency(cart.subtotal)}</span>
-              <span className="flex-1 text-[#262626] text-right text-base font-normal leading-[130%]">المجموع الفرعي ({cart.itemCount} منتج)</span>
+              <span className="text-[#262626] text-base font-normal leading-[130%]">{formatCurrency(cart.summary?.subtotal || '0')}</span>
+              <span className="flex-1 text-[#262626] text-right text-base font-normal leading-[130%]">المجموع الفرعي ({cart.summary?.itemCount || cart.items.length} منتج)</span>
             </div>
             <div className="flex flex-row-reverse justify-center items-center gap-2.5 w-full">
               <span className="text-[#75B798] text-sm font-medium leading-[120%]">توصيل مجاني</span>
@@ -250,7 +289,7 @@ export default function Checkout() {
             </div>
           </div>
           <div className="flex flex-row-reverse justify-between items-center w-full">
-            <span className="text-[#FD7E14] text-xl font-medium leading-[120%]">{formatCurrency(cart.subtotal)}</span>
+            <span className="text-[#FD7E14] text-xl font-medium leading-[120%]">{formatCurrency(cart.summary?.total || cart.summary?.subtotal || '0')}</span>
             <span className="flex-1 text-[#212529] text-right text-xl font-medium leading-[120%]">المجموع الكلي</span>
           </div>
         </div>

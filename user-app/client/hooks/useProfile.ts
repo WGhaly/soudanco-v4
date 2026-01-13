@@ -5,9 +5,10 @@ import { useAuthFetch } from '@/lib/auth';
 export interface Address {
   id: string;
   label: string;
-  street: string;
+  addressLine1: string;
+  addressLine2?: string;
   city: string;
-  state?: string;
+  region?: string;
   postalCode?: string;
   country: string;
   isDefault: boolean;
@@ -77,7 +78,7 @@ export function useDeleteAddress() {
 // Payment Methods
 export interface PaymentMethod {
   id: string;
-  type: 'credit_card' | 'bank_transfer' | 'cash';
+  type: 'credit' | 'bank_transfer' | 'cash';
   label: string;
   lastFour?: string;
   expiryDate?: string;

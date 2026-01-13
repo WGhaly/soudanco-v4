@@ -212,9 +212,29 @@ router.get('/payment-methods', async (req: AuthenticatedRequest, res: Response) 
       .where(eq(customerPaymentMethods.customerId, customerId))
       .orderBy(desc(customerPaymentMethods.isDefault));
 
+    // Transform data to include lastFour and expiryDate from details JSON
+    const transformedMethods = methods.map(method => {
+      let details: { lastFour?: string; expiryDate?: string; bankName?: string } = {};
+      if (method.details) {
+        try {
+          details = JSON.parse(method.details);
+        } catch {
+          details = {};
+        }
+      }
+      return {
+        id: method.id,
+        type: method.type,
+        label: method.label,
+        lastFour: details.lastFour,
+        expiryDate: details.expiryDate,
+        isDefault: method.isDefault,
+      };
+    });
+
     return res.json({
       success: true,
-      data: methods,
+      data: transformedMethods,
     });
   } catch (error) {
     console.error('List payment methods error:', error);

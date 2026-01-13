@@ -59,6 +59,14 @@ export default function CustomerDetails() {
   const { data: customerData, isLoading: customerLoading, error: customerError } = useCustomer(id || '');
   const customer = customerData?.data;
 
+  // Local state for isActive toggle (derived from customer.isActive)
+  const [isActive, setIsActive] = useState(true);
+
+  // Update local state when customer data loads
+  if (customer && isActive !== customer.isActive) {
+    setIsActive(customer.isActive);
+  }
+
   // Fetch customer payments
   const { data: paymentsData } = usePayments(1, 10, { customerId: id });
   const payments = paymentsData?.data || [];

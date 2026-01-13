@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import { useOrder } from "@/hooks/useOrders";
+import { useOrder, useUpdateOrderStatus } from "@/hooks/useOrders";
+import { useToast } from "@/hooks/use-toast";
 
 type OrderStage = "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
 
@@ -52,8 +53,10 @@ function OrderTracker({ currentStage }: { currentStage: OrderStage }) {
 export default function OrderDetails() {
   const { id } = useParams();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { toast } = useToast();
   
   const { data: orderData, isLoading, error } = useOrder(id);
+  const updateOrderStatus = useUpdateOrderStatus();
   const order = orderData?.data;
 
   const formatCurrency = (amount: string | number) => {
@@ -74,6 +77,73 @@ export default function OrderDetails() {
       advance: 'دفع مقدم',
     };
     return methods[method] || method;
+  };
+
+  const getNextStatus = (currentStatus: string): string | null => {
+    const statusFlow: Record<string, string> = {
+      pending: 'confirmed',
+      confirmed: 'processing',
+      processing: 'shipped',
+      shipped: 'delivered',
+    };
+    return statusFlow[currentStatus] || null;
+  };
+
+  const getNextStatusLabel = (status: string): string => {
+    const labels: Record<string, string> = {
+      confirmed: 'تأكيد الطلب',
+      processing: 'بدء التجهيز',
+      shipped: 'تم الشحن',
+      delivered: 'تم التوصيل',
+    };
+    return labels[status] || status;
+  };
+
+  const handleUpdateStatus = (newStatus: string) => {
+    if (!id) return;
+    
+    updateOrderStatus.mutate(
+      { id, status: newStatus as any },
+      {
+        onSuccess: () => {
+          toast({
+            title: 'تم التحديث',
+            description: `تم تحديث حالة الطلب إلى ${getNextStatusLabel(newStatus)}`,
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: 'خطأ',
+            description: error.message,
+            variant: 'destructive',
+          });
+        },
+      }
+    );
+  };
+
+  const handleCancelOrder = () => {
+    if (!id) return;
+    if (!confirm('هل أنت متأكد من إلغاء هذا الطلب؟')) return;
+    
+    updateOrderStatus.mutate(
+      { id, status: 'cancelled' },
+      {
+        onSuccess: () => {
+          toast({
+            title: 'تم الإلغاء',
+            description: 'تم إلغاء الطلب بنجاح',
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: 'خطأ',
+            description: error.message,
+            variant: 'destructive',
+          });
+        },
+      }
+    );
   };
 
   if (isLoading) {
@@ -241,46 +311,61 @@ export default function OrderDetails() {
               </div>
             </div>
 
-            {/* Applied Offers Section */}
-            <div className="flex flex-col items-start gap-6 self-stretch">
-              <h2 className="self-stretch text-gray-secondary text-right text-xl md:text-2xl font-medium leading-[120%]">
-                العروض المطبّقة
-              </h2>
+            {/* Order Status Management */}
+            {order.status !== 'delivered' && order.status !== 'cancelled' && (
+              <div className="flex flex-col items-start gap-6 self-stretch">
+                <h2 className="self-stretch text-gray-secondary text-right text-xl md:text-2xl font-medium leading-[120%]">
+                  إدارة حالة الطلب
+                </h2>
 
-              <div className="flex flex-col justify-center items-end gap-6 self-stretch">
-                <div className="flex flex-col items-start gap-2 self-stretch rounded-lg border border-theme-success bg-green-100 p-3">
-                  <div className="flex justify-end items-start gap-1 self-stretch">
-                    <button className="p-2">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 4L4 12M4 4L12 12" stroke="#6C757D" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
+                <div className="flex flex-wrap gap-4 self-stretch justify-end">
+                  {getNextStatus(order.status) && (
+                    <button
+                      onClick={() => handleUpdateStatus(getNextStatus(order.status)!)}
+                      disabled={updateOrderStatus.isPending}
+                      className="flex items-center gap-2 px-6 py-3 rounded-full bg-brand-primary text-white hover:opacity-90 disabled:opacity-50 transition-all"
+                    >
+                      {updateOrderStatus.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M16.6667 5L7.5 14.1667L3.33337 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                      <span>{getNextStatusLabel(getNextStatus(order.status)!)}</span>
                     </button>
-                    <div className="flex-1 text-green-400 text-right text-base font-medium leading-[120%]">
-                      اشترى X و احصل علي Y
-                    </div>
-                  </div>
-                  <div className="self-stretch text-theme-success text-right text-base font-bold leading-[150%]">
-                    اشترِ 5 كراتين سان توب رمان واحصل على 1 مجانًا
-                  </div>
+                  )}
+                  
+                  <button
+                    onClick={handleCancelOrder}
+                    disabled={updateOrderStatus.isPending}
+                    className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white hover:opacity-90 disabled:opacity-50 transition-all"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M15 5L5 15M5 5L15 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span>إلغاء الطلب</span>
+                  </button>
                 </div>
+              </div>
+            )}
 
-                <div className="flex flex-col items-start gap-2 self-stretch rounded-lg border border-theme-success bg-green-100 p-3">
-                  <div className="flex justify-end items-start gap-1 self-stretch">
-                    <button className="p-2">
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 4L4 12M4 4L12 12" stroke="#6C757D" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    </button>
-                    <div className="flex-1 text-green-400 text-right text-base font-medium leading-[120%]">
-                      انفق X و احصل علي Y% تخفيض
+            {/* Discount Applied (if any) */}
+            {parseFloat(order.discountAmount) > 0 && (
+              <div className="flex flex-col items-start gap-6 self-stretch">
+                <h2 className="self-stretch text-gray-secondary text-right text-xl md:text-2xl font-medium leading-[120%]">
+                  الخصومات المطبّقة
+                </h2>
+
+                <div className="flex flex-col justify-center items-end gap-6 self-stretch">
+                  <div className="flex flex-col items-start gap-2 self-stretch rounded-lg border border-theme-success bg-green-100 p-3">
+                    <div className="self-stretch text-theme-success text-right text-base font-bold leading-[150%]">
+                      خصم بقيمة {formatCurrency(order.discountAmount)}
                     </div>
-                  </div>
-                  <div className="self-stretch text-theme-success text-right text-base font-bold leading-[150%]">
-                    أنفق 10,000 جنيه و تم تطبيق مكافأة 3%
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Order Summary Section */}
             <div className="flex flex-col items-start gap-6 self-stretch">

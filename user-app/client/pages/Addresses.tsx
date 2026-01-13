@@ -81,11 +81,11 @@ export default function Addresses() {
                 
                 <div className="flex flex-col items-end gap-1.5 w-full px-3">
                   <span className="text-[#C0C0C0] text-right text-sm font-normal leading-[150%] w-full">
-                    {address.street}, {address.city}
+                    {address.addressLine1}, {address.city}
                   </span>
-                  {address.state && (
+                  {address.region && (
                     <span className="text-[#C0C0C0] text-right text-sm font-normal leading-[150%] w-full">
-                      {address.state} {address.postalCode}
+                      {address.region} {address.postalCode}
                     </span>
                   )}
                 </div>
@@ -141,11 +141,11 @@ export default function Addresses() {
               
               <div className="flex flex-col items-end gap-1.5 w-full px-3">
                 <span className="text-[#C0C0C0] text-right text-sm font-normal leading-[150%] w-full">
-                  {address.street}, {address.city}
+                  {address.addressLine1}, {address.city}
                 </span>
-                {address.state && (
+                {address.region && (
                   <span className="text-[#C0C0C0] text-right text-sm font-normal leading-[150%] w-full">
-                    {address.state} {address.postalCode}
+                    {address.region} {address.postalCode}
                   </span>
                 )}
               </div>

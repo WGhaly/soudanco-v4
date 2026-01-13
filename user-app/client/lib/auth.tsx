@@ -62,31 +62,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Try to restore session on mount
   useEffect(() => {
     const restoreSession = async () => {
-      const success = await refreshToken();
-      if (success) {
-        // Fetch user profile
-        try {
-          const response = await fetch('/api/auth/me', {
+      try {
+        // First try to refresh the token
+        const response = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        if (!response.ok) {
+          setIsLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        if (data.success && data.data.accessToken) {
+          const newToken = data.data.accessToken;
+          setAccessToken(newToken);
+
+          // Fetch user profile with the NEW token (not the stale closure value)
+          const profileResponse = await fetch('/api/auth/me', {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
+              Authorization: `Bearer ${newToken}`,
             },
             credentials: 'include',
           });
 
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success) {
-              setCustomer(data.data);
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            if (profileData.success) {
+              setCustomer(profileData.data);
               setUser({
-                id: data.data.userId,
-                email: data.data.email || '',
+                id: profileData.data.userId,
+                email: profileData.data.email || '',
                 role: 'customer',
               });
             }
           }
-        } catch {
-          // Ignore
         }
+      } catch {
+        // Ignore - not logged in
       }
       setIsLoading(false);
     };
@@ -111,6 +125,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: data.error || 'Login failed' };
       }
 
+      // Update module-level token IMMEDIATELY so useAuthFetch has it right away
+      setLatestAccessToken(data.data.accessToken);
+      
       setAccessToken(data.data.accessToken);
       setUser(data.data.user);
       setCustomer(data.data.customer);
@@ -174,15 +191,28 @@ export function useAuth() {
   return context;
 }
 
+// Helper to get fresh token after refresh
+let latestAccessToken: string | null = null;
+
+export function setLatestAccessToken(token: string | null) {
+  latestAccessToken = token;
+}
+
 // Authenticated fetch helper
 export function useAuthFetch() {
   const { accessToken, refreshToken, logout } = useAuth();
 
+  // Keep the module-level token in sync
+  useEffect(() => {
+    setLatestAccessToken(accessToken);
+  }, [accessToken]);
+
   return useCallback(
     async (url: string, options: RequestInit = {}) => {
       const headers = new Headers(options.headers);
-      if (accessToken) {
-        headers.set('Authorization', `Bearer ${accessToken}`);
+      const currentToken = latestAccessToken || accessToken;
+      if (currentToken) {
+        headers.set('Authorization', `Bearer ${currentToken}`);
       }
       headers.set('Content-Type', 'application/json');
 
@@ -196,8 +226,13 @@ export function useAuthFetch() {
       if (response.status === 401) {
         const refreshed = await refreshToken();
         if (refreshed) {
-          // Retry request
-          headers.set('Authorization', `Bearer ${accessToken}`);
+          // Retry request with the LATEST token from module scope
+          // We need to wait a tick for the state to update
+          await new Promise(resolve => setTimeout(resolve, 50));
+          const freshToken = latestAccessToken;
+          if (freshToken) {
+            headers.set('Authorization', `Bearer ${freshToken}`);
+          }
           response = await fetch(url, {
             ...options,
             headers,
