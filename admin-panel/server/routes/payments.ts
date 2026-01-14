@@ -20,12 +20,21 @@ function generatePaymentNumber(): string {
 // GET /api/payments - List all payments
 router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { page = '1', limit = '10' } = req.query;
+    const { page = '1', limit = '10', status, customerId } = req.query;
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
 
-    const result = await db
+    // Build where conditions
+    const conditions = [];
+    if (status) {
+      conditions.push(eq(payments.status, status as string));
+    }
+    if (customerId) {
+      conditions.push(eq(payments.customerId, customerId as string));
+    }
+
+    let query = db
       .select({
         id: payments.id,
         paymentNumber: payments.paymentNumber,
@@ -47,12 +56,24 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
       })
       .from(payments)
       .leftJoin(customers, eq(payments.customerId, customers.id))
-      .leftJoin(orders, eq(payments.orderId, orders.id))
+      .leftJoin(orders, eq(payments.orderId, orders.id));
+
+    // Apply filters if any
+    if (conditions.length > 0) {
+      query = query.where(sql`${sql.join(conditions, sql` AND `)}`) as any;
+    }
+
+    const result = await query
       .orderBy(desc(payments.createdAt))
       .limit(limitNum)
       .offset(offset);
 
-    const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(payments);
+    // Count with same filters
+    let countQuery = db.select({ count: sql<number>`count(*)` }).from(payments);
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(sql`${sql.join(conditions, sql` AND `)}`) as any;
+    }
+    const [countResult] = await countQuery;
 
     return res.json({
       success: true,
@@ -166,14 +187,61 @@ router.put('/:id/status', async (req: AuthenticatedRequest, res: Response) => {
       return res.status(400).json({ success: false, error: 'Invalid status' });
     }
 
+    // Get current payment to check old status
+    const [currentPayment] = await db
+      .select()
+      .from(payments)
+      .where(eq(payments.id, paymentId))
+      .limit(1);
+
+    if (!currentPayment) {
+      return res.status(404).json({ success: false, error: 'Payment not found' });
+    }
+
+    // Update payment status
     const [updated] = await db
       .update(payments)
-      .set({ status, updatedAt: new Date() })
+      .set({ 
+        status, 
+        processedAt: status === 'completed' ? new Date() : currentPayment.processedAt,
+        updatedAt: new Date() 
+      })
       .where(eq(payments.id, paymentId))
       .returning();
 
-    if (!updated) {
-      return res.status(404).json({ success: false, error: 'Payment not found' });
+    // Handle credit limit updates
+    if (currentPayment.status !== status && currentPayment.customerId) {
+      const [customer] = await db
+        .select({ currentBalance: customers.currentBalance })
+        .from(customers)
+        .where(eq(customers.id, currentPayment.customerId))
+        .limit(1);
+
+      if (customer) {
+        const currentBalance = parseFloat(customer.currentBalance || '0');
+        const paymentAmount = parseFloat(currentPayment.amount);
+        let newBalance = currentBalance;
+
+        // If payment changes from pending to completed, reduce balance (frees up credit)
+        if (currentPayment.status === 'pending' && status === 'completed') {
+          newBalance = currentBalance - paymentAmount;
+        }
+        // If payment changes from completed back to pending, increase balance (uses credit again)
+        else if (currentPayment.status === 'completed' && status === 'pending') {
+          newBalance = currentBalance + paymentAmount;
+        }
+
+        // Update customer balance
+        if (newBalance !== currentBalance) {
+          await db
+            .update(customers)
+            .set({ 
+              currentBalance: newBalance.toFixed(2),
+              updatedAt: new Date() 
+            })
+            .where(eq(customers.id, currentPayment.customerId));
+        }
+      }
     }
 
     return res.json({ success: true, data: updated });

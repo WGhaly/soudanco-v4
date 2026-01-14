@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { Search, Plus, Loader2, AlertCircle, RefreshCw, ArrowRight } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import DiscountsTable from "@/components/DiscountsTable";
 import { useDiscounts, useUpdateDiscount } from "@/hooks/useDiscounts";
@@ -60,46 +60,49 @@ export default function Discounts() {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50" dir="rtl">
+    <div className="flex min-h-screen bg-[#FFF]" dir="rtl">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col p-6 md:p-10 lg:p-[60px]">
-        <div className="w-full flex flex-col gap-8">
+      <main className="flex-1 p-6 md:p-10 lg:p-[60px] flex">
+        <div className="flex flex-col items-center flex-1 w-full">
+          <div className="flex flex-col items-center gap-6 md:gap-8 w-full">
+            <div className="flex flex-col items-end gap-6 md:gap-8 self-stretch">
           {/* Header */}
-          <div className="flex flex-col md:flex-row-reverse items-center gap-4">
-            {/* Title */}
-            <h1 className="text-[2rem] font-medium text-primary flex-1 md:flex-initial">
+          <div className="flex flex-col md:flex-row items-center gap-4 self-stretch">
+            {/* Title - Right */}
+            <h1 className="text-primary text-right text-2xl md:text-[32px] font-medium leading-[120%] flex-1 md:flex-initial">
               الخصومات
             </h1>
 
             {/* Search */}
-            <div className="relative flex-1 max-w-[720px]">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="عن ماذا تبحث؟"
-                className="w-full px-5 py-3 pr-12 rounded-full bg-white border border-gray-200 text-base text-right outline-none focus:ring-2 focus:ring-primary/20"
-              />
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div className="flex max-w-[720px] px-5 py-3 items-center gap-1 flex-1 rounded-[28px] bg-white border border-themeBorder">
+              <div className="flex h-[30px] items-center gap-4 flex-1">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="عن ماذا تبحث؟"
+                  className="flex-1 text-secondary text-right text-base font-normal leading-[130%] outline-none bg-transparent"
+                />
+                <Search className="w-5 h-5 text-gray-400" />
+              </div>
             </div>
 
             {/* Add Button */}
             <button
-              onClick={() => navigate("/discounts/new")}
-              className="flex items-center gap-2 px-4 py-2.5 bg-brand-primary text-white rounded-full hover:bg-brand-primary/90 transition-colors"
+              onClick={() => navigate("/discounts/add")}
+              className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-primary hover:bg-primary/90 transition-colors"
             >
-              <span>إضافة خصم</span>
-              <Plus className="w-5 h-5" />
+              <span className="text-white text-center text-base font-normal leading-[130%]">إضافة خصم</span>
+              <Plus className="w-5 h-5 text-white" />
             </button>
 
-            {/* Refresh Button */}
+            {/* Back Button - Left */}
             <button 
-              onClick={() => refetch()}
-              disabled={isFetching}
-              className="flex w-10 h-10 justify-center items-center rounded-full bg-gray-200 hover:opacity-90 disabled:opacity-50"
+              onClick={() => navigate(-1)}
+              className="flex w-10 h-10 justify-center items-center rounded-full bg-primary hover:bg-primary/90 transition-colors"
             >
-              <RefreshCw className={`w-5 h-5 text-gray-500 ${isFetching ? 'animate-spin' : ''}`} />
+              <ArrowRight className="w-5 h-5 text-white" />
             </button>
           </div>
 
@@ -124,7 +127,7 @@ export default function Discounts() {
           </div>
 
           {/* Table Section */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col items-end gap-6 self-stretch">
             <h2 className="text-2xl font-medium text-secondary text-right">جدول الخصومات</h2>
             
             {isLoading ? (
@@ -155,8 +158,10 @@ export default function Discounts() {
               />
             )}
           </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

@@ -1,15 +1,23 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, Loader2 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
+import { useCreateProduct, useCategories } from "../hooks/useProducts";
 
 export default function AddProduct() {
   const navigate = useNavigate();
+  const createProduct = useCreateProduct();
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.data || [];
+  
   const [productName, setProductName] = useState("");
   const [packageSize, setPackageSize] = useState("");
   const [sku, setSku] = useState("");
+  const [basePrice, setBasePrice] = useState("");
   const [isAvailable, setIsAvailable] = useState(true);
-  const [category, setCategory] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [productImage, setProductImage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -22,17 +30,42 @@ export default function AddProduct() {
     }
   };
 
-  const handleSubmit = () => {
-    // Handle product creation
-    console.log({
-      productName,
-      packageSize,
-      sku,
-      isAvailable,
-      category,
-      productImage,
-    });
-    navigate("/products");
+  const handleSubmit = async () => {
+    if (!productName.trim()) {
+      setError("اسم المنتج مطلوب");
+      return;
+    }
+    if (!sku.trim()) {
+      setError("كود المنتج مطلوب");
+      return;
+    }
+    
+    try {
+      setError(null);
+      const productData: any = {
+        name: productName,
+        nameAr: productName,
+        sku: sku,
+        unit: packageSize || "case",
+        basePrice: basePrice && basePrice.trim() !== "" ? basePrice : "0.00",
+      };
+      
+      // Only add categoryId if a valid category was selected
+      if (categoryId && categoryId.trim() !== "") {
+        productData.categoryId = categoryId;
+      }
+      
+      // Only add imageUrl if present
+      if (productImage) {
+        productData.imageUrl = productImage;
+      }
+      
+      await createProduct.mutateAsync(productData);
+      navigate("/products");
+    } catch (err: any) {
+      console.error("Error creating product:", err);
+      setError(err.message || "فشل في إنشاء المنتج");
+    }
   };
 
   return (
@@ -57,41 +90,51 @@ export default function AddProduct() {
         <div className="flex max-w-[800px] flex-col items-end gap-8 self-stretch px-4 md:px-0">
           {/* Header */}
           <div className="flex flex-col items-end gap-8 self-stretch">
-            <div className="flex justify-end items-center gap-[60px] self-stretch flex-col md:flex-row">
-              {/* Buttons */}
-              <div className="flex items-center gap-3 order-2 md:order-1">
-                <Link
-                  to="/products"
-                  className="flex w-10 h-10 p-1.5 justify-center items-center gap-1.5 aspect-square rounded-full bg-brand-primary hover:bg-brand-primary/90 transition-colors"
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M15 10H5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M10 5L5 10L10 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </Link>
-
-                <button
-                  onClick={handleSubmit}
-                  className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-brand-primary hover:bg-brand-primary/90 transition-colors"
-                >
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M13 4L6 11L3 8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span className="text-white text-center text-base font-normal leading-[130%]">
-                    إنشاء المنتج
-                  </span>
-                </button>
-              </div>
-
-              {/* Title */}
-              <h1 className="flex-1 text-brand-primary text-right text-[32px] font-medium leading-[120%] order-1 md:order-2">
+            <div className="flex flex-row items-center gap-4 self-stretch">
+              {/* Title - Right */}
+              <h1 className="flex-1 text-primary text-right text-[32px] font-medium leading-[120%]">
                 إضافة المنتج
               </h1>
+
+              {/* Save Button */}
+              <button
+                onClick={handleSubmit}
+                disabled={createProduct.isPending}
+                className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-primary hover:opacity-90 transition-colors disabled:opacity-50"
+              >
+                {createProduct.isPending ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : (
+                  <>
+                    <span className="text-white text-center text-base font-normal leading-[130%]">
+                      إنشاء المنتج
+                    </span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M13 4L6 11L3 8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </>
+                )}
+              </button>
+
+              {/* Back Button - Left */}
+              <button
+                onClick={() => navigate(-1)}
+                className="flex w-10 h-10 justify-center items-center rounded-full bg-primary hover:opacity-90 transition-colors"
+              >
+                <ArrowRight className="w-5 h-5 text-white" />
+              </button>
             </div>
           </div>
 
           {/* Form Content */}
           <div className="flex flex-col items-end gap-6 self-stretch">
+            {/* Error Message */}
+            {error && (
+              <div className="w-full p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-right">
+                {error}
+              </div>
+            )}
+            
             {/* Image Upload Section */}
             <div className="flex justify-end items-start gap-6 self-stretch flex-col md:flex-row">
               <div className="flex w-full md:w-[134px] h-[134px] p-2.5 justify-center items-center gap-2.5 rounded-xl border border-theme-border bg-theme-border relative">
@@ -150,14 +193,19 @@ export default function AddProduct() {
                       حجم العبوة
                     </label>
                   </div>
-                  <div className="flex px-3 py-3 justify-center items-center gap-2.5 self-stretch rounded-full border border-theme-border bg-white">
-                    <input
-                      type="text"
+                  <div className="flex px-3 py-3 justify-center items-center gap-2.5 self-stretch rounded-full border border-theme-border bg-white relative">
+                    <select
                       value={packageSize}
                       onChange={(e) => setPackageSize(e.target.value)}
-                      placeholder="1 لتر"
-                      className="flex-1 text-gray-500 text-right text-base font-normal leading-[130%] outline-none bg-transparent"
-                    />
+                      className="flex-1 text-gray-500 text-right text-base font-normal leading-[130%] outline-none bg-transparent appearance-none cursor-pointer"
+                    >
+                      <option value="">اختر الحجم</option>
+                      <option value="1 لتر">1 لتر</option>
+                      <option value="350 مل">350 مل</option>
+                    </select>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                      <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </div>
                 </div>
 
@@ -182,6 +230,25 @@ export default function AddProduct() {
 
               {/* Availability and Category */}
               <div className="flex items-center gap-6 self-stretch flex-col md:flex-row">
+                {/* Base Price Field */}
+                <div className="flex flex-col items-start gap-2 flex-1 self-stretch w-full">
+                  <div className="flex justify-end items-start gap-1 self-stretch">
+                    <label className="text-new-black text-right text-base font-medium leading-[120%]">
+                      السعر الأساسي
+                    </label>
+                  </div>
+                  <div className="flex px-3 py-3 justify-center items-center gap-2.5 self-stretch rounded-full border border-theme-border bg-white">
+                    <input
+                      type="number"
+                      value={basePrice}
+                      onChange={(e) => setBasePrice(e.target.value)}
+                      placeholder="0.00"
+                      className="flex-1 text-gray-500 text-right text-base font-normal leading-[130%] outline-none bg-transparent"
+                    />
+                    <span className="text-gray-400">جم</span>
+                  </div>
+                </div>
+
                 <div className="flex px-0 py-3 justify-end items-end gap-3.5 flex-1 self-stretch w-full">
                   <div className="text-body-text text-right text-base font-medium leading-[120%]">
                     متاح
@@ -189,7 +256,7 @@ export default function AddProduct() {
                   <button
                     onClick={() => setIsAvailable(!isAvailable)}
                     className={`w-8 h-[17px] relative rounded-full border-2 transition-colors ${
-                      isAvailable ? "bg-brand-primary border-brand-primary" : "bg-gray-300 border-gray-300"
+                      isAvailable ? "bg-primary border-primary" : "bg-gray-300 border-gray-300"
                     }`}
                   >
                     <div
@@ -211,14 +278,16 @@ export default function AddProduct() {
                       <path d="M4 6L8 10L12 6" stroke="#ADB5BD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                     <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
+                      value={categoryId}
+                      onChange={(e) => setCategoryId(e.target.value)}
                       className="flex-1 text-gray-500 text-right text-base font-normal leading-[130%] outline-none bg-transparent cursor-pointer"
                     >
                       <option value="">يرجي الاختيار</option>
-                      <option value="juices">عصائر</option>
-                      <option value="beverages">مشروبات</option>
-                      <option value="fruits">فواكه</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.nameAr || cat.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>

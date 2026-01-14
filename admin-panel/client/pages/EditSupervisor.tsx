@@ -39,41 +39,40 @@ export default function EditSupervisor() {
       <main className="flex-1 p-6 md:p-10 lg:p-[60px] flex justify-center">
         <div className="w-full max-w-[800px] flex flex-col gap-8">
           {/* Header Section */}
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-[60px]">
-            <h1 className="flex-1 text-[32px] font-medium leading-[120%] text-primary order-2 md:order-1">
+          <div className="flex flex-row items-center gap-4">
+            {/* Title - Right */}
+            <h1 className="flex-1 text-[32px] font-medium leading-[120%] text-primary text-right">
               بيانات المستخدم
             </h1>
             
-            <div className="flex items-center gap-3 order-1 md:order-2">
-              {/* Cancel Button */}
-              <button
-                onClick={handleCancel}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-primary text-primary hover:bg-primary/5 transition-colors"
-              >
-                <span className="text-base font-normal leading-[130%]">
-                  الغاء العملية
-                </span>
-              </button>
+            {/* Cancel Button */}
+            <button
+              onClick={handleCancel}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-primary text-primary hover:bg-primary/5 transition-colors"
+            >
+              <span className="text-base font-normal leading-[130%]">
+                الغاء العملية
+              </span>
+            </button>
 
-              {/* Save Changes Button */}
-              <button
-                onClick={handleSubmit}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary hover:bg-primary/90 transition-colors"
-              >
-                <span className="text-white text-base font-normal leading-[130%]">
-                  حفظ التعديلات
-                </span>
-                <Save className="w-4 h-4 text-white" />
-              </button>
+            {/* Save Changes Button */}
+            <button
+              onClick={handleSubmit}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary hover:bg-primary/90 transition-colors"
+            >
+              <span className="text-white text-base font-normal leading-[130%]">
+                حفظ التعديلات
+              </span>
+              <Save className="w-4 h-4 text-white" />
+            </button>
 
-              {/* Back Button */}
-              <button
-                onClick={handleCancel}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-primary hover:bg-primary/90 transition-colors"
-              >
-                <ArrowRight className="w-5 h-5 text-white" />
-              </button>
-            </div>
+            {/* Back Button - Left */}
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-primary hover:bg-primary/90 transition-colors"
+            >
+              <ArrowRight className="w-5 h-5 text-white" />
+            </button>
           </div>
 
           {/* Customer Information Section */}

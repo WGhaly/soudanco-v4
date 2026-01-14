@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { ArrowRight, Loader2 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { useOrder, useUpdateOrderStatus } from "@/hooks/useOrders";
 import { useToast } from "@/hooks/use-toast";
@@ -52,6 +52,7 @@ function OrderTracker({ currentStage }: { currentStage: OrderStage }) {
 
 export default function OrderDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { toast } = useToast();
   
@@ -196,26 +197,27 @@ export default function OrderDetails() {
         <div className="flex flex-col items-center flex-1 w-full">
           <div className="flex flex-col items-end gap-6 md:gap-8 w-full max-w-[800px]">
             {/* Page Header */}
-            <div className="flex justify-end items-center gap-4 md:gap-[60px] self-stretch flex-col md:flex-row">
-              <div className="flex items-center gap-3 order-2 md:order-1">
-                <Link
-                  to="/orders"
-                  className="flex w-10 h-10 justify-center items-center rounded-full bg-brand-primary hover:opacity-90"
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11 15L6 10L11 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </Link>
-                <button className="flex justify-center items-center gap-1.5 rounded-full bg-brand-primary px-4 py-1.5 transition-opacity hover:opacity-90">
-                  <span className="text-white text-center text-base font-normal leading-[130%]">تعديل البيانات</span>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.3879 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L5.33301 13.3334L1.99967 14.3334L2.99967 11L11.6663 2.33337L11.333 2.00004Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              </div>
-              <h1 className="text-brand-primary text-right text-2xl md:text-[32px] font-medium leading-[120%] order-1 md:order-2 flex-1">
+            <div className="flex flex-row items-center gap-4 self-stretch">
+              {/* Title - Right */}
+              <h1 className="text-primary text-right text-2xl md:text-[32px] font-medium leading-[120%] flex-1">
                 مراجعة الطلب
               </h1>
+
+              {/* Edit Button */}
+              <button className="flex justify-center items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 transition-opacity hover:opacity-90">
+                <span className="text-white text-center text-base font-normal leading-[130%]">تعديل البيانات</span>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.3879 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L5.33301 13.3334L1.99967 14.3334L2.99967 11L11.6663 2.33337L11.333 2.00004Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+
+              {/* Back Button - Left */}
+              <button
+                onClick={() => navigate(-1)}
+                className="flex w-10 h-10 justify-center items-center rounded-full bg-primary hover:opacity-90"
+              >
+                <ArrowRight className="w-5 h-5 text-white" />
+              </button>
             </div>
 
             {/* Order Info Section */}

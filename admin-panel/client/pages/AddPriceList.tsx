@@ -151,33 +151,33 @@ export default function AddPriceList() {
       <div className="flex-1 flex flex-col mt-16 lg:mt-0">
         <div className="flex-1 p-6 md:p-10 max-w-4xl mx-auto w-full">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate("/price-lists")}
-                className="w-10 h-10 flex items-center justify-center bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
-              >
-                <ArrowRight className="w-5 h-5" />
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50"
-              >
-                {isSaving ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Edit className="w-4 h-4" />
-                )}
-                <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
-              </button>
-            </div>
-
-            {/* Page Title */}
+          <div className="flex flex-row items-center gap-4 mb-8">
+            {/* Page Title - Right */}
             <h1 className="flex-1 text-3xl font-medium text-primary text-right">
               {isEditMode ? "تعديل قائمة اسعار" : "اضافة قائمة اسعار"}
             </h1>
+
+            {/* Save Button */}
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Edit className="w-4 h-4" />
+              )}
+              <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
+            </button>
+
+            {/* Back Button - Left */}
+            <button
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 flex items-center justify-center bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
+            >
+              <ArrowRight className="w-5 h-5" />
+            </button>
           </div>
 
           {/* List Name Input */}

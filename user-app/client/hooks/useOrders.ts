@@ -88,6 +88,8 @@ export function useCreateOrder() {
   return useMutation({
     mutationFn: async (data: { 
       addressId?: string; 
+      paymentMethodId?: string;
+      paymentType?: 'advance' | 'partial' | 'deferred';
       notes?: string;
       deliveryDate?: string;
     }) => {

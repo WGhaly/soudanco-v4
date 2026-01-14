@@ -7,9 +7,10 @@ import {
   customers,
   discounts,
   discountProducts,
-  products
+  products,
+  orders
 } from '../db/schema';
-import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, desc, gte, lte, sql, inArray } from 'drizzle-orm';
 import { customerAuthMiddleware, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
@@ -330,6 +331,56 @@ router.delete('/payment-methods/:id', async (req: AuthenticatedRequest, res: Res
   }
 });
 
+// PUT /api/profile/payment-methods/:id/set-default - Set payment method as default
+router.put('/payment-methods/:id/set-default', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { customerId } = req.user!;
+    const id = req.params.id as string;
+
+    // Verify payment method belongs to customer
+    const [existing] = await db
+      .select()
+      .from(customerPaymentMethods)
+      .where(
+        and(
+          eq(customerPaymentMethods.id, id),
+          eq(customerPaymentMethods.customerId, customerId)
+        )
+      )
+      .limit(1);
+
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        error: 'Payment method not found',
+      });
+    }
+
+    // Set all customer's payment methods to not default
+    await db
+      .update(customerPaymentMethods)
+      .set({ isDefault: false })
+      .where(eq(customerPaymentMethods.customerId, customerId));
+
+    // Set the specified payment method as default
+    await db
+      .update(customerPaymentMethods)
+      .set({ isDefault: true })
+      .where(eq(customerPaymentMethods.id, id));
+
+    return res.json({
+      success: true,
+      message: 'Default payment method updated',
+    });
+  } catch (error) {
+    console.error('Set default payment method error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to set default payment method',
+    });
+  }
+});
+
 // ============================================
 // NOTIFICATIONS
 // ============================================
@@ -486,9 +537,25 @@ router.get('/discounts', async (req: AuthenticatedRequest, res: Response) => {
         )
       );
 
+    // Transform to match frontend interface
+    const transformedDiscounts = activeDiscounts.map(d => ({
+      id: d.id,
+      discountId: d.id,
+      discountName: d.nameAr || d.name,
+      discountType: d.type,
+      discountValue: d.value,
+      appliesTo: d.description,
+      validFrom: d.startDate ? d.startDate.toISOString() : null,
+      validUntil: d.endDate ? d.endDate.toISOString() : null,
+      isActive: true, // All returned discounts are active
+      minOrderAmount: d.minOrderAmount,
+      minQuantity: d.minQuantity,
+      bonusQuantity: d.bonusQuantity,
+    }));
+
     return res.json({
       success: true,
-      data: activeDiscounts,
+      data: transformedDiscounts,
     });
   } catch (error) {
     console.error('List discounts error:', error);
@@ -531,17 +598,67 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res: Response) => {
       });
     }
 
+    // Get pending orders count
+    const pendingOrdersResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(orders)
+      .where(
+        and(
+          eq(orders.customerId, customerId),
+          inArray(orders.status, ['pending', 'confirmed', 'processing', 'shipped'])
+        )
+      );
+    const pendingOrders = Number(pendingOrdersResult[0]?.count || 0);
+
+    // Get recent orders
+    const recentOrdersList = await db
+      .select({
+        id: orders.id,
+        orderNumber: orders.orderNumber,
+        status: orders.status,
+        total: orders.total,
+        createdAt: orders.createdAt,
+      })
+      .from(orders)
+      .where(eq(orders.customerId, customerId))
+      .orderBy(desc(orders.createdAt))
+      .limit(5);
+
+    // Get active discounts count
+    const now = new Date();
+    const activeDiscountsResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(discounts)
+      .where(
+        and(
+          eq(discounts.isActive, true),
+          lte(discounts.startDate, now),
+          gte(discounts.endDate, now)
+        )
+      );
+    const activeDiscounts = Number(activeDiscountsResult[0]?.count || 0);
+
     return res.json({
       success: true,
       data: {
-        customer,
-        stats: {
-          creditLimit: customer.creditLimit,
-          currentBalance: customer.currentBalance,
-          availableCredit: (parseFloat(customer.creditLimit || '0') - parseFloat(customer.currentBalance || '0')).toFixed(2),
-          totalOrders: customer.totalOrders,
-          totalSpent: customer.totalSpent,
-        },
+        // Credit info
+        creditLimit: customer.creditLimit,
+        currentBalance: customer.currentBalance,
+        availableCredit: (parseFloat(customer.creditLimit || '0') - parseFloat(customer.currentBalance || '0')).toFixed(2),
+        // Order info
+        totalOrders: customer.totalOrders,
+        pendingOrders,
+        totalSpent: customer.totalSpent,
+        // Discounts
+        activeDiscounts,
+        // Recent orders
+        recentOrders: recentOrdersList.map(o => ({
+          id: o.id,
+          orderNumber: o.orderNumber,
+          status: o.status,
+          total: o.total,
+          createdAt: o.createdAt?.toISOString() || '',
+        })),
       },
     });
   } catch (error) {

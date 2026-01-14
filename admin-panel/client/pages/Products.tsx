@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Loader2, Search, Plus, AlertCircle, RefreshCw } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Loader2, Search, Plus, AlertCircle, RefreshCw, ArrowRight } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import ProductsTable from "@/components/ProductsTable";
 import { useProducts, useCategories } from "@/hooks/useProducts";
 
 export default function Products() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -49,13 +50,13 @@ export default function Products() {
           {/* Header Section */}
           <div className="flex flex-col items-end gap-8 self-stretch">
             {/* Top Bar */}
-            <div className="flex flex-col md:flex-row-reverse items-center gap-4 self-stretch">
-              {/* Page Title */}
+            <div className="flex flex-col md:flex-row items-center gap-4 self-stretch">
+              {/* Page Title - Right */}
               <h1 className="text-primary text-right text-[32px] font-medium leading-[120%] flex-1 md:flex-initial">
                 المنتجات
               </h1>
 
-              {/* Search Bar */}
+              {/* Search Bar - Center */}
               <div className="flex max-w-[720px] px-5 py-3 items-center gap-1 flex-1 rounded-[28px] bg-white border border-themeBorder">
                 <div className="flex h-[30px] items-center gap-4 flex-1">
                   <input
@@ -80,13 +81,12 @@ export default function Products() {
                 <Plus className="w-5 h-5 text-white" />
               </Link>
 
-              {/* Refresh Button */}
-              <button 
-                onClick={() => refetch()}
-                disabled={isFetching}
-                className="flex w-10 h-10 justify-center items-center rounded-full bg-gray-200 hover:opacity-90 disabled:opacity-50"
+              {/* Back Button - Left */}
+              <button
+                onClick={() => navigate(-1)}
+                className="flex w-10 h-10 justify-center items-center rounded-full bg-primary hover:bg-primary/90 transition-colors"
               >
-                <RefreshCw className={`w-5 h-5 text-gray-500 ${isFetching ? 'animate-spin' : ''}`} />
+                <ArrowRight className="w-5 h-5 text-white" />
               </button>
             </div>
 

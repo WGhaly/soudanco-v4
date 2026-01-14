@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import { usePayment } from "@/hooks/usePayments";
+import { usePayment, useUpdatePaymentStatus } from "@/hooks/usePayments";
 
 export default function PaymentDetails() {
   const navigate = useNavigate();
@@ -9,6 +9,7 @@ export default function PaymentDetails() {
   
   const { data: paymentData, isLoading, error } = usePayment(id);
   const payment = paymentData?.data;
+  const updateStatus = useUpdatePaymentStatus();
 
   const formatCurrency = (amount: string | number) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -75,15 +76,17 @@ export default function PaymentDetails() {
       <div className="flex-1 flex flex-col items-center p-6 md:p-10 lg:p-15">
         <div className="w-full max-w-[708px] flex flex-col gap-8">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-row items-center gap-4">
+            {/* Title - Right */}
+            <h1 className="text-[2rem] font-medium text-primary flex-1 text-right">بيانات الدفع</h1>
+            
+            {/* Back Button - Left */}
             <button
-              onClick={() => navigate("/payments")}
+              onClick={() => navigate(-1)}
               className="w-10 h-10 flex items-center justify-center rounded-full bg-primary hover:bg-primary/90 transition-colors"
             >
               <ArrowRight className="w-5 h-5 text-white" />
             </button>
-            
-            <h1 className="text-[2rem] font-medium text-primary">بيانات الدفع</h1>
           </div>
 
           {/* Payment Reference Section */}
@@ -132,7 +135,24 @@ export default function PaymentDetails() {
             <div className="flex items-start gap-6 w-full">
               <div className="flex-1 flex flex-col items-end gap-1.5">
                 <span className="text-base font-medium text-gray-900">حالة الدفع</span>
-                {getPaymentStatusBadge(payment.status)}
+                <select
+                  value={payment.status}
+                  onChange={(e) => {
+                    if (id && confirm('هل تريد تغيير حالة الدفع؟')) {
+                      updateStatus.mutate({ 
+                        id, 
+                        status: e.target.value as 'pending' | 'completed' | 'failed' | 'refunded'
+                      });
+                    }
+                  }}
+                  disabled={updateStatus.isPending}
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-right disabled:opacity-50 cursor-pointer"
+                >
+                  <option value="pending">قيد الانتظار</option>
+                  <option value="completed">تم الدفع</option>
+                  <option value="failed">فشل</option>
+                  <option value="refunded">تم الاسترداد</option>
+                </select>
               </div>
               
               <div className="flex-1 flex flex-col items-end gap-1.5">

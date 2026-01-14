@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Loader2, Search, AlertCircle, RefreshCw } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Loader2, Search, AlertCircle, RefreshCw, ArrowRight } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import OrdersTable from "@/components/OrdersTable";
 import { useOrders } from "@/hooks/useOrders";
 import { useCustomers } from "@/hooks/useCustomers";
 
 export default function Orders() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [customerFilter, setCustomerFilter] = useState("");
@@ -51,13 +53,13 @@ export default function Orders() {
             {/* Page Content */}
             <div className="flex flex-col items-end gap-6 md:gap-8 self-stretch">
               {/* Header */}
-              <div className="flex flex-col md:flex-row-reverse items-center gap-4 self-stretch">
-                {/* Title */}
+              <div className="flex flex-col md:flex-row items-center gap-4 self-stretch">
+                {/* Title - Right */}
                 <h1 className="text-primary text-right text-2xl md:text-[32px] font-medium leading-[120%] flex-1 md:flex-initial">
                   الطلبات
                 </h1>
 
-                {/* Search Bar */}
+                {/* Search Bar - Center */}
                 <div className="flex items-center gap-1 flex-1 rounded-full bg-white px-5 py-3 border border-themeBorder max-w-[720px]">
                   <Search className="w-4 h-4 text-gray-400" />
                   <input
@@ -76,6 +78,14 @@ export default function Orders() {
                   className="flex w-10 h-10 justify-center items-center rounded-full bg-gray-200 hover:opacity-90 disabled:opacity-50"
                 >
                   <RefreshCw className={`w-5 h-5 text-gray-500 ${isFetching ? 'animate-spin' : ''}`} />
+                </button>
+
+                {/* Back Button - Left */}
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex w-10 h-10 justify-center items-center rounded-full bg-primary hover:bg-primary/90 transition-colors"
+                >
+                  <ArrowRight className="w-5 h-5 text-white" />
                 </button>
               </div>
 

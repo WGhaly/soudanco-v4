@@ -52,7 +52,7 @@ export default function ProductsTable({ products, pagination }: ProductsTablePro
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 self-stretch w-full">
       {/* Desktop Table */}
       <div className="hidden md:flex flex-col items-start self-stretch rounded-lg border border-theme-border bg-white p-2.5">
         <div className="flex px-2.5 py-2.5 items-center gap-[30px] self-stretch rounded-lg bg-theme-border">

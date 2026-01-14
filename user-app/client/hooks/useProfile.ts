@@ -80,6 +80,8 @@ export interface PaymentMethod {
   id: string;
   type: 'credit' | 'bank_transfer' | 'cash';
   label: string;
+  cardNumber?: string;
+  cardholderName?: string;
   lastFour?: string;
   expiryDate?: string;
   isDefault: boolean;
@@ -101,13 +103,26 @@ export function useAddPaymentMethod() {
   const authFetch = useAuthFetch();
   
   return useMutation({
-    mutationFn: async (data: { type: 'credit' | 'bank_transfer' | 'cash'; label: string; lastFour?: string; expiryDate?: string; isDefault?: boolean }) => {
+    mutationFn: async (data: { 
+      type: 'credit' | 'bank_transfer' | 'cash'; 
+      label: string; 
+      cardNumber?: string;
+      cardholderName?: string;
+      lastFour?: string; 
+      expiryDate?: string; 
+      isDefault?: boolean 
+    }) => {
       // Transform to backend format - details as JSON object
       const payload = {
         type: data.type,
         label: data.label,
         isDefault: data.isDefault || false,
-        details: data.lastFour || data.expiryDate ? { lastFour: data.lastFour, expiryDate: data.expiryDate } : null,
+        details: {
+          cardNumber: data.cardNumber,
+          cardholderName: data.cardholderName,
+          lastFour: data.lastFour,
+          expiryDate: data.expiryDate
+        },
       };
       return authFetch('/api/profile/payment-methods', {
         method: 'POST',
@@ -128,6 +143,22 @@ export function useDeletePaymentMethod() {
     mutationFn: async (id: string) => {
       return authFetch(`/api/profile/payment-methods/${id}`, {
         method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['paymentMethods'] });
+    },
+  });
+}
+
+export function useSetDefaultPaymentMethod() {
+  const queryClient = useQueryClient();
+  const authFetch = useAuthFetch();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      return authFetch(`/api/profile/payment-methods/${id}/set-default`, {
+        method: 'PUT',
       });
     },
     onSuccess: () => {
@@ -191,10 +222,17 @@ export function useMarkAllNotificationsRead() {
 
 // Dashboard
 export interface DashboardStats {
+  // Credit info
+  creditLimit: string;
+  currentBalance: string;
+  availableCredit: string;
+  // Order info
   totalOrders: number;
   pendingOrders: number;
   totalSpent: string;
+  // Discounts
   activeDiscounts: number;
+  // Recent orders
   recentOrders: Array<{
     id: string;
     orderNumber: string;

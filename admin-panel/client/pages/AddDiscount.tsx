@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, ChevronLeft, Check, ArrowLeft, ArrowRight, ChevronDown, Calendar } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, ArrowLeft, ArrowRight, ChevronDown, Calendar, Loader2 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
+import { useCreateDiscount } from "@/hooks/useDiscounts";
 
 type DiscountType = "buy-get" | "spend-bonus" | null;
 
@@ -18,8 +19,10 @@ interface DiscountFormData {
 
 export default function AddDiscount() {
   const navigate = useNavigate();
+  const createDiscount = useCreateDiscount();
   const [step, setStep] = useState<"select-type" | "fill-form">("select-type");
   const [selectedType, setSelectedType] = useState<DiscountType>(null);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<DiscountFormData>({
     name: "",
     buyQuantity: "",
@@ -45,10 +48,34 @@ export default function AddDiscount() {
     navigate("/discounts");
   };
 
-  const handleSave = () => {
-    console.log("Saving discount:", { type: selectedType, ...formData });
-    // Would save via API
-    navigate("/discounts");
+  const handleSave = async () => {
+    if (!formData.name.trim()) {
+      setError("اسم الخصم مطلوب");
+      return;
+    }
+    
+    try {
+      setError(null);
+      const discountType = selectedType === "buy-get" ? "buy_get" : "spend_bonus";
+      const discountValue = selectedType === "buy-get" 
+        ? parseInt(formData.getQuantity) || 1
+        : parseFloat(formData.bonusPercent) || 0;
+      
+      await createDiscount.mutateAsync({
+        name: formData.name,
+        nameAr: formData.name,
+        type: discountType,
+        value: discountValue,
+        minQuantity: selectedType === "buy-get" ? parseInt(formData.buyQuantity) || 1 : undefined,
+        startDate: formData.validFrom || new Date().toISOString(),
+        endDate: formData.validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        isActive: formData.isActive,
+      });
+      navigate("/discounts");
+    } catch (err: any) {
+      console.error("Error creating discount:", err);
+      setError(err.message || "فشل في إنشاء الخصم");
+    }
   };
 
   const updateField = (field: keyof DiscountFormData, value: string | boolean) => {
@@ -64,30 +91,29 @@ export default function AddDiscount() {
         <div className="flex-1 flex flex-col items-center p-6 md:p-10 lg:p-15">
           <div className="w-full max-w-[800px] flex flex-col gap-8">
             {/* Header */}
-            <div className="flex items-center justify-between gap-2.5">
-              {/* Action Buttons */}
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={handleContinue}
-                  disabled={!selectedType}
-                  className="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  <span className="text-base">المتابعة</span>
-                </button>
-                
-                <button
-                  onClick={handleCancel}
-                  className="flex items-center gap-1.5 px-4 py-1.5 border border-primary text-primary rounded-full hover:bg-primary/5 transition-colors"
-                >
-                  <span className="text-base">الغاء العملية</span>
-                </button>
-              </div>
-              
-              {/* Page Title */}
+            <div className="flex flex-row items-center gap-4">
+              {/* Page Title - Right */}
               <h1 className="text-[2rem] font-medium text-primary flex-1 text-right">
                 اختار نوع الخصم
               </h1>
+              
+              {/* Continue Button */}
+              <button
+                onClick={handleContinue}
+                disabled={!selectedType}
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span className="text-base">المتابعة</span>
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              
+              {/* Back Button - Left */}
+              <button
+                onClick={handleCancel}
+                className="flex w-10 h-10 items-center justify-center rounded-full bg-primary hover:bg-primary/90 transition-colors"
+              >
+                <ArrowRight className="w-5 h-5 text-white" />
+              </button>
             </div>
 
             {/* Type Selection Cards */}
@@ -140,33 +166,27 @@ export default function AddDiscount() {
       <div className="flex-1 flex flex-col items-center p-6 md:p-10 lg:p-15">
         <div className="w-full max-w-[800px] flex flex-col gap-8">
           {/* Header */}
-          <div className="flex items-center gap-2.5">
-            {/* Action Buttons */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleSave}
-                className="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
-              >
-                <Check className="w-4 h-4" />
-                <span className="text-base">إنشاء الخصم</span>
-              </button>
-              
-              <button
-                onClick={handleCancel}
-                className="flex items-center gap-1.5 px-4 py-1.5 border border-primary text-primary rounded-full hover:bg-primary/5 transition-colors"
-              >
-                <span className="text-base">الغاء العملية</span>
-              </button>
-            </div>
-            
-            {/* Page Title */}
+          <div className="flex flex-row items-center gap-4">
+            {/* Page Title - Right */}
             <h1 className="text-[2rem] font-medium text-primary flex-1 text-right">
               اضافة خصم جديد
             </h1>
-
-            {/* Back Arrow */}
-            <button onClick={() => setStep("select-type")}>
-              <ChevronLeft className="w-6 h-6 text-primary" />
+            
+            {/* Save Button */}
+            <button
+              onClick={handleSave}
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
+            >
+              <span className="text-base">إنشاء الخصم</span>
+              <Check className="w-4 h-4" />
+            </button>
+            
+            {/* Back Button - Left */}
+            <button
+              onClick={() => setStep("select-type")}
+              className="flex w-10 h-10 items-center justify-center rounded-full bg-primary hover:bg-primary/90 transition-colors"
+            >
+              <ArrowRight className="w-5 h-5 text-white" />
             </button>
           </div>
 

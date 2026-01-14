@@ -15,7 +15,6 @@ import Account from "./pages/Account";
 import Orders from "./pages/Orders";
 import OrderDetail from "./pages/OrderDetail";
 import Notifications from "./pages/Notifications";
-import PaymentMethods from "./pages/PaymentMethods";
 import Addresses from "./pages/Addresses";
 import Settings from "./pages/Settings";
 import Cart from "./pages/Cart";
@@ -82,7 +81,6 @@ function AppRoutes() {
       <Route path="/order-detail" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
       <Route path="/order/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
       <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-      <Route path="/payment" element={<ProtectedRoute><PaymentMethods /></ProtectedRoute>} />
       <Route path="/address" element={<ProtectedRoute><Addresses /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />

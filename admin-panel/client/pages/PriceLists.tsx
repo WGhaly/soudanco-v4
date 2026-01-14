@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Loader2, AlertCircle } from "lucide-react";
+import { Search, Plus, Loader2, AlertCircle, ArrowRight } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import PriceListsTable from "@/components/PriceListsTable";
 import { usePriceLists } from "@/hooks/usePriceLists";
@@ -47,39 +47,50 @@ export default function PriceLists() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex" dir="rtl">
+    <div className="flex min-h-screen bg-[#FFF]" dir="rtl">
       <Sidebar />
 
-      <div className="flex-1 p-4 md:p-8">
+      <main className="flex-1 p-6 md:p-10 lg:p-[60px] flex">
+        <div className="flex flex-col items-center flex-1 w-full">
+          <div className="flex flex-col items-end gap-6 md:gap-8 w-full">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-body-text">قوائم الأسعار</h1>
+        <div className="flex flex-col md:flex-row items-center gap-4 self-stretch">
+          {/* Title - Right */}
+          <h1 className="text-primary text-right text-2xl md:text-[32px] font-medium leading-[120%] flex-1 md:flex-initial">قوائم الأسعار</h1>
 
-          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary" />
+          {/* Search - Center */}
+          <div className="flex max-w-[720px] px-5 py-3 items-center gap-1 flex-1 rounded-[28px] bg-white border border-themeBorder">
+            <div className="flex h-[30px] items-center gap-4 flex-1">
               <input
                 type="text"
-                placeholder="البحث..."
+                placeholder="عن ماذا تبحث؟"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setPage(1);
                 }}
-                className="w-full md:w-64 h-11 pr-10 pl-4 rounded-lg border border-[#D9D9D9] bg-white text-right text-body-text placeholder:text-secondary"
+                className="flex-1 text-secondary text-right text-base font-normal leading-[130%] outline-none bg-transparent"
               />
+              <Search className="w-5 h-5 text-gray-400" />
             </div>
-
-            {/* Add Button */}
-            <button
-              onClick={handleAddClick}
-              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-primary text-white rounded-lg hover:opacity-90 transition-opacity"
-            >
-              <span>إضافة قائمة</span>
-              <Plus className="w-5 h-5" />
-            </button>
           </div>
+
+          {/* Add Button */}
+          <button
+            onClick={handleAddClick}
+            className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-primary hover:bg-primary/90 transition-colors"
+          >
+            <span className="text-white text-center text-base font-normal leading-[130%]">إضافة قائمة</span>
+            <Plus className="w-5 h-5 text-white" />
+          </button>
+
+          {/* Back Button - Left */}
+          <button
+            onClick={() => navigate(-1)}
+            className="flex w-10 h-10 justify-center items-center rounded-full bg-primary hover:bg-primary/90 transition-colors"
+          >
+            <ArrowRight className="w-5 h-5 text-white" />
+          </button>
         </div>
 
         {/* Loading State */}
@@ -101,7 +112,9 @@ export default function PriceLists() {
             }
           />
         )}
-      </div>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

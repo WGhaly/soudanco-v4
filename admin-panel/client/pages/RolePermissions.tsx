@@ -83,16 +83,16 @@ export default function RolePermissions() {
       <main className="flex-1 p-6 md:p-10 lg:p-[60px] flex">
         <div className="w-full flex flex-col gap-8">
           {/* Header Section */}
-          <div className="flex items-center gap-[60px] justify-between md:justify-start">
-            {/* Title */}
-            <h1 className="text-[32px] font-medium leading-[120%] text-primary order-2 md:order-1">
+          <div className="flex flex-row items-center gap-4">
+            {/* Title - Right */}
+            <h1 className="flex-1 text-[32px] font-medium leading-[120%] text-primary text-right">
               بيانات الدور
             </h1>
 
-            {/* Back Button */}
+            {/* Back Button - Left */}
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-primary hover:bg-primary/90 transition-colors order-1 md:order-2"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-primary hover:bg-primary/90 transition-colors"
             >
               <ArrowRight className="w-5 h-5 text-white" />
             </button>

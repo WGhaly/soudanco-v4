@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { db, discounts, discountProducts, products } from '../db';
 import { eq, desc, sql } from 'drizzle-orm';
-import { authenticateToken, AuthenticatedRequest, requireAdmin } from '../middleware/auth';
+import { authenticateToken, AuthenticatedRequest, requireAdmin, requireSupervisor } from '../middleware/auth';
 
 const router = Router();
 
@@ -97,8 +97,8 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
   }
 });
 
-// POST /api/discounts - Create discount (admin only)
-router.post('/', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
+// POST /api/discounts - Create discount (admin/supervisor only)
+router.post('/', requireSupervisor, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { name, nameAr, description, type, value, minOrderAmount, minQuantity, bonusQuantity, bonusProductId, startDate, endDate, isActive, productIds } = req.body;
 

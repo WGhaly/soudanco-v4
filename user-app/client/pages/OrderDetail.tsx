@@ -27,12 +27,26 @@ export default function OrderDetail() {
     const labels: Record<string, string> = {
       pending: 'قيد الانتظار',
       confirmed: 'تم التأكيد',
-      processing: 'قيد التحضير',
-      shipped: 'قيد الشحن',
+      processing: 'قيد التجهيز',
+      shipped: 'تم الشحن',
       delivered: 'تم التوصيل',
       cancelled: 'ملغي',
     };
     return labels[status] || status;
+  };
+
+  // Define order stages matching admin panel
+  const orderStages = [
+    { id: 'pending', label: 'قيد الانتظار', icon: 'M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z' },
+    { id: 'confirmed', label: 'تم التأكيد', icon: 'M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z' },
+    { id: 'processing', label: 'قيد التجهيز', icon: 'M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z' },
+    { id: 'shipped', label: 'تم الشحن', icon: 'M13 16V6C13 5.46957 12.7893 4.96086 12.4142 4.58579C12.0391 4.21071 11.5304 4 11 4H5C4.46957 4 3.96086 4.21071 3.58579 4.58579C3.21071 4.96086 3 5.46957 3 6V16' },
+    { id: 'delivered', label: 'تم التوصيل', icon: 'M5 13L9 17L19 7' },
+  ];
+
+  const getStageIndex = (status: string) => {
+    if (status === 'cancelled') return -1;
+    return orderStages.findIndex(s => s.id === status);
   };
 
   const handleCancelOrder = () => {
@@ -70,61 +84,50 @@ export default function OrderDetail() {
 
         {/* Order Tracker */}
         <div className="flex px-3 py-4 justify-center items-center gap-1.5 w-full rounded-2xl bg-white">
-          <div className="flex w-[63px] flex-col items-center gap-2.5">
-            <div className="flex p-2.5 justify-center items-center gap-2.5 rounded-[50px] bg-[radial-gradient(50%_50%_at_50%_50%,rgba(255,255,255,0)_0%,rgba(0,0,0,0.2)_100%),#ADB5BD]">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M16.6667 9.16667L10 2.5L3.33333 9.16667M16.6667 9.16667V17.5H3.33333V9.16667" fill="white"/>
-              </svg>
+          {order.status === 'cancelled' ? (
+            <div className="flex flex-col items-center gap-2 py-4 w-full">
+              <div className="flex p-2.5 justify-center items-center gap-2.5 rounded-[50px] bg-[radial-gradient(50%_50%_at_50%_50%,rgba(0,0,0,0)_57.69%,rgba(0,0,0,0.13)_100%),#DC3545]">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M6 6L14 14M6 14L14 6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <span className="text-[#DC3545] text-center text-sm font-medium">تم إلغاء الطلب</span>
             </div>
-            <span className="text-[#212529] text-center text-sm font-normal leading-[150%]">
-              تم التوصيل
-            </span>
-          </div>
-
-          <div className="flex py-5 px-0 flex-col items-start gap-2.5 flex-1">
-            <div className="h-1.5 w-full rounded-[30px] bg-[#ADB5BD]"></div>
-          </div>
-
-          <div className="flex w-[44px] flex-col items-center gap-2.5">
-            <div className="flex p-2.5 justify-center items-center gap-2.5 rounded-[50px] bg-[radial-gradient(50%_50%_at_50%_50%,rgba(255,255,255,0)_0%,rgba(0,0,0,0.2)_100%),#ADB5BD]">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M7.5 17.5H12.5M17.5 7.5V5C17.5 4.33696 17.2366 3.70107 16.7678 3.23223C16.2989 2.76339 15.663 2.5 15 2.5H5C4.33696 2.5 3.70107 2.76339 3.23223 3.23223C2.76339 3.70107 2.5 4.33696 2.5 5V7.5M17.5 7.5H2.5M17.5 7.5V15C17.5 15.663 17.2366 16.2989 16.7678 16.7678C16.2989 17.2366 15.663 17.5 15 17.5H5C4.33696 17.5 3.70107 17.2366 2.76339 16.7678C2.26339 16.2989 2.5 15.663 2.5 15V7.5" fill="white"/>
-              </svg>
-            </div>
-            <span className="text-[#212529] text-center text-sm font-normal leading-[150%]">
-              تم الدفع
-            </span>
-          </div>
-
-          <div className="flex py-5 px-0 flex-col items-start gap-2.5 flex-1">
-            <div className="h-1.5 w-full rounded-[30px] bg-[#ADB5BD]"></div>
-          </div>
-
-          <div className="flex w-[54px] flex-col items-center gap-2.5">
-            <div className="flex p-2.5 justify-center items-center gap-2.5 rounded-[50px] bg-[radial-gradient(50%_50%_at_50%_50%,rgba(0,0,0,0)_57.69%,rgba(0,0,0,0.13)_100%),#FD7E14]">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M17.5 5.83333L10 10.8333L2.5 5.83333M17.5 5.83333V14.1667L10 19.1667M17.5 5.83333L10 0.833333L2.5 5.83333M2.5 5.83333V14.1667L10 19.1667" fill="white"/>
-              </svg>
-            </div>
-            <span className="text-[#212529] text-center text-sm font-normal leading-[150%]">
-              تم الشحن
-            </span>
-          </div>
-
-          <div className="flex py-5 px-0 flex-col items-start gap-2.5 flex-1">
-            <div className="h-1.5 w-full rounded-[30px] bg-[#FD7E14]"></div>
-          </div>
-
-          <div className="flex w-[52px] flex-col items-center gap-2.5">
-            <div className="flex p-2.5 justify-center items-center gap-2.5 rounded-[50px] bg-[radial-gradient(50%_50%_at_50%_50%,rgba(0,0,0,0)_57.69%,rgba(0,0,0,0.13)_100%),#FD7E14]">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M16.6667 2.5H3.33333V17.5H16.6667V2.5Z" fill="white"/>
-              </svg>
-            </div>
-            <span className="text-[#212529] text-center text-sm font-normal leading-[150%]">
-              تم الإعداد
-            </span>
-          </div>
+          ) : (
+            [...orderStages].reverse().map((stage, index) => {
+              const currentStageIndex = getStageIndex(order.status);
+              const stageIndex = orderStages.length - 1 - index;
+              const isCompleted = stageIndex <= currentStageIndex;
+              const isActive = stageIndex === currentStageIndex;
+              
+              return (
+                <div key={stage.id} className="contents">
+                  <div className={`flex ${index === 0 ? 'w-[63px]' : index === orderStages.length - 1 ? 'w-[52px]' : 'w-[54px]'} flex-col items-center gap-2.5`}>
+                    <div className={`flex p-2.5 justify-center items-center gap-2.5 rounded-[50px] ${
+                      isCompleted 
+                        ? 'bg-[radial-gradient(50%_50%_at_50%_50%,rgba(0,0,0,0)_57.69%,rgba(0,0,0,0.13)_100%),#FD7E14]' 
+                        : 'bg-[radial-gradient(50%_50%_at_50%_50%,rgba(255,255,255,0)_0%,rgba(0,0,0,0.2)_100%),#ADB5BD]'
+                    }`}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d={stage.icon} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    <span className={`text-center text-sm font-normal leading-[150%] ${isActive ? 'text-[#FD7E14] font-medium' : 'text-[#212529]'}`}>
+                      {stage.label}
+                    </span>
+                  </div>
+                  
+                  {index < orderStages.length - 1 && (
+                    <div className="flex py-5 px-0 flex-col items-start gap-2.5 flex-1">
+                      <div className={`h-1.5 w-full rounded-[30px] ${
+                        stageIndex <= currentStageIndex ? 'bg-[#FD7E14]' : 'bg-[#ADB5BD]'
+                      }`}></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
 
         {/* Order Info Fields */}

@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Loader2, X } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
-import { usePaymentMethods, useAddPaymentMethod, useDeletePaymentMethod } from "@/hooks/useProfile";
+import { usePaymentMethods, useAddPaymentMethod, useDeletePaymentMethod, useSetDefaultPaymentMethod } from "@/hooks/useProfile";
 
 export default function PaymentMethods() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [formData, setFormData] = useState({
     type: 'credit' as 'credit' | 'bank_transfer' | 'cash',
     label: '',
+    cardNumber: '',
+    cardholderName: '',
     lastFour: '',
     expiryDate: '',
     isDefault: false,
@@ -19,11 +21,16 @@ export default function PaymentMethods() {
   
   const addMethod = useAddPaymentMethod();
   const deleteMethod = useDeletePaymentMethod();
+  const setDefaultMethod = useSetDefaultPaymentMethod();
 
   const handleDeleteMethod = (id: string) => {
     if (confirm('هل تريد حذف وسيلة الدفع هذه؟')) {
       deleteMethod.mutate(id);
     }
+  };
+
+  const handleSetDefaultMethod = (id: string) => {
+    setDefaultMethod.mutate(id);
   };
 
   const handleSubmitMethod = (e: React.FormEvent) => {
@@ -38,6 +45,8 @@ export default function PaymentMethods() {
         setFormData({
           type: 'credit',
           label: '',
+          cardNumber: '',
+          cardholderName: '',
           lastFour: '',
           expiryDate: '',
           isDefault: false,
@@ -139,14 +148,18 @@ export default function PaymentMethods() {
                 <span className="flex-1 text-black text-right text-sm font-normal leading-[150%]">
                   {method.label}
                 </span>
-                <div className="flex justify-end items-center gap-1.5">
+                <button 
+                  onClick={() => handleSetDefaultMethod(method.id)}
+                  disabled={setDefaultMethod.isPending}
+                  className="flex justify-end items-center gap-1.5 disabled:opacity-50 hover:opacity-80 transition-opacity"
+                >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M8 0L10 6H16L11 10L13 16L8 12L3 16L5 10L0 6H6L8 0Z" fill="#FD7E14"/>
                   </svg>
                   <span className="text-[#FD7E14] text-center text-sm font-normal leading-[150%]">
                     تعيين كادفع اساسي
                   </span>
-                </div>
+                </button>
               </div>
               
               <div className="flex flex-row-reverse items-end gap-3 w-full">
@@ -229,25 +242,56 @@ export default function PaymentMethods() {
               {formData.type === 'credit' && (
                 <>
                   <div className="space-y-2">
-                    <label className="block text-right text-sm font-medium text-gray-700">آخر 4 أرقام</label>
+                    <label className="block text-right text-sm font-medium text-gray-700">رقم البطاقة *</label>
                     <input
                       type="text"
-                      value={formData.lastFour}
-                      onChange={(e) => setFormData({ ...formData, lastFour: e.target.value.slice(0, 4) })}
-                      placeholder="1234"
-                      maxLength={4}
+                      value={formData.cardNumber}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 16);
+                        const lastFour = value.slice(-4);
+                        setFormData({ ...formData, cardNumber: value, lastFour });
+                      }}
+                      placeholder="1234 5678 9012 3456"
+                      maxLength={16}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 text-right">أدخل 16 رقم للبطاقة</p>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-right text-sm font-medium text-gray-700">اسم حامل البطاقة *</label>
+                    <input
+                      type="text"
+                      value={formData.cardholderName}
+                      onChange={(e) => setFormData({ ...formData, cardholderName: e.target.value })}
+                      placeholder="الاسم كما يظهر على البطاقة"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-right text-sm font-medium text-gray-700">تاريخ الانتهاء</label>
+                    <label className="block text-right text-sm font-medium text-gray-700">تاريخ الانتهاء *</label>
                     <input
                       type="text"
                       value={formData.expiryDate}
-                      onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, '');
+                        if (value.length >= 2) {
+                          value = value.slice(0, 2) + '/' + value.slice(2, 4);
+                        }
+                        setFormData({ ...formData, expiryDate: value });
+                      }}
                       placeholder="12/25"
+                      maxLength={5}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg text-right focus:ring-2 focus:ring-[#FD7E14] focus:border-transparent"
+                      required
                     />
+                    <p className="text-xs text-gray-500 text-right">صيغة: شهر/سنة</p>
+                  </div>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <p className="text-xs text-yellow-800 text-right">
+                      ملاحظة: لن يتم تخزين CVV لأسباب أمنية. سيطلب منك إدخاله عند الدفع.
+                    </p>
                   </div>
                 </>
               )}

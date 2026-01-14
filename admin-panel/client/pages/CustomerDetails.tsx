@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { Loader2, ArrowRight } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { useCustomer } from "@/hooks/useCustomers";
 import { usePayments } from "@/hooks/usePayments";
@@ -52,6 +52,7 @@ function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
 
 export default function CustomerDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("profile");
 
@@ -140,26 +141,27 @@ export default function CustomerDetails() {
           <div className="flex flex-col items-end gap-6 md:gap-8 w-full">
             {/* Page Header */}
             <div className="flex flex-col items-end gap-6 md:gap-8 self-stretch">
-              <div className="flex justify-between items-center self-stretch">
-                <div className="flex items-center gap-3">
-                  <Link
-                    to="/customers"
-                    className="flex w-10 h-10 justify-center items-center rounded-full bg-brand-primary hover:opacity-90"
-                  >
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M11 15L6 10L11 5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </Link>
-                  <button className="flex justify-center items-center gap-1.5 rounded-full bg-brand-primary px-4 py-1.5 transition-opacity hover:opacity-90">
-                    <span className="text-white text-center text-base font-normal leading-[130%]">تعديل البيانات</span>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.3879 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L5.33301 13.3334L1.99967 14.3334L2.99967 11L11.6663 2.33337L11.333 2.00004Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </button>
-                </div>
-                <h1 className="text-brand-primary text-right text-2xl md:text-[32px] font-medium leading-[120%]">
+              <div className="flex flex-row items-center gap-4 self-stretch">
+                {/* Title - Right */}
+                <h1 className="text-primary text-right text-2xl md:text-[32px] font-medium leading-[120%] flex-1">
                   بيانات العميل
                 </h1>
+
+                {/* Edit Button */}
+                <button className="flex justify-center items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 transition-opacity hover:opacity-90">
+                  <span className="text-white text-center text-base font-normal leading-[130%]">تعديل البيانات</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.3879 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L5.33301 13.3334L1.99967 14.3334L2.99967 11L11.6663 2.33337L11.333 2.00004Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+
+                {/* Back Button - Left */}
+                <button
+                  onClick={() => navigate(-1)}
+                  className="flex w-10 h-10 justify-center items-center rounded-full bg-primary hover:opacity-90"
+                >
+                  <ArrowRight className="w-5 h-5 text-white" />
+                </button>
               </div>
 
               <h2 className="self-stretch text-gray-secondary text-right text-xl md:text-2xl font-medium leading-[120%]">
@@ -222,76 +224,77 @@ export default function CustomerDetails() {
                     معلومات العميل
                   </h3>
 
-                  <div className="flex flex-col md:flex-row items-center gap-6 self-stretch">
-                    <div className="flex flex-col items-start gap-3 flex-1 self-stretch w-full">
-                      <div className="flex justify-end items-start gap-1 self-stretch">
-                        <label className="text-new-black-color text-base font-medium leading-[120%]">المنطقة</label>
-                      </div>
-                      <div className="self-stretch text-body-text text-right text-base font-bold leading-[150%]">
+                  <div className="flex flex-col md:flex-row-reverse items-start gap-6 self-stretch">
+                    <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        المنطقة
+                      </label>
+                      <div className="text-body-text text-right text-base font-bold leading-[150%]">
                         {customer.addresses?.[0]?.region || customer.addresses?.[0]?.city || 'غير محدد'}
                       </div>
                     </div>
-                    <div className="flex flex-col items-start gap-3 flex-1 self-stretch w-full">
-                      <div className="flex justify-end items-start gap-1 self-stretch">
-                        <label className="text-new-black-color text-right text-base font-medium leading-[120%]">الاسم</label>
-                      </div>
-                      <div className="self-stretch text-body-text text-right text-base font-bold leading-[150%]">
+                    <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        الاسم
+                      </label>
+                      <div className="text-body-text text-right text-base font-bold leading-[150%]">
                         {customer.businessNameAr || customer.businessName}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col md:flex-row items-center gap-6 self-stretch">
-                    <div className="flex flex-col items-start gap-3 flex-1 self-stretch w-full">
-                      <div className="flex justify-end items-start gap-1 self-stretch">
-                        <label className="text-new-black-color text-right text-base font-medium leading-[120%]">رقم الهاتف</label>
-                      </div>
-                      <div className="self-stretch text-body-text text-right text-base font-bold leading-[150%]">
+                  <div className="flex flex-col md:flex-row-reverse items-start gap-6 self-stretch">
+                    <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        رقم الهاتف
+                      </label>
+                      <div className="text-body-text text-right text-base font-bold leading-[150%]">
                         {customer.phone || 'غير محدد'}
                       </div>
                     </div>
-                    <div className="flex flex-col items-start gap-3 flex-1 self-stretch w-full">
-                      <div className="flex justify-end items-start gap-1 self-stretch">
-                        <label className="text-new-black-color text-right text-base font-medium leading-[120%]">البريد الالكتروني</label>
-                      </div>
-                      <div className="self-stretch text-body-text text-right text-base font-bold leading-[150%]">
+                    <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        البريد الالكتروني
+                      </label>
+                      <div className="text-body-text text-right text-base font-bold leading-[150%]">
                         {customer.email || 'غير محدد'}
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col md:flex-row items-center gap-6 self-stretch">
-                    <div className="flex justify-end items-center gap-3 flex-1 self-stretch w-full">
-                      <div className="flex justify-end items-start gap-1 flex-1">
-                        <label className="text-new-black-color text-base font-medium leading-[120%]">تفعيل الحساب</label>
+                  <div className="flex flex-col md:flex-row-reverse items-start gap-6 self-stretch">
+                    <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        تفعيل الحساب
+                      </label>
+                      <div className="flex justify-end items-center gap-3">
+                        <button
+                          onClick={() => setIsActive(!isActive)}
+                          className="relative w-8 h-[17px]"
+                        >
+                          {isActive ? (
+                            <div className="relative w-8 h-[17px]">
+                              <div className="absolute w-8 h-[17px] rounded-full border-2 border-brand-primary bg-brand-primary"></div>
+                              <div className="absolute w-3.5 h-3.5 rounded-full bg-white left-[17px] top-0.5"></div>
+                            </div>
+                          ) : (
+                            <div className="relative w-8 h-[17px]">
+                              <svg className="absolute w-8 h-[17px]" viewBox="0 0 37 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M25.7998 1C31.0465 1 35.2998 5.25329 35.2998 10.5C35.2998 15.7467 31.0465 20 25.7998 20H10.5C5.2533 20 1 15.7467 1 10.5C1 5.25329 5.2533 1 10.5 1H25.7998Z" stroke="#FD7E14" strokeWidth="2"/>
+                              </svg>
+                              <div className="absolute w-3.5 h-3.5 rounded-full bg-brand-primary left-0.5 top-0.5"></div>
+                            </div>
+                          )}
+                        </button>
+                        <span className="text-body-text text-base font-bold">{isActive ? 'مفعل' : 'غير مفعل'}</span>
                       </div>
-                      <button
-                        onClick={() => setIsActive(!isActive)}
-                        className="relative w-8 h-[17px]"
-                      >
-                        {isActive ? (
-                          <div className="relative w-8 h-[17px]">
-                            <div className="absolute w-8 h-[17px] rounded-full border-2 border-brand-primary bg-brand-primary"></div>
-                            <div className="absolute w-3.5 h-3.5 rounded-full bg-white left-[17px] top-0.5"></div>
-                          </div>
-                        ) : (
-                          <div className="relative w-8 h-[17px]">
-                            <svg className="absolute w-8 h-[17px]" viewBox="0 0 37 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M25.7998 1C31.0465 1 35.2998 5.25329 35.2998 10.5C35.2998 15.7467 31.0465 20 25.7998 20H10.5C5.2533 20 1 15.7467 1 10.5C1 5.25329 5.2533 1 10.5 1H25.7998Z" stroke="#FD7E14" strokeWidth="2"/>
-                            </svg>
-                            <div className="absolute w-3.5 h-3.5 rounded-full bg-brand-primary left-0.5 top-0.5"></div>
-                          </div>
-                        )}
-                      </button>
                     </div>
-                    <div className="flex flex-col items-start gap-3 flex-1 self-stretch w-full">
-                      <div className="flex justify-end items-start gap-1 self-stretch">
-                        <label className="text-new-black-color text-base font-medium leading-[120%]">قائمة الاسعار</label>
-                      </div>
-                      <div className="flex justify-center items-center gap-2.5 self-stretch">
-                        <div className="flex-1 text-body-text text-right text-base font-bold leading-[150%]">
-                          الفضي
-                        </div>
+                    <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        قائمة الاسعار
+                      </label>
+                      <div className="text-body-text text-right text-base font-bold leading-[150%]">
+                        {customer.priceList?.nameAr || customer.priceList?.name || 'غير محدد'}
                       </div>
                     </div>
                   </div>
@@ -304,12 +307,12 @@ export default function CustomerDetails() {
                   </h3>
 
                   <div className="flex flex-col justify-center items-end gap-6 self-stretch">
-                    <div className="flex flex-col items-start gap-3 w-full md:w-[388px]">
-                      <div className="flex justify-end items-start gap-1 self-stretch">
-                        <label className="text-new-black-color text-right text-base font-medium leading-[120%]">البريد الالكتروني</label>
-                      </div>
-                      <div className="self-stretch text-body-text text-right text-base font-bold leading-[150%]">
-                        elnourmarket@cairo.com
+                    <div className="flex flex-col items-stretch gap-3 w-full md:w-[388px]">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        البريد الالكتروني
+                      </label>
+                      <div className="text-body-text text-right text-base font-bold leading-[150%]">
+                        {customer.email || 'غير محدد'}
                       </div>
                     </div>
 
@@ -335,28 +338,28 @@ export default function CustomerDetails() {
                     معلومات الرصيد و الاتمان
                   </h3>
 
-                  <div className="flex flex-col md:flex-row items-start gap-6 self-stretch">
-                    <div className="flex flex-col items-start gap-1.5 flex-1 rounded-2xl bg-white px-6 py-2">
-                      <div className="flex justify-end items-start gap-1 self-stretch">
-                        <label className="text-new-black-color text-base font-medium leading-[120%]">الرصيد المتاح</label>
-                      </div>
-                      <div className="self-stretch text-body-text text-right text-base font-bold leading-[150%]">
-                        7,500 EGP
+                  <div className="flex flex-col md:flex-row-reverse items-start gap-6 self-stretch">
+                    <div className="flex flex-col items-stretch gap-1.5 flex-1 rounded-2xl bg-white px-6 py-2">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        الرصيد المتاح
+                      </label>
+                      <div className="text-body-text text-right text-base font-bold leading-[150%]">
+                        {formatCurrency((parseFloat(customer?.creditLimit || '0') - parseFloat(customer?.currentBalance || '0')))}
                       </div>
                     </div>
-                    <div className="flex flex-col items-start gap-1.5 flex-1 rounded-2xl bg-white px-6 py-2">
-                      <div className="flex justify-end items-start gap-1 self-stretch">
-                        <label className="text-new-black-color text-base font-medium leading-[120%]">حد الائتمان</label>
-                      </div>
-                      <div className="self-stretch text-body-text text-right text-base font-bold leading-[150%]">
+                    <div className="flex flex-col items-stretch gap-1.5 flex-1 rounded-2xl bg-white px-6 py-2">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        حد الائتمان
+                      </label>
+                      <div className="text-body-text text-right text-base font-bold leading-[150%]">
                         {formatCurrency(customer?.creditLimit || 0)}
                       </div>
                     </div>
-                    <div className="flex flex-col items-start gap-1.5 flex-1 rounded-2xl bg-white px-6 py-2">
-                      <div className="flex justify-end items-start gap-1 self-stretch">
-                        <label className="text-new-black-color text-base font-medium leading-[120%]">الرصيد المستحق</label>
-                      </div>
-                      <div className="self-stretch text-body-text text-right text-base font-bold leading-[150%]">
+                    <div className="flex flex-col items-stretch gap-1.5 flex-1 rounded-2xl bg-white px-6 py-2">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        الرصيد المستحق
+                      </label>
+                      <div className="text-body-text text-right text-base font-bold leading-[150%]">
                         {formatCurrency(customer?.currentBalance || 0)}
                       </div>
                     </div>

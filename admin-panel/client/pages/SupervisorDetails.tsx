@@ -34,31 +34,30 @@ export default function SupervisorDetails() {
       <main className="flex-1 p-6 md:p-10 lg:p-[60px] flex">
         <div className="w-full flex flex-col gap-8">
           {/* Header Section */}
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-[60px]">
-            <h1 className="flex-1 text-[32px] font-medium leading-[120%] text-primary order-2 md:order-1">
+          <div className="flex flex-row items-center gap-4">
+            {/* Title - Right */}
+            <h1 className="flex-1 text-[32px] font-medium leading-[120%] text-primary text-right">
               بيانات المستخدم
             </h1>
             
-            <div className="flex items-center gap-3 order-1 md:order-2">
-              {/* Edit Data Button */}
-              <button
-                onClick={() => navigate(`/supervisors/${id}/edit`)}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary hover:bg-primary/90 transition-colors"
-              >
-                <span className="text-white text-base font-normal leading-[130%]">
-                  تعديل البيانات
-                </span>
-                <Edit className="w-4 h-4 text-white" />
-              </button>
+            {/* Edit Data Button */}
+            <button
+              onClick={() => navigate(`/supervisors/${id}/edit`)}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary hover:bg-primary/90 transition-colors"
+            >
+              <span className="text-white text-base font-normal leading-[130%]">
+                تعديل البيانات
+              </span>
+              <Edit className="w-4 h-4 text-white" />
+            </button>
 
-              {/* Back Button */}
-              <button
-                onClick={() => navigate("/supervisors")}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-primary hover:bg-primary/90 transition-colors"
-              >
-                <ArrowRight className="w-5 h-5 text-white" />
-              </button>
-            </div>
+            {/* Back Button - Left */}
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-primary hover:bg-primary/90 transition-colors"
+            >
+              <ArrowRight className="w-5 h-5 text-white" />
+            </button>
           </div>
 
           {/* Customer Information Section */}

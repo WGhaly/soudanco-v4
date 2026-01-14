@@ -175,18 +175,26 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
     } = req.body;
 
     // Validation
-    if (!sku || !name || !basePrice) {
+    if (!name || !basePrice) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: sku, name, basePrice',
+        error: 'Missing required fields: name, basePrice',
       });
+    }
+
+    // Auto-generate SKU if not provided
+    let productSku = sku;
+    if (!productSku) {
+      const timestamp = Date.now().toString(36).toUpperCase();
+      const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+      productSku = `PRD-${timestamp}-${random}`;
     }
 
     // Check if SKU exists
     const [existingProduct] = await db
       .select()
       .from(products)
-      .where(eq(products.sku, sku))
+      .where(eq(products.sku, productSku))
       .limit(1);
 
     if (existingProduct) {
@@ -207,7 +215,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const [newProduct] = await db.insert(products).values({
-      sku,
+      sku: productSku,
       name,
       nameAr,
       description,
@@ -227,11 +235,12 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       success: true,
       data: newProduct,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Create product error:', error);
+    console.error('Error details:', error.message, error.code, error.detail);
     return res.status(500).json({
       success: false,
-      error: 'Failed to create product',
+      error: error.message || 'Failed to create product',
     });
   }
 });

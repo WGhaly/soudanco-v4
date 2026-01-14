@@ -1,29 +1,30 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, CreditCard, X } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useCart } from "@/hooks/useCart";
 import { useCreateOrder } from "@/hooks/useOrders";
-import { useAddresses, usePaymentMethods } from "@/hooks/useProfile";
+import { useAddresses } from "@/hooks/useProfile";
+import { useAuth } from "@/lib/auth";
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const [paymentType, setPaymentType] = useState<"advance" | "partial" | "deferred">("advance");
+  const { customer } = useAuth();
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Fetch cart data
   const { data: cartData, isLoading: cartLoading, error: cartError } = useCart();
   const cart = cartData?.data;
 
-  // Fetch addresses and payment methods
+  // Fetch addresses
   const { data: addressesData } = useAddresses();
-  const { data: paymentMethodsData } = usePaymentMethods();
-  
   const addresses = addressesData?.data || [];
-  const paymentMethods = paymentMethodsData?.data || [];
-  
-  // Get default address and payment method
   const defaultAddress = addresses.find(a => a.isDefault) || addresses[0];
-  const defaultPaymentMethod = paymentMethods.find(m => m.isDefault) || paymentMethods[0];
 
   // Create order mutation
   const createOrder = useCreateOrder();
@@ -35,9 +36,26 @@ export default function Checkout() {
     return `${num.toLocaleString('ar-EG')} جم`;
   };
 
-  const handleCompletePayment = async () => {
+  // Calculate credit info
+  const creditLimit = parseFloat(customer?.creditLimit || '0');
+  const creditUsed = parseFloat(customer?.creditUsed || '0');
+  const availableCredit = creditLimit - creditUsed;
+  const orderTotal = parseFloat(cart?.summary?.total || cart?.summary?.subtotal || '0');
+  const hasEnoughCredit = availableCredit >= orderTotal;
+
+  // Handle order on credit (no payment now)
+  const handleOrderOnCredit = async () => {
+    if (!hasEnoughCredit) {
+      alert('الرصيد الائتماني غير كافٍ. يرجى الدفع الآن أو التواصل مع خدمة العملاء.');
+      return;
+    }
+
     createOrder.mutate(
-      { notes: `نوع الدفع: ${paymentType === 'advance' ? 'دفع مسبق' : paymentType === 'partial' ? 'دفع جزئي' : 'دفع آجل'}` },
+      { 
+        addressId: defaultAddress?.id,
+        paymentType: 'credit',
+        notes: 'تم الطلب بالآجل - خصم من الحد الائتماني' 
+      },
       {
         onSuccess: () => {
           navigate("/orders");
@@ -49,10 +67,76 @@ export default function Checkout() {
     );
   };
 
+  // Handle pay now (enter card details)
+  const handlePayNow = async () => {
+    // Validate card details
+    if (!cardNumber.replace(/\s/g, '').match(/^\d{16}$/)) {
+      alert('رقم البطاقة غير صحيح');
+      return;
+    }
+    if (!cardName.trim()) {
+      alert('يرجى إدخال اسم حامل البطاقة');
+      return;
+    }
+    if (!expiryDate.match(/^\d{2}\/\d{2}$/)) {
+      alert('تاريخ انتهاء البطاقة غير صحيح');
+      return;
+    }
+    if (!cvv.match(/^\d{3,4}$/)) {
+      alert('رمز CVV غير صحيح');
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    // Simulate payment processing
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Create order with payment
+    createOrder.mutate(
+      { 
+        addressId: defaultAddress?.id,
+        paymentType: 'card',
+        notes: 'تم الدفع ببطاقة الائتمان'
+      },
+      {
+        onSuccess: () => {
+          setIsProcessingPayment(false);
+          navigate("/orders");
+        },
+        onError: (error) => {
+          setIsProcessingPayment(false);
+          alert(`فشل في إتمام الطلب: ${error.message}`);
+        }
+      }
+    );
+  };
+
   const handleCancelOrder = () => {
     if (confirm("هل تريد إلغاء الطلب؟")) {
       navigate("/products");
     }
+  };
+
+  // Format card number with spaces
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s/g, '').replace(/\D/g, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = (matches && matches[0]) || '';
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    return parts.length ? parts.join(' ') : value;
+  };
+
+  // Format expiry date
+  const formatExpiry = (value: string) => {
+    const v = value.replace(/\D/g, '');
+    if (v.length >= 2) {
+      return v.substring(0, 2) + '/' + v.substring(2, 4);
+    }
+    return v;
   };
 
   if (cartLoading) {
@@ -92,7 +176,7 @@ export default function Checkout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
-      <div className="flex flex-col p-5 pb-6 items-end gap-6">
+      <div className="flex flex-col p-5 pb-6 items-end gap-6 flex-1 overflow-auto">
         <PageHeader title="إتمام الشراء" />
         
         {/* Order Review */}
@@ -189,89 +273,36 @@ export default function Checkout() {
           </button>
         </div>
         
-        {/* Payment Method */}
+        {/* Credit Info */}
         <div className="flex flex-col items-end gap-4 w-full">
           <h2 className="text-[#212529] text-right text-xl font-medium leading-[120%] w-full">
-            وسيلة الدفع
+            الحد الائتماني
           </h2>
           
-          <button
-            onClick={() => navigate("/payment")}
-            className="flex flex-row-reverse px-4 py-2.5 justify-end items-center gap-2.5 w-full rounded-xl border border-[#DEE2E6] bg-white shadow-[0_0_15px_0_rgba(0,0,0,0.1)] hover:shadow-[0_0_20px_0_rgba(0,0,0,0.15)] transition-shadow"
-          >
-            {defaultPaymentMethod ? (
-              <>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M11.3536 1.64645C11.5488 1.84171 11.5488 2.15829 11.3536 2.35355L5.70711 8L11.3536 13.6464C11.5488 13.8417 11.5488 14.1583 11.3536 14.3536C11.1583 14.5488 10.8417 14.5488 10.6464 14.3536L4.64645 8.35355C4.45118 8.15829 4.45118 7.84171 4.64645 7.64645L10.6464 1.64645C10.8417 1.45118 11.1583 1.45118 11.3536 1.64645Z" fill="#6C757D"/>
-                </svg>
-                <div className="flex flex-col justify-center items-end flex-1">
-                  <span className="text-[#363636] text-right text-base font-normal leading-[130%] w-full">
-                    {defaultPaymentMethod.label}
-                  </span>
-                  <span className="text-[#6C757D] text-right text-sm font-normal leading-[150%] w-full">
-                    {defaultPaymentMethod.lastFour ? `.... ${defaultPaymentMethod.lastFour}` : defaultPaymentMethod.type === 'cash' ? 'نقدي' : defaultPaymentMethod.type === 'bank_transfer' ? 'تحويل بنكي' : ''}
-                  </span>
-                </div>
-                <div className="w-10 h-6 rounded-md bg-gray-200 flex items-center justify-center text-xs text-gray-500">
-                  {defaultPaymentMethod.type === 'credit' ? '💳' : defaultPaymentMethod.type === 'cash' ? '💵' : '🏦'}
-                </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center gap-1 w-full py-2">
-                <span className="text-[#6C757D] text-center text-sm w-full">لا توجد وسيلة دفع محددة</span>
-                <span className="text-[#FD7E14] text-center text-sm font-medium w-full">إضافة وسيلة دفع</span>
+          <div className="flex p-4 flex-col gap-3 w-full rounded-xl border border-[#DEE2E6] bg-white">
+            <div className="flex flex-row-reverse justify-between items-center w-full">
+              <span className="text-[#6C757D] text-right text-sm">الحد الائتماني الكلي</span>
+              <span className="text-[#212529] font-medium">{formatCurrency(creditLimit)}</span>
+            </div>
+            <div className="flex flex-row-reverse justify-between items-center w-full">
+              <span className="text-[#6C757D] text-right text-sm">المستخدم</span>
+              <span className="text-[#DC3545] font-medium">{formatCurrency(creditUsed)}</span>
+            </div>
+            <div className="h-px bg-[#DEE2E6]"></div>
+            <div className="flex flex-row-reverse justify-between items-center w-full">
+              <span className="text-[#212529] text-right text-sm font-medium">المتاح</span>
+              <span className={`font-bold ${hasEnoughCredit ? 'text-[#28A745]' : 'text-[#DC3545]'}`}>
+                {formatCurrency(availableCredit)}
+              </span>
+            </div>
+            {!hasEnoughCredit && (
+              <div className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
+                <span className="text-red-600 text-sm text-right flex-1">
+                  الرصيد الائتماني غير كافٍ. يرجى الدفع الآن لإتمام الطلب.
+                </span>
               </div>
             )}
-          </button>
-        </div>
-        
-        {/* Payment Type */}
-        <div className="flex flex-col items-end gap-4 w-full">
-          <h2 className="text-[#212529] text-right text-xl font-medium leading-[120%] w-full">
-            نوع الدفع
-          </h2>
-          
-          <button
-            onClick={() => setPaymentType("advance")}
-            className="flex flex-row p-1 py-0 justify-end items-start gap-3 w-full hover:bg-[#F1F1F1] rounded-lg transition-colors"
-          >
-            <div className="w-8 h-[17px] max-sm:h-[18px] max-sm:flex max-sm:flex-col">
-              <div className={`w-8 h-[17px] rounded-[20px] border-2 ${paymentType === "advance" ? "border-[#FD7E14] bg-[#FD7E14]" : "border-[#FD7E14]"} relative`}>
-                <div className={`w-[13px] h-[14px] rounded-[20px] ${paymentType === "advance" ? "bg-white left-0.5 max-sm:top-0 max-sm:left-0 max-sm:m-auto" : "bg-[#FD7E14] left-[17px] max-sm:top-0 max-sm:left-0 max-sm:m-auto"} absolute top-0.5`}></div>
-              </div>
-            </div>
-            <span className="flex-1 text-[#363636] text-right text-base font-medium leading-[120%]">
-              الدفع المسبق
-            </span>
-          </button>
-          
-          <button
-            onClick={() => setPaymentType("partial")}
-            className="flex flex-row p-1 py-0 justify-end items-start gap-3 w-full hover:bg-[#F1F1F1] rounded-lg transition-colors"
-          >
-            <div className="w-8 h-[17px] max-sm:h-[18px] max-sm:flex max-sm:flex-col">
-              <div className={`w-8 h-[17px] rounded-[20px] border-2 ${paymentType === "partial" ? "border-[#FD7E14] bg-[#FD7E14]" : "border-[#FD7E14]"} relative`}>
-                <div className={`w-[13px] h-[14px] rounded-[20px] ${paymentType === "partial" ? "bg-white left-0.5 max-sm:top-0 max-sm:left-0 max-sm:m-auto" : "bg-[#FD7E14] left-[17px] max-sm:top-0 max-sm:left-[14px] max-sm:m-auto"} absolute top-0.5`}></div>
-              </div>
-            </div>
-            <span className="flex-1 text-[#363636] text-right text-base font-medium leading-[120%]">
-              الدفع الجزئي
-            </span>
-          </button>
-          
-          <button
-            onClick={() => setPaymentType("deferred")}
-            className="flex flex-row p-1 py-0 justify-end items-start gap-3 w-full hover:bg-[#F1F1F1] rounded-lg transition-colors"
-          >
-            <div className="w-8 h-[17px] max-sm:h-[18px]">
-              <div className={`w-8 h-[17px] rounded-[20px] border-2 ${paymentType === "deferred" ? "border-[#FD7E14] bg-[#FD7E14]" : "border-[#FD7E14]"} relative`}>
-                <div className={`w-[13px] h-[14px] rounded-[20px] ${paymentType === "deferred" ? "bg-white left-0.5 max-sm:top-0 max-sm:left-[14px]" : "bg-[#FD7E14] left-[17px] max-sm:top-0 max-sm:left-[14px]"} absolute top-0.5`}></div>
-              </div>
-            </div>
-            <span className="flex-1 text-[#363636] text-right text-base font-medium leading-[120%]">
-              الدفع الآجل
-            </span>
-          </button>
+          </div>
         </div>
       </div>
       
@@ -289,36 +320,147 @@ export default function Checkout() {
             </div>
           </div>
           <div className="flex flex-row-reverse justify-between items-center w-full">
-            <span className="text-[#FD7E14] text-xl font-medium leading-[120%]">{formatCurrency(cart.summary?.total || cart.summary?.subtotal || '0')}</span>
+            <span className="text-[#FD7E14] text-xl font-medium leading-[120%]">{formatCurrency(orderTotal)}</span>
             <span className="flex-1 text-[#212529] text-right text-xl font-medium leading-[120%]">المجموع الكلي</span>
           </div>
         </div>
         
-        <div className="flex px-6 flex-col items-end gap-4 w-full">
+        <div className="flex px-6 flex-col items-end gap-3 w-full">
           <button
             onClick={handleCancelOrder}
-            disabled={createOrder.isPending}
-            className="flex px-4 py-1.5 justify-center items-center gap-1.5 w-full rounded-full border border-[#FD7E14] hover:bg-[rgba(253,126,20,0.05)] disabled:opacity-50 transition-colors"
+            disabled={createOrder.isPending || isProcessingPayment}
+            className="flex px-4 py-2 justify-center items-center gap-1.5 w-full rounded-full border border-[#6C757D] text-[#6C757D] hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
-            <span className="text-[#FD7E14] text-center text-base font-normal leading-[130%]">
-              الغاء الطلب
+            <span className="text-center text-base font-normal leading-[130%]">
+              إلغاء الطلب
             </span>
           </button>
+          
+          {hasEnoughCredit && (
+            <button
+              onClick={handleOrderOnCredit}
+              disabled={createOrder.isPending || isProcessingPayment}
+              className="flex px-4 py-2 justify-center items-center gap-1.5 w-full rounded-full border-2 border-[#FD7E14] text-[#FD7E14] hover:bg-[rgba(253,126,20,0.05)] disabled:opacity-50 transition-colors"
+            >
+              {createOrder.isPending && !showPaymentForm ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <span className="text-center text-base font-medium leading-[130%]">
+                  اطلب بالآجل
+                </span>
+              )}
+            </button>
+          )}
+          
           <button
-            onClick={handleCompletePayment}
-            disabled={createOrder.isPending}
-            className="flex px-4 py-1.5 justify-center items-center gap-1.5 w-full rounded-full bg-[#FD7E14] hover:bg-[#E56D04] disabled:bg-[#ADB5BD] transition-colors active:scale-95"
+            onClick={() => setShowPaymentForm(true)}
+            disabled={createOrder.isPending || isProcessingPayment}
+            className="flex px-4 py-2 justify-center items-center gap-2 w-full rounded-full bg-[#FD7E14] hover:bg-[#E56D04] disabled:bg-[#ADB5BD] transition-colors active:scale-95"
           >
-            {createOrder.isPending ? (
-              <Loader2 className="w-5 h-5 animate-spin text-white" />
-            ) : (
-              <span className="text-white text-center text-base font-normal leading-[130%]">
-                اتمام الدفع
-              </span>
-            )}
+            <CreditCard className="w-5 h-5 text-white" />
+            <span className="text-white text-center text-base font-medium leading-[130%]">
+              ادفع الآن
+            </span>
           </button>
         </div>
       </div>
+
+      {/* Payment Form Modal */}
+      {showPaymentForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50">
+          <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 pb-8 animate-slide-up">
+            <div className="flex justify-between items-center mb-6">
+              <button onClick={() => setShowPaymentForm(false)} className="p-2">
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+              <h2 className="text-xl font-medium text-[#212529]">إدخال بيانات البطاقة</h2>
+              <div className="w-10"></div>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              {/* Card Number */}
+              <div className="flex flex-col gap-2">
+                <label className="text-right text-sm text-[#6C757D]">رقم البطاقة</label>
+                <div className="flex px-4 py-3 items-center gap-2 rounded-xl border border-[#DEE2E6] bg-white">
+                  <CreditCard className="w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                    placeholder="0000 0000 0000 0000"
+                    maxLength={19}
+                    className="flex-1 text-left text-base outline-none bg-transparent"
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+
+              {/* Cardholder Name */}
+              <div className="flex flex-col gap-2">
+                <label className="text-right text-sm text-[#6C757D]">اسم حامل البطاقة</label>
+                <input
+                  type="text"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value)}
+                  placeholder="الاسم كما يظهر على البطاقة"
+                  className="px-4 py-3 rounded-xl border border-[#DEE2E6] text-right text-base outline-none"
+                />
+              </div>
+
+              {/* Expiry and CVV */}
+              <div className="flex gap-4">
+                <div className="flex-1 flex flex-col gap-2">
+                  <label className="text-right text-sm text-[#6C757D]">تاريخ الانتهاء</label>
+                  <input
+                    type="text"
+                    value={expiryDate}
+                    onChange={(e) => setExpiryDate(formatExpiry(e.target.value))}
+                    placeholder="MM/YY"
+                    maxLength={5}
+                    className="px-4 py-3 rounded-xl border border-[#DEE2E6] text-center text-base outline-none"
+                    dir="ltr"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col gap-2">
+                  <label className="text-right text-sm text-[#6C757D]">CVV</label>
+                  <input
+                    type="password"
+                    value={cvv}
+                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, ''))}
+                    placeholder="***"
+                    maxLength={4}
+                    className="px-4 py-3 rounded-xl border border-[#DEE2E6] text-center text-base outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Pay Button */}
+              <button
+                onClick={handlePayNow}
+                disabled={isProcessingPayment}
+                className="flex px-4 py-3 justify-center items-center gap-2 w-full rounded-full bg-[#FD7E14] hover:bg-[#E56D04] disabled:bg-[#ADB5BD] transition-colors mt-4"
+              >
+                {isProcessingPayment ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin text-white" />
+                    <span className="text-white text-base font-medium">جاري الدفع...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-white text-base font-medium">
+                      ادفع {formatCurrency(orderTotal)}
+                    </span>
+                  </>
+                )}
+              </button>
+
+              <p className="text-center text-xs text-[#6C757D] mt-2">
+                بياناتك آمنة ومشفرة. لن يتم حفظ بيانات البطاقة.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

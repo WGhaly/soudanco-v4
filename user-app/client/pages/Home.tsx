@@ -62,19 +62,19 @@ export default function Home() {
         <div className="flex flex-row-reverse w-full items-stretch gap-[7px]">
           <div className="flex p-3 flex-col items-end gap-[11px] flex-1 rounded-2xl bg-white hover:shadow-md transition-shadow h-full">
             <p className="text-[#6C757D] text-right text-sm font-normal leading-[150%] w-full">
-              الرصيد المتسحق
+              الرصيد المستحق
             </p>
             <p className="text-[#212529] text-right text-xl font-medium leading-[120%] w-full">
-              {dashboardLoading ? "..." : (dashboard?.totalSpent || "0")}
+              {dashboardLoading ? "..." : (dashboard?.currentBalance || "0")}
             </p>
           </div>
 
           <div className="flex p-3 flex-col items-end gap-[11px] flex-1 rounded-2xl bg-white hover:shadow-md transition-shadow h-full">
             <p className="text-[#6C757D] text-right text-sm font-normal leading-[150%] w-full">
-              الحد<br />الاتماني
+              الحد<br />الائتماني
             </p>
             <p className="text-[#212529] text-right text-xl font-medium leading-[120%] w-full">
-              {customer?.creditLimit || "0"}
+              {dashboardLoading ? "..." : (dashboard?.creditLimit || "0")}
             </p>
           </div>
 

@@ -85,22 +85,6 @@ export default function Account() {
             </Link>
 
             <Link
-              to="/payment"
-              className="flex flex-row-reverse px-6 py-2 items-center gap-4 w-full hover:bg-[#F1F1F1] rounded-lg transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M5 2L2 8L5 14" stroke="#212529" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="flex-1 text-[#212529] text-right text-xl font-medium leading-[120%]">
-                وسائل الدفع
-              </span>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M17.5 4.16667H2.5C1.57953 4.16667 0.833336 4.91286 0.833336 5.83333V14.1667C0.833336 15.0871 1.57953 15.8333 2.5 15.8333H17.5C18.4205 15.8333 19.1667 15.0871 19.1667 14.1667V5.83333C19.1667 4.91286 18.4205 4.16667 17.5 4.16667Z" stroke="#212529" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M0.833336 8.33333H19.1667" stroke="#212529" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </Link>
-
-            <Link
               to="/orders"
               className="flex flex-row-reverse px-6 py-2 items-center gap-4 w-full hover:bg-[#F1F1F1] rounded-lg transition-colors"
             >

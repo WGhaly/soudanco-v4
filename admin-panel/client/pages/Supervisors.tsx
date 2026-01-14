@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { Plus, Search, Loader2, AlertCircle, RefreshCw, ArrowRight } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import SupervisorsTable from "@/components/SupervisorsTable";
 import { useSupervisors, useUpdateSupervisor } from "@/hooks/useSupervisors";
@@ -60,19 +60,19 @@ export default function Supervisors() {
       <main className="flex-1 p-6 md:p-10 lg:p-[60px]">
         <div className="flex flex-col gap-8">
           {/* Header */}
-          <div className="flex flex-col md:flex-row-reverse items-center gap-4">
-            {/* Title */}
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            {/* Title - Right */}
             <h1 className="text-[2rem] font-medium text-primary flex-1 md:flex-initial text-right">
               المشرفين
             </h1>
 
-            {/* Search */}
+            {/* Search - Center */}
             <div className="relative flex-1 max-w-[720px]">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                placeholder="ابحث عن مشرف..."
+                placeholder="عن ماذا تبحث؟"
                 className="w-full px-5 py-3 pr-12 rounded-full bg-white border border-gray-200 text-base text-right outline-none focus:ring-2 focus:ring-primary/20"
               />
               <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -81,19 +81,18 @@ export default function Supervisors() {
             {/* Add Button */}
             <button
               onClick={() => navigate("/supervisors/new")}
-              className="flex items-center gap-2 px-4 py-2.5 bg-brand-primary text-white rounded-full hover:bg-brand-primary/90 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
             >
               <span>إضافة مشرف</span>
               <Plus className="w-5 h-5" />
             </button>
 
-            {/* Refresh Button */}
-            <button 
-              onClick={() => refetch()}
-              disabled={isFetching}
-              className="flex w-10 h-10 justify-center items-center rounded-full bg-gray-200 hover:opacity-90 disabled:opacity-50"
+            {/* Back Button - Left */}
+            <button
+              onClick={() => navigate(-1)}
+              className="flex w-10 h-10 justify-center items-center rounded-full bg-primary hover:bg-primary/90 transition-colors"
             >
-              <RefreshCw className={`w-5 h-5 text-gray-500 ${isFetching ? 'animate-spin' : ''}`} />
+              <ArrowRight className="w-5 h-5 text-white" />
             </button>
           </div>
 

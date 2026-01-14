@@ -8,7 +8,8 @@ import {
   customerAddresses,
   cartItems,
   priceListItems,
-  notifications
+  notifications,
+  payments
 } from '../db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { customerAuthMiddleware, AuthenticatedRequest } from '../middleware/auth';
@@ -23,6 +24,13 @@ function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 6);
   return `ORD-${timestamp}-${random}`.toUpperCase();
+}
+
+// Generate payment number
+function generatePaymentNumber(): string {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 6);
+  return `PAY-${timestamp}-${random}`.toUpperCase();
 }
 
 // ============================================
@@ -200,7 +208,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
 router.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { customerId, userId } = req.user!;
-    const { addressId, paymentMethod, notes } = req.body;
+    const { addressId, paymentMethodId, paymentType, notes } = req.body;
 
     // Get customer with price list
     const [customer] = await db
@@ -301,6 +309,27 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
 
     const total = subtotal; // No discounts or taxes for now
 
+    // Determine payment method and paid amount based on payment type
+    let paidAmount = '0';
+    let paymentStatus: 'pending' | 'completed' = 'pending';
+    
+    if (paymentType === 'advance' || paymentType === 'card') {
+      // Prepaid or card payment: mark order as fully paid
+      paidAmount = total.toFixed(2);
+      paymentStatus = 'completed';
+    } else if (paymentType === 'deferred' || paymentType === 'credit') {
+      // Postpaid/Credit: increase customer's current balance (uses credit)
+      const newBalance = parseFloat(customer.currentBalance || '0') + total;
+      await db
+        .update(customers)
+        .set({ 
+          currentBalance: newBalance.toFixed(2),
+          updatedAt: new Date(),
+        })
+        .where(eq(customers.id, customerId));
+    }
+    // partial payment type doesn't auto-update anything yet
+
     // Create order
     const orderNumber = generateOrderNumber();
     const [order] = await db
@@ -315,8 +344,8 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
         taxAmount: '0',
         total: total.toFixed(2),
         notes: notes || null,
-        paymentMethod: paymentMethod || null,
-        paidAmount: '0',
+        paymentMethod: null, // We'll link to payment method via payment record
+        paidAmount: paidAmount,
       })
       .returning();
 
@@ -327,6 +356,21 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
         ...item,
       }))
     );
+
+    // Create payment record
+    const paymentNumber = generatePaymentNumber();
+    await db.insert(payments).values({
+      paymentNumber,
+      customerId,
+      orderId: order.id,
+      amount: total.toFixed(2),
+      method: paymentMethodId ? 'credit' : 'cash', // Default to cash if no payment method
+      status: paymentStatus,
+      notes: paymentType === 'advance' ? 'دفع مسبق - تم الدفع عند الطلب' : 
+             paymentType === 'partial' ? 'دفع جزئي' : 
+             'دفع آجل - قيد الانتظار',
+      processedAt: paymentStatus === 'completed' ? new Date() : null,
+    });
 
     // Update customer stats
     await db

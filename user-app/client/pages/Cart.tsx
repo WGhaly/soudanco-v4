@@ -228,7 +228,7 @@ export default function Cart() {
               className="flex px-4 py-1.5 justify-center items-center gap-1.5 w-full rounded-full bg-[#FD7E14] hover:bg-[#E56D04] transition-colors active:scale-95"
             >
               <span className="text-white text-center text-base font-normal leading-[130%]">
-                المتابعة إلى الدفع
+                متابعة الشراء
               </span>
               <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
                 <path d="M17.5 4.16667H2.5C1.57953 4.16667 0.833336 4.91286 0.833336 5.83333V14.1667C0.833336 15.0871 1.57953 15.8333 2.5 15.8333H17.5C18.4205 15.8333 19.1667 15.0871 19.1667 14.1667V5.83333C19.1667 4.91286 18.4205 4.16667 17.5 4.16667Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

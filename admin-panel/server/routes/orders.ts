@@ -20,12 +20,21 @@ function generateOrderNumber(): string {
 // GET /api/orders - List all orders
 router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { page = '1', limit = '10' } = req.query;
+    const { page = '1', limit = '10', status, customerId } = req.query;
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
 
-    const result = await db
+    // Build where conditions
+    const conditions = [];
+    if (status) {
+      conditions.push(eq(orders.status, status as string));
+    }
+    if (customerId) {
+      conditions.push(eq(orders.customerId, customerId as string));
+    }
+
+    let query = db
       .select({
         id: orders.id,
         orderNumber: orders.orderNumber,
@@ -44,12 +53,24 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
         },
       })
       .from(orders)
-      .leftJoin(customers, eq(orders.customerId, customers.id))
+      .leftJoin(customers, eq(orders.customerId, customers.id));
+
+    // Apply filters if any
+    if (conditions.length > 0) {
+      query = query.where(sql`${sql.join(conditions, sql` AND `)}`) as any;
+    }
+
+    const result = await query
       .orderBy(desc(orders.createdAt))
       .limit(limitNum)
       .offset(offset);
 
-    const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(orders);
+    // Count with same filters
+    let countQuery = db.select({ count: sql<number>`count(*)` }).from(orders);
+    if (conditions.length > 0) {
+      countQuery = countQuery.where(sql`${sql.join(conditions, sql` AND `)}`) as any;
+    }
+    const [countResult] = await countQuery;
 
     return res.json({
       success: true,

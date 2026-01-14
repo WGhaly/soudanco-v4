@@ -115,7 +115,6 @@ export default function OrdersTable({ orders, pagination }: OrdersTableProps) {
               <th className="px-2.5 py-2.5 text-right text-gray-secondary text-sm font-normal leading-[150%]">العناصر</th>
               <th className="px-2.5 py-2.5 text-right text-gray-secondary text-sm font-normal leading-[150%]">المجموع</th>
               <th className="px-2.5 py-2.5 text-right text-gray-secondary text-sm font-normal leading-[150%]">حالة الطلب</th>
-              <th className="px-2.5 py-2.5 text-right text-gray-secondary text-sm font-normal leading-[150%]">حالة الدفع</th>
               <th className="px-2.5 py-2.5 text-right text-gray-secondary text-sm font-normal leading-[150%]">التاريخ</th>
               <th className="px-2.5 py-2.5">
                 <div className="w-8 h-8"></div>
@@ -148,9 +147,6 @@ export default function OrdersTable({ orders, pagination }: OrdersTableProps) {
                   </td>
                   <td className="px-2.5 py-5 text-right text-body-text text-sm font-normal leading-[150%]">
                     {getStatusLabel(order.status)}
-                  </td>
-                  <td className="px-2.5 py-5">
-                    <PaymentStatusBadge status={paymentStatus} />
                   </td>
                   <td className="px-2.5 py-5 text-right text-gray-500 text-base font-normal leading-[130%]">
                     {formatDate(order.createdAt)}
@@ -190,7 +186,7 @@ export default function OrdersTable({ orders, pagination }: OrdersTableProps) {
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <PaymentStatusBadge status={paymentStatus} />
+                <span className="text-body-text text-sm">{getStatusLabel(order.status)}</span>
                 <span className="text-body-text text-sm">
                   {order.customer?.businessNameAr || order.customer?.businessName || '-'}
                 </span>

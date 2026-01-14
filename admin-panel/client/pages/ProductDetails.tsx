@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import { useProduct, useUpdateProduct, useDeleteProduct, useCategories } from "../hooks/useProducts";
 
@@ -133,51 +134,47 @@ export default function ProductDetails() {
         <div className="flex flex-col items-end gap-8 self-stretch w-full">
           {/* Header */}
           <div className="flex flex-col items-end gap-8 self-stretch">
-            <div className="flex justify-end items-center gap-[60px] self-stretch flex-col md:flex-row">
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3 order-2 md:order-1">
-                <Link
-                  to="/products"
-                  className="flex w-10 h-10 p-1.5 justify-center items-center gap-1.5 aspect-square rounded-full bg-brand-primary hover:bg-brand-primary/90 transition-colors"
-                >
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M15 10H5" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M10 5L5 10L10 15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </Link>
-
-                {isEditing ? (
-                  <button
-                    onClick={handleSave}
-                    className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-brand-primary hover:bg-brand-primary/90 transition-colors"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M13 4L6 11L3 8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <span className="text-white text-center text-base font-normal leading-[130%]">
-                      حفظ التعديلات
-                    </span>
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-brand-primary hover:bg-brand-primary/90 transition-colors"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.33333 2.66667H2.66667C2.31304 2.66667 1.97391 2.80714 1.72386 3.05719C1.47381 3.30724 1.33333 3.64638 1.33333 4V13.3333C1.33333 13.687 1.47381 14.0261 1.72386 14.2761C1.97391 14.5262 2.31304 14.6667 2.66667 14.6667H12C12.3536 14.6667 12.6928 14.5262 12.9428 14.2761C13.1929 14.0261 13.3333 13.687 13.3333 13.3333V8.66667" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M12.3333 1.66665C12.5985 1.40144 12.9582 1.25244 13.3333 1.25244C13.7085 1.25244 14.0681 1.40144 14.3333 1.66665C14.5985 1.93187 14.7475 2.29158 14.7475 2.66665C14.7475 3.04173 14.5985 3.40144 14.3333 3.66665L8 9.99999L5.33333 10.6667L6 7.99999L12.3333 1.66665Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <span className="text-white text-center text-base font-normal leading-[130%]">
-                      تعديل البيانات
-                    </span>
-                  </button>
-                )}
-              </div>
-
-              {/* Title */}
-              <h1 className="flex-1 text-brand-primary text-right text-[32px] font-medium leading-[120%] order-1 md:order-2">
+            <div className="flex flex-row items-center gap-4 self-stretch">
+              {/* Title - Right */}
+              <h1 className="flex-1 text-primary text-right text-[32px] font-medium leading-[120%]">
                 مراجعة المنتج
               </h1>
+
+              {/* Action Button */}
+              {isEditing ? (
+                <button
+                  onClick={handleSave}
+                  className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-primary hover:opacity-90 transition-colors"
+                >
+                  <span className="text-white text-center text-base font-normal leading-[130%]">
+                    حفظ التعديلات
+                  </span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13 4L6 11L3 8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-primary hover:opacity-90 transition-colors"
+                >
+                  <span className="text-white text-center text-base font-normal leading-[130%]">
+                    تعديل البيانات
+                  </span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.33333 2.66667H2.66667C2.31304 2.66667 1.97391 2.80714 1.72386 3.05719C1.47381 3.30724 1.33333 3.64638 1.33333 4V13.3333C1.33333 13.687 1.47381 14.0261 1.72386 14.2761C1.97391 14.5262 2.31304 14.6667 2.66667 14.6667H12C12.3536 14.6667 12.6928 14.5262 12.9428 14.2761C13.1929 14.0261 13.3333 13.687 13.3333 13.3333V8.66667" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12.3333 1.66665C12.5985 1.40144 12.9582 1.25244 13.3333 1.25244C13.7085 1.25244 14.0681 1.40144 14.3333 1.66665C14.5985 1.93187 14.7475 2.29158 14.7475 2.66665C14.7475 3.04173 14.5985 3.40144 14.3333 3.66665L8 9.99999L5.33333 10.6667L6 7.99999L12.3333 1.66665Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
+
+              {/* Back Button - Left */}
+              <button
+                onClick={() => navigate(-1)}
+                className="flex w-10 h-10 justify-center items-center rounded-full bg-primary hover:opacity-90 transition-colors"
+              >
+                <ArrowRight className="w-5 h-5 text-white" />
+              </button>
             </div>
 
             {/* Product Info Section */}
