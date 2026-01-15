@@ -7,6 +7,7 @@ interface ProductCardProps {
   price: string;
   onAddToCart?: (quantity: number) => void;
   outOfStock?: boolean;
+  highlightOutOfStock?: boolean;
 }
 
 export default function ProductCard({
@@ -16,7 +17,9 @@ export default function ProductCard({
   price,
   onAddToCart,
   outOfStock = false,
+  ...rest
 }: ProductCardProps) {
+  const { highlightOutOfStock = false } = rest;
   const [quantity, setQuantity] = useState(0);
   const [showQuantityPopup, setShowQuantityPopup] = useState(false);
   const [inputQuantity, setInputQuantity] = useState("");
@@ -72,16 +75,17 @@ export default function ProductCard({
 
   return (
     <>
-      <div className={`flex p-2.5 flex-col justify-end items-end gap-3 rounded-xl border border-[#DEE2E6] bg-white shadow-[0_0_5px_0_rgba(0,0,0,0.1)] ${outOfStock ? 'opacity-60' : ''}`}>
-        <div className="relative w-full">
+      <div className={`flex px-2.5 pt-2.5 pb-2 flex-col justify-end items-end gap-3 rounded-xl border border-[#DEE2E6] bg-white shadow-[0_0_5px_0_rgba(0,0,0,0.1)] ${outOfStock ? 'opacity-60' : ''}`} style={{ minHeight: 260 }}>
+        <div className="relative w-full" style={{ aspectRatio: '1.6/1', height: '120px', minHeight: '120px', maxHeight: '120px' }}>
           <img
             src={image}
             alt={title}
-            className="h-[102px] w-full object-cover rounded-xl"
+            className={`w-full h-full object-cover rounded-xl ${highlightOutOfStock ? 'grayscale-[60%] brightness-95' : ''}`}
+            style={{ aspectRatio: '1.6/1', height: '120px', minHeight: '120px', maxHeight: '120px' }}
           />
           {outOfStock && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl">
-              <span className="text-white text-sm font-medium px-2 py-1 bg-red-500 rounded">غير متوفر</span>
+            <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-xl">
+              <span className={`text-sm font-medium px-4 py-2 rounded-full ${highlightOutOfStock ? 'bg-[#FD7E14] text-white' : 'bg-red-500 text-white'}`}>غير متوفر</span>
             </div>
           )}
         </div>
@@ -98,48 +102,38 @@ export default function ProductCard({
           </p>
         </div>
 
-        {quantity === 0 ? (
+        {/* Always show quantity controls */}
+        <div className="flex flex-row p-1 justify-between items-center w-full rounded-[21px] bg-white shadow-[0_0_15px_0_rgba(0,0,0,0.2)]">
+          {/* Minus button on the left */}
           <button
-            onClick={handleFirstAdd}
-            disabled={outOfStock}
-            className="flex w-8 h-8 p-2 flex-col justify-center items-center rounded-full bg-white shadow-[0_0_15px_0_rgba(0,0,0,0.2)] hover:shadow-[0_0_20px_0_rgba(0,0,0,0.25)] transition-shadow disabled:opacity-50 disabled:cursor-not-allowed self-end"
+            onClick={handleDecrement}
+            disabled={outOfStock || quantity === 0}
+            className="flex w-6 h-6 p-[7px] justify-center items-center rounded-full bg-[#D3D3D3] hover:bg-[#C0C0C0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M8 3V13M3 8H13" stroke="#6C757D" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M4 8H12" stroke="#FFF" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </button>
-        ) : (
-          <div className="flex flex-row p-1 justify-between items-center w-full rounded-[21px] bg-white shadow-[0_0_15px_0_rgba(0,0,0,0.2)]">
-            {/* Minus button on the left */}
-            <button
-              onClick={handleDecrement}
-              className="flex w-6 h-6 p-[7px] justify-center items-center rounded-full bg-[#D3D3D3] hover:bg-[#C0C0C0] transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M4 8H12" stroke="#FFF" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
-            
-            {/* Quantity - clickable to open popup */}
-            <button
-              onClick={handleQuantityClick}
-              className="text-[#FD7E14] text-center text-xl font-medium leading-[120%] hover:underline cursor-pointer bg-transparent border-none"
-            >
-              {quantity}
-            </button>
-            
-            {/* Plus button on the right */}
-            <button
-              onClick={handleIncrement}
-              disabled={outOfStock}
-              className="flex w-6 h-6 p-[7px] justify-center items-center rounded-full bg-[#FD7E14] hover:bg-[#E56D04] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8 3V13M3 8H13" stroke="#FFF" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
-          </div>
-        )}
+          
+          {/* Quantity - clickable to open popup */}
+          <button
+            onClick={handleQuantityClick}
+            className="text-[#FD7E14] text-center text-xl font-medium leading-[120%] hover:underline cursor-pointer bg-transparent border-none"
+          >
+            {quantity}
+          </button>
+          
+          {/* Plus button on the right */}
+          <button
+            onClick={handleIncrement}
+            disabled={outOfStock}
+            className="flex w-6 h-6 p-[7px] justify-center items-center rounded-full bg-[#FD7E14] hover:bg-[#E56D04] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 3V13M3 8H13" stroke="#FFF" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Quantity Input Popup */}

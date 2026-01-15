@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { ArrowRight, Edit, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Edit, Check, Loader2 } from "lucide-react";
 import { useProducts, Product } from "../hooks/useProducts";
 import { usePriceList, useCreatePriceList, useUpdatePriceList } from "../hooks/usePriceLists";
 
@@ -144,7 +144,7 @@ export default function AddPriceList() {
       <div className="lg:hidden fixed top-0 right-0 left-0 bg-white border-b border-gray-200 px-4 py-3 z-10">
         <div className="flex items-center justify-between">
           <button onClick={() => navigate(-1)} className="p-2">
-            <ArrowRight className="w-6 h-6" />
+            <ArrowLeft className="w-6 h-6" />
           </button>
           <h1 className="text-lg font-medium text-primary">
             {isEditMode ? "تعديل قائمة اسعار" : "اضافة قائمة اسعار"}
@@ -181,7 +181,7 @@ export default function AddPriceList() {
               onClick={() => navigate(-1)}
               className="w-10 h-10 flex items-center justify-center bg-primary text-white rounded-full hover:bg-primary/90 transition-colors"
             >
-              <ArrowRight className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" />
             </button>
           </div>
 
@@ -206,19 +206,19 @@ export default function AddPriceList() {
               {/* Table Header */}
               <div className="flex items-center gap-8 px-4 py-3 bg-gray-200 rounded-t-lg">
                 <div className="flex-1 text-sm text-secondary text-right">
-                  السعر الحالي
-                </div>
-                <div className="flex-1 text-sm text-secondary text-right">
-                  حجم العبوة
-                </div>
-                <div className="flex-1 text-sm text-secondary text-right">
-                  كود المنتج
+                  صورة المنتج
                 </div>
                 <div className="flex-1 text-sm text-secondary text-right">
                   اسم المنتج
                 </div>
                 <div className="flex-1 text-sm text-secondary text-right">
-                  صورة المنتج
+                  كود المنتج
+                </div>
+                <div className="flex-1 text-sm text-secondary text-right">
+                  حجم العبوة
+                </div>
+                <div className="flex-1 text-sm text-secondary text-right">
+                  السعر الحالي
                 </div>
               </div>
 
@@ -229,37 +229,6 @@ export default function AddPriceList() {
                     key={product.id}
                     className="flex items-center gap-8 px-4 py-4"
                   >
-                    {/* Price Input */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-100 bg-gray-50">
-                        <Edit className="w-4 h-4 text-gray-900" />
-                        <input
-                          type="text"
-                          value={product.price}
-                          onChange={(e) =>
-                            handlePriceChange(product.id, e.target.value)
-                          }
-                          className="flex-1 bg-transparent text-base font-bold text-gray-900 text-right focus:outline-none"
-                        />
-                        <span className="text-base font-bold text-gray-900">جم</span>
-                      </div>
-                    </div>
-
-                    {/* Size */}
-                    <div className="flex-1 text-base font-bold text-gray-900 text-right">
-                      {product.size}
-                    </div>
-
-                    {/* Product Code */}
-                    <div className="flex-1 text-base text-gray-900 text-right underline">
-                      {product.code}
-                    </div>
-
-                    {/* Product Name */}
-                    <div className="flex-1 text-base text-gray-900 text-right">
-                      {product.name}
-                    </div>
-
                     {/* Product Image */}
                     <div className="flex-1 flex justify-end">
                       <img
@@ -267,6 +236,37 @@ export default function AddPriceList() {
                         alt={product.name}
                         className="h-14 w-auto object-contain"
                       />
+                    </div>
+
+                    {/* Product Name */}
+                    <div className="flex-1 text-base text-gray-900 text-right">
+                      {product.name}
+                    </div>
+
+                    {/* Product Code */}
+                    <div className="flex-1 text-base text-gray-900 text-right underline">
+                      {product.code}
+                    </div>
+
+                    {/* Size */}
+                    <div className="flex-1 text-base font-bold text-gray-900 text-right">
+                      {product.size}
+                    </div>
+
+                    {/* Price Input */}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 bg-gray-50">
+                        <input
+                          type="text"
+                          value={product.price}
+                          onChange={(e) =>
+                            handlePriceChange(product.id, e.target.value)
+                          }
+                          className="flex-1 bg-transparent text-base text-gray-900 text-left focus:outline-none"
+                        />
+                        <span className="text-base text-gray-900">جم</span>
+                        <Edit className="w-4 h-4 text-gray-400" />
+                      </div>
                     </div>
                   </div>
                 ))}

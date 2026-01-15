@@ -21,15 +21,15 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-end justify-center bg-[#F8F9FA] px-4 py-20 gap-[60px] relative">
-      <div className="flex flex-col items-end gap-5 w-full max-w-md">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8F9FA] px-4 py-20 gap-[60px] relative">
+      <div className="flex flex-col items-center gap-5 w-full max-w-md">
         <Logo className="w-[74px] h-[88px] py-3" />
 
-        <div className="flex flex-col items-end gap-1.5 w-full">
-          <h1 className="text-[#212529] text-right text-2xl font-medium leading-[120%]">
+        <div className="flex flex-col items-center gap-1.5 w-full">
+          <h1 className="text-[#212529] text-center text-2xl font-medium leading-[120%]">
             مرحبًا! أنشئ حسابك
           </h1>
-          <p className="text-[#6C757D] text-right text-base font-normal leading-[130%]">
+          <p className="text-[#6C757D] text-center text-base font-normal leading-[130%]">
             يرجى ملء البيانات التالية لإنشاء حسابك.
           </p>
         </div>

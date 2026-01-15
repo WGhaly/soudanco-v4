@@ -81,16 +81,26 @@ export default function Discounts() {
     <div className="flex min-h-screen bg-[#FFF]" dir="rtl">
       <Sidebar />
       
-      <main className="flex-1 p-6 md:p-10 lg:p-[60px] flex">
-        <div className="flex flex-col items-center flex-1 w-full">
-          <div className="flex flex-col items-center gap-6 md:gap-8 w-full">
-            <div className="flex flex-col items-end gap-6 md:gap-8 self-stretch">
+      <main className="flex-1 p-6 md:p-10 lg:p-[60px]">
+        <div className="flex flex-col gap-6 md:gap-8 w-full">
           {/* Header */}
-          <div className="flex flex-col md:flex-row items-center gap-4 self-stretch">
-            {/* Title - Right */}
-            <h1 className="text-primary text-right text-2xl md:text-[32px] font-medium leading-[120%] flex-1 md:flex-initial">
-              الخصومات
-            </h1>
+          <div className="flex flex-col md:flex-row-reverse items-center gap-4 self-stretch">
+            {/* Back Button - Left */}
+            <button 
+              onClick={() => navigate(-1)}
+              className="flex w-10 h-10 justify-center items-center rounded-full bg-primary hover:bg-primary/90 transition-colors"
+            >
+              <ArrowRight className="w-5 h-5 text-white" />
+            </button>
+
+            {/* Add Button */}
+            <button
+              onClick={() => navigate("/discounts/add")}
+              className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-primary hover:bg-primary/90 transition-colors"
+            >
+              <span className="text-white text-center text-base font-normal leading-[130%]">إضافة خصم</span>
+              <Plus className="w-5 h-5 text-white" />
+            </button>
 
             {/* Search */}
             <div className="flex max-w-[720px] px-5 py-3 items-center gap-1 flex-1 rounded-[28px] bg-white border border-themeBorder">
@@ -106,22 +116,10 @@ export default function Discounts() {
               </div>
             </div>
 
-            {/* Add Button */}
-            <button
-              onClick={() => navigate("/discounts/add")}
-              className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-primary hover:bg-primary/90 transition-colors"
-            >
-              <span className="text-white text-center text-base font-normal leading-[130%]">إضافة خصم</span>
-              <Plus className="w-5 h-5 text-white" />
-            </button>
-
-            {/* Back Button - Left */}
-            <button 
-              onClick={() => navigate(-1)}
-              className="flex w-10 h-10 justify-center items-center rounded-full bg-primary hover:bg-primary/90 transition-colors"
-            >
-              <ArrowRight className="w-5 h-5 text-white" />
-            </button>
+            {/* Title - Right */}
+            <h1 className="text-primary text-right text-2xl md:text-[32px] font-medium leading-[120%] flex-1 md:flex-initial">
+              الخصومات
+            </h1>
           </div>
 
           {/* Filter Tabs */}
@@ -176,8 +174,6 @@ export default function Discounts() {
                 } : undefined}
               />
             )}
-          </div>
-            </div>
           </div>
         </div>
       </main>

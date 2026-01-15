@@ -20,6 +20,7 @@ export interface Customer {
   email?: string;
   creditLimit: string;
   currentBalance: string;
+  walletBalance?: string;
   totalOrders: number;
   totalSpent: string;
   isActive: boolean;

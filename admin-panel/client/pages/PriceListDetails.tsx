@@ -76,7 +76,7 @@ export default function PriceListDetails() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:mr-64 mt-16 lg:mt-0">
-        <div className="flex-1 p-6 md:p-10 max-w-4xl mx-auto w-full">
+        <div className="flex-1 p-6 md:p-10 w-full">
           {/* Header */}
           <div className="flex flex-row items-center gap-4 mb-8">
             {/* Page Title - Right */}

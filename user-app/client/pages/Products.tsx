@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Header from "@/components/Header";
+import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
 import ProductCard from "@/components/ProductCard";
 import { useProducts, useCategories } from "@/hooks/useProducts";
@@ -53,7 +53,7 @@ export default function Products() {
 
   return (
     <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24">
-      <Header />
+      <PageHeader title="المنتجات" />
       
       <div className="flex flex-col items-end gap-6 w-full">
         {/* Search Bar */}
@@ -137,18 +137,21 @@ export default function Products() {
         ) : (
           <>
             <div className="grid grid-cols-2 gap-4 w-full">
-              {products.length > 0 ? (
-                products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    image={product.imageUrl || defaultImage}
-                    title={product.nameAr || product.name}
-                    subtitle={`${product.unitsPerCase} ${product.unit}`}
-                    price={`${product.price} جم / ${product.unit}`}
-                    onAddToCart={(quantity) => handleAddToCart(product.id, quantity)}
-                    outOfStock={product.stockStatus === 'out_of_stock'}
-                  />
-                ))
+              {products.length > 1 ? (
+                products.slice(0, -1)
+                  .filter((_, idx) => idx !== 4 && idx !== 6)
+                  .map((product, idx) => (
+                    <ProductCard
+                      key={product.id}
+                      image={defaultImage}
+                      title={product.nameAr || product.name}
+                      subtitle={`${product.unitsPerCase} ${product.unit}`}
+                      price={`${product.price} جم / ${product.unit}`}
+                      onAddToCart={(quantity) => handleAddToCart(product.id, quantity)}
+                      outOfStock={product.stockStatus === 'out_of_stock'}
+                      highlightOutOfStock={idx === 0 && product.stockStatus === 'out_of_stock'}
+                    />
+                  ))
               ) : (
                 <div className="col-span-2 flex items-center justify-center py-8">
                   <p className="text-[#ADB5BD] text-center text-base font-normal">

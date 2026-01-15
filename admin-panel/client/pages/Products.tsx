@@ -45,8 +45,8 @@ export default function Products() {
     <div className="flex min-h-screen bg-[#FFF]" dir="rtl">
       <Sidebar />
       
-      <main className="flex-1 p-6 md:p-10 lg:p-[60px] flex">
-        <div className="flex w-full flex-col items-end gap-8 self-stretch">
+      <main className="flex-1 p-6 md:p-10 lg:p-[60px]">
+        <div className="flex w-full flex-col gap-8">
           {/* Header Section */}
           <div className="flex flex-col items-end gap-8 self-stretch">
             {/* Top Bar */}

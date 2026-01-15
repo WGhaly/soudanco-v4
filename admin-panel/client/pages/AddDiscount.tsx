@@ -167,10 +167,10 @@ export default function AddDiscount() {
                 onClick={() => handleTypeSelect("buy-get")}
                 className="flex items-center justify-end gap-2 w-full"
               >
-                <div className="flex items-center gap-2.5 px-6 py-3 flex-1 rounded-md border border-green-600 bg-green-100">
-                  <span className="text-xl font-medium text-green-700">احصل على Y</span>
-                  <ArrowLeft className="w-5 h-5 text-green-700" />
+                <div className="flex items-center justify-end gap-2.5 px-6 py-3 flex-1 rounded-md border border-green-600 bg-green-100 flex-row-reverse">
                   <span className="text-xl font-medium text-green-700">اشترِ x</span>
+                  <ArrowLeft className="w-5 h-5 text-green-700" />
+                  <span className="text-xl font-medium text-green-700">احصل على Y</span>
                 </div>
                 <div className="w-6 h-6 rounded-full border-2 border-gray-900 flex items-center justify-center">
                   {selectedType === "buy-get" && (
@@ -184,10 +184,10 @@ export default function AddDiscount() {
                 onClick={() => handleTypeSelect("spend-bonus")}
                 className="flex items-center justify-end gap-1.5 w-full"
               >
-                <div className="flex items-center gap-2.5 px-6 py-3 flex-1 rounded-md border border-green-600 bg-green-100">
-                  <span className="text-xl font-medium text-green-700">بونس Y%</span>
-                  <ArrowLeft className="w-5 h-5 text-green-700" />
+                <div className="flex items-center justify-end gap-2.5 px-6 py-3 flex-1 rounded-md border border-green-600 bg-green-100 flex-row-reverse">
                   <span className="text-xl font-medium text-green-700">أنفق x</span>
+                  <ArrowLeft className="w-5 h-5 text-green-700" />
+                  <span className="text-xl font-medium text-green-700">بونس Y%</span>
                 </div>
                 <div className="w-6 h-6 rounded-full border-2 border-gray-900 flex items-center justify-center">
                   {selectedType === "spend-bonus" && (
@@ -237,25 +237,25 @@ export default function AddDiscount() {
           {/* Form Content */}
           <div className="flex flex-col gap-6">
             {/* Type Badge */}
-            <div className="flex items-center justify-end gap-2.5 px-6 py-3 rounded-md border border-green-600 bg-green-100">
+            <div className="flex items-center justify-end gap-2.5 px-6 py-3 rounded-md border border-green-600 bg-green-100 flex-row-reverse">
               {selectedType === "buy-get" ? (
                 <>
-                  <span className="text-xl font-medium text-green-700">احصل على Y</span>
-                  <ArrowLeft className="w-5 h-5 text-green-700" />
                   <span className="text-xl font-medium text-green-700">اشترِ x</span>
+                  <ArrowLeft className="w-5 h-5 text-green-700" />
+                  <span className="text-xl font-medium text-green-700">احصل على Y</span>
                 </>
               ) : (
                 <>
-                  <span className="text-xl font-medium text-green-700">بونس Y%</span>
-                  <ArrowLeft className="w-5 h-5 text-green-700" />
                   <span className="text-xl font-medium text-green-700">أنفق x</span>
+                  <ArrowLeft className="w-5 h-5 text-green-700" />
+                  <span className="text-xl font-medium text-green-700">بونس Y%</span>
                 </>
               )}
             </div>
 
             {/* Name Field */}
-            <div className="flex flex-col gap-2 items-end">
-              <label className="text-base font-medium text-gray-900">الاسم</label>
+            <div className="flex flex-col gap-2">
+              <label className="text-base font-medium text-gray-900 text-right w-full">الاسم</label>
               <input
                 type="text"
                 placeholder="اسم العرض"
@@ -269,8 +269,8 @@ export default function AddDiscount() {
             {selectedType === "buy-get" ? (
               <div className="flex items-start gap-6">
                 {/* Get Quantity */}
-                <div className="flex-1 flex flex-col gap-2 items-end">
-                  <label className="text-base font-medium text-gray-900">احصل علي</label>
+                <div className="flex-1 flex flex-col gap-2">
+                  <label className="text-base font-medium text-gray-900 text-right w-full">احصل علي</label>
                   <div className="relative w-full">
                     <input
                       type="text"
@@ -284,8 +284,8 @@ export default function AddDiscount() {
                 </div>
 
                 {/* Buy Quantity */}
-                <div className="flex-1 flex flex-col gap-2 items-end">
-                  <label className="text-base font-medium text-gray-900">اشترِ</label>
+                <div className="flex-1 flex flex-col gap-2">
+                  <label className="text-base font-medium text-gray-900 text-right w-full">اشترِ</label>
                   <div className="relative w-full">
                     <input
                       type="text"
@@ -301,8 +301,8 @@ export default function AddDiscount() {
             ) : (
               <div className="flex items-start gap-6">
                 {/* Bonus Percent */}
-                <div className="flex-1 flex flex-col gap-2 items-end">
-                  <label className="text-base font-medium text-gray-900">احصل علي (خصم)</label>
+                <div className="flex-1 flex flex-col gap-2">
+                  <label className="text-base font-medium text-gray-900 text-right w-full">احصل علي (خصم)</label>
                   <div className="relative w-full">
                     <input
                       type="text"
@@ -318,8 +318,8 @@ export default function AddDiscount() {
                 </div>
 
                 {/* Spend Amount */}
-                <div className="flex-1 flex flex-col gap-2 items-end">
-                  <label className="text-base font-medium text-gray-900">أنفق</label>
+                <div className="flex-1 flex flex-col gap-2">
+                  <label className="text-base font-medium text-gray-900 text-right w-full">أنفق</label>
                   <div className="relative w-full">
                     <input
                       type="text"
@@ -342,8 +342,8 @@ export default function AddDiscount() {
               
               <div className="flex items-start gap-6">
                 {/* Valid Until */}
-                <div className="flex-1 flex flex-col gap-1.5 items-end">
-                  <label className="text-base font-medium text-gray-900">الي</label>
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <label className="text-base font-medium text-gray-900 text-right w-full">الي</label>
                   <div className="relative w-full">
                     <input
                       type="text"
@@ -357,8 +357,8 @@ export default function AddDiscount() {
                 </div>
 
                 {/* Valid From */}
-                <div className="flex-1 flex flex-col gap-1.5 items-end">
-                  <label className="text-base font-medium text-gray-900">من</label>
+                <div className="flex-1 flex flex-col gap-1.5">
+                  <label className="text-base font-medium text-gray-900 text-right w-full">من</label>
                   <div className="relative w-full">
                     <input
                       type="text"

@@ -130,8 +130,8 @@ export default function ProductDetails() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 lg:p-[60px] flex mt-20 md:mt-0">
-        <div className="flex flex-col items-end gap-8 self-stretch w-full">
+      <main className="flex-1 p-6 md:p-10 lg:p-[60px] mt-20 md:mt-0">
+        <div className="flex flex-col gap-8 w-full">
           {/* Header */}
           <div className="flex flex-col items-end gap-8 self-stretch">
             <div className="flex flex-row items-center gap-4 self-stretch">

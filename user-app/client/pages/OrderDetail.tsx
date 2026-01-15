@@ -35,18 +35,27 @@ export default function OrderDetail() {
     return labels[status] || status;
   };
 
-  // Define order stages matching admin panel
+  // Define order stages matching the design (4 stages) - order from right to left: تم التوصيل → تم الشحن → تم الإعداد → تم الدفع
   const orderStages = [
-    { id: 'pending', label: 'قيد الانتظار', icon: 'M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z' },
-    { id: 'confirmed', label: 'تم التأكيد', icon: 'M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z' },
-    { id: 'processing', label: 'قيد التجهيز', icon: 'M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7Z' },
-    { id: 'shipped', label: 'تم الشحن', icon: 'M13 16V6C13 5.46957 12.7893 4.96086 12.4142 4.58579C12.0391 4.21071 11.5304 4 11 4H5C4.46957 4 3.96086 4.21071 3.58579 4.58579C3.21071 4.96086 3 5.46957 3 6V16' },
-    { id: 'delivered', label: 'تم التوصيل', icon: 'M5 13L9 17L19 7' },
+    { id: 'delivered', label: 'تم التوصيل', icon: 'M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z' },
+    { id: 'shipped', label: 'تم الشحن', icon: 'M16 3H1V16H16V3ZM16 8H20L23 11V16H16V8ZM5.5 18.5C6.32843 18.5 7 17.8284 7 17C7 16.1716 6.32843 15.5 5.5 15.5C4.67157 15.5 4 16.1716 4 17C4 17.8284 4.67157 18.5 5.5 18.5ZM18.5 18.5C19.3284 18.5 20 17.8284 20 17C20 16.1716 19.3284 15.5 18.5 15.5C17.6716 15.5 17 16.1716 17 17C17 17.8284 17.6716 18.5 18.5 18.5Z' },
+    { id: 'processing', label: 'تم الإعداد', icon: 'M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7ZM16 11H8V13H16V11Z' },
+    { id: 'paid', label: 'تم الدفع', icon: 'M17 9V7C17 5.89543 16.1046 5 15 5H5C3.89543 5 3 5.89543 3 7V13C3 14.1046 3.89543 15 5 15H7M9 19H19C20.1046 19 21 18.1046 21 17V11C21 9.89543 20.1046 9 19 9H9C7.89543 9 7 9.89543 7 11V17C7 18.1046 7.89543 19 9 19ZM16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z' },
   ];
 
   const getStageIndex = (status: string) => {
     if (status === 'cancelled') return -1;
-    return orderStages.findIndex(s => s.id === status);
+    // Map backend status to our 4 stages (progress: paid → processing → shipped → delivered)
+    // Index: paid=3, processing=2, shipped=1, delivered=0
+    const statusMap: Record<string, number> = {
+      'pending': 3,      // paid stage
+      'confirmed': 3,    // paid stage
+      'paid': 3,         // paid stage
+      'processing': 2,   // processing stage
+      'shipped': 1,      // shipped stage
+      'delivered': 0,    // delivered stage
+    };
+    return statusMap[status] ?? -1;
   };
 
   const handleCancelOrder = () => {
@@ -77,50 +86,52 @@ export default function OrderDetail() {
 
       <div className="flex flex-col items-end gap-6 w-full">
         <div className="flex px-4 flex-col items-end gap-2.5 w-full">
-          <p className="text-[#ADB5BD] text-right text-base font-medium leading-5">
+          <p className="text-[#ADB5BD] text-right text-base font-medium leading-5 w-full">
             رقم الطلب #{order.orderNumber}
           </p>
         </div>
 
         {/* Order Tracker */}
-        <div className="flex px-3 py-4 justify-center items-center gap-1.5 w-full rounded-2xl bg-white">
+        <div className="flex flex-row-reverse px-3 py-4 justify-center items-start gap-0 w-full rounded-2xl bg-white">
           {order.status === 'cancelled' ? (
             <div className="flex flex-col items-center gap-2 py-4 w-full">
-              <div className="flex p-2.5 justify-center items-center gap-2.5 rounded-[50px] bg-[radial-gradient(50%_50%_at_50%_50%,rgba(0,0,0,0)_57.69%,rgba(0,0,0,0.13)_100%),#DC3545]">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <div className="flex w-12 h-12 justify-center items-center rounded-full bg-[#DC3545]">
+                <svg width="24" height="24" viewBox="0 0 20 20" fill="none">
                   <path d="M6 6L14 14M6 14L14 6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
               </div>
               <span className="text-[#DC3545] text-center text-sm font-medium">تم إلغاء الطلب</span>
             </div>
           ) : (
-            [...orderStages].reverse().map((stage, index) => {
+            orderStages.map((stage, index) => {
               const currentStageIndex = getStageIndex(order.status);
-              const stageIndex = orderStages.length - 1 - index;
-              const isCompleted = stageIndex <= currentStageIndex;
-              const isActive = stageIndex === currentStageIndex;
+              // Progress goes from high index (paid=3) to low index (delivered=0)
+              // A stage is completed if its index is >= currentStageIndex
+              const isCompleted = currentStageIndex !== -1 && index >= currentStageIndex;
+              // Line is completed if current stage is completed (line comes after the icon in RTL)
+              const isLineCompleted = isCompleted;
               
               return (
-                <div key={stage.id} className="contents">
-                  <div className={`flex ${index === 0 ? 'w-[63px]' : index === orderStages.length - 1 ? 'w-[52px]' : 'w-[54px]'} flex-col items-center gap-2.5`}>
-                    <div className={`flex p-2.5 justify-center items-center gap-2.5 rounded-[50px] ${
+                <div key={stage.id} className="flex flex-row-reverse items-start">
+                  <div className="flex flex-col items-center gap-2.5">
+                    <div className={`flex w-14 h-14 justify-center items-center rounded-full ${
                       isCompleted 
-                        ? 'bg-[radial-gradient(50%_50%_at_50%_50%,rgba(0,0,0,0)_57.69%,rgba(0,0,0,0.13)_100%),#FD7E14]' 
-                        : 'bg-[radial-gradient(50%_50%_at_50%_50%,rgba(255,255,255,0)_0%,rgba(0,0,0,0.2)_100%),#ADB5BD]'
+                        ? 'bg-[#FD7E14]' 
+                        : 'bg-[#E9ECEF] border-4 border-[#CED4DA]'
                     }`}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <path d={stage.icon} stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                        <path d={stage.icon} stroke={isCompleted ? "white" : "#ADB5BD"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </div>
-                    <span className={`text-center text-sm font-normal leading-[150%] ${isActive ? 'text-[#FD7E14] font-medium' : 'text-[#212529]'}`}>
-                      {stage.label}
+                    <span className={`text-center text-sm font-medium leading-[140%] whitespace-pre-line ${isCompleted ? 'text-[#212529]' : 'text-[#ADB5BD]'}`}>
+                      {stage.label.replace(' ', '\n')}
                     </span>
                   </div>
                   
                   {index < orderStages.length - 1 && (
-                    <div className="flex py-5 px-0 flex-col items-start gap-2.5 flex-1">
-                      <div className={`h-1.5 w-full rounded-[30px] ${
-                        stageIndex <= currentStageIndex ? 'bg-[#FD7E14]' : 'bg-[#ADB5BD]'
+                    <div className="flex items-center h-14 px-1">
+                      <div className={`h-1 w-6 rounded-full ${
+                        isLineCompleted ? 'bg-[#FD7E14]' : 'bg-[#DEE2E6]'
                       }`}></div>
                     </div>
                   )}
@@ -133,7 +144,7 @@ export default function OrderDetail() {
         {/* Order Info Fields */}
         <div className="flex h-[88px] flex-row-reverse items-center gap-4 w-full">
           <div className="flex px-3 py-2 flex-col items-end gap-2 flex-1 rounded-2xl bg-white">
-            <span className="text-[#363636] text-right text-base font-medium leading-[120%]">
+            <span className="text-[#363636] text-right text-base font-medium leading-[120%] w-full">
               نوع الدفع
             </span>
             <span className="text-[#212529] text-right text-base font-bold leading-[150%] w-full">
@@ -142,7 +153,7 @@ export default function OrderDetail() {
           </div>
 
           <div className="flex px-3 py-2 flex-col items-end gap-2 flex-1 rounded-2xl bg-white">
-            <span className="text-[#363636] text-right text-base font-medium leading-[120%]">
+            <span className="text-[#363636] text-right text-base font-medium leading-[120%] w-full">
               حالة الطلب
             </span>
             <span className="text-[#212529] text-right text-base font-bold leading-[150%] w-full">
@@ -151,7 +162,7 @@ export default function OrderDetail() {
           </div>
 
           <div className="flex px-3 py-2 flex-col items-end gap-2 flex-1 rounded-2xl bg-white">
-            <span className="text-[#363636] text-right text-base font-medium leading-[120%]">
+            <span className="text-[#363636] text-right text-base font-medium leading-[120%] w-full">
               التاريخ
             </span>
             <span className="text-[#212529] text-right text-base font-bold leading-[150%] w-full">
@@ -165,12 +176,13 @@ export default function OrderDetail() {
         </h2>
 
         {/* Products Table */}
-        <div className="flex p-2.5 flex-col items-end w-full rounded-lg border border-[#DEE2E6] bg-white">
-          <div className="flex px-2.5 py-2.5 flex-row-reverse items-center gap-[30px] w-full rounded-lg bg-[#DEE2E6]">
-            <span className="flex-1 text-[#6C757D] text-right text-sm font-normal leading-[150%]">المجموع</span>
-            <span className="flex-1 text-[#6C757D] text-right text-sm font-normal leading-[150%]">سعر الكرتونة</span>
-            <span className="flex-1 text-[#6C757D] text-right text-sm font-normal leading-[150%]">الكمية</span>
-            <span className="flex-1 text-[#6C757D] text-right text-sm font-normal leading-[150%]">المنتج</span>
+        <div className="flex flex-col items-end w-full rounded-2xl bg-white overflow-hidden">
+          {/* Header */}
+          <div className="flex items-center w-full bg-[#E9ECEF] px-4 py-3">
+            <span className="w-20 text-[#6C757D] text-center text-sm font-medium">المنتج</span>
+            <span className="flex-1 text-[#6C757D] text-center text-sm font-medium">الكمية</span>
+            <span className="flex-1 text-[#6C757D] text-center text-sm font-medium">سعر الكرتونة</span>
+            <span className="flex-1 text-[#6C757D] text-center text-sm font-medium">المجموع</span>
           </div>
 
           {items.length === 0 ? (
@@ -179,18 +191,36 @@ export default function OrderDetail() {
             items.map((item, index) => (
               <div
                 key={item.id}
-                className={`flex px-2.5 py-[13px] flex-row-reverse items-center gap-[30px] w-full bg-white ${
-                  index < items.length - 1 ? "border-b border-[#DEE2E6]" : ""
+                className={`flex items-center w-full px-4 py-4 ${
+                  index < items.length - 1 ? "border-b border-[#E9ECEF]" : ""
                 }`}
               >
-                <span className="flex-1 text-[#212529] text-right text-base font-normal leading-[130%]">{formatCurrency(item.totalPrice)}</span>
-                <span className="flex-1 text-[#212529] text-right text-base font-normal leading-[130%]">{formatCurrency(item.unitPrice)}</span>
-                <span className="flex-1 text-[#212529] text-right text-base font-normal leading-[130%]">{item.quantity} {item.unit}</span>
-                {item.productImage ? (
-                  <img src={item.productImage} alt={item.productNameAr || item.productName} className="h-[57px] flex-1 rounded-xl object-cover" />
-                ) : (
-                  <div className="h-[57px] flex-1 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-xs">{item.productNameAr || item.productName}</div>
-                )}
+                {/* Product Image */}
+                <div className="w-20 flex justify-start">
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.productNameAr || item.productName} className="h-16 w-14 rounded-lg object-cover" />
+                  ) : (
+                    <div className="h-16 w-14 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">{item.productNameAr || item.productName}</div>
+                  )}
+                </div>
+                
+                {/* Quantity */}
+                <div className="flex-1 flex flex-col items-center">
+                  <span className="text-[#212529] text-lg font-medium">{item.quantity}</span>
+                  <span className="text-[#212529] text-sm">كرتونة</span>
+                </div>
+                
+                {/* Unit Price */}
+                <div className="flex-1 flex flex-col items-center">
+                  <span className="text-[#212529] text-lg font-medium">{parseFloat(String(item.unitPrice)).toLocaleString('ar-EG')}</span>
+                  <span className="text-[#212529] text-sm">جم</span>
+                </div>
+                
+                {/* Total */}
+                <div className="flex-1 flex flex-col items-center">
+                  <span className="text-[#212529] text-lg font-medium">{parseFloat(String(item.totalPrice)).toLocaleString('ar-EG')}</span>
+                  <span className="text-[#212529] text-sm">جم</span>
+                </div>
               </div>
             ))
           )}
@@ -203,26 +233,19 @@ export default function OrderDetail() {
           </h2>
           
           <div className="flex flex-col justify-center items-end gap-6 w-full">
-            <div className="flex h-[67px] flex-col items-end gap-2 w-full border-b border-dashed border-[#212529]">
+            <div className="flex flex-row-reverse justify-between items-center w-full pb-4 border-b border-dashed border-[#212529]">
               <span className="text-[#363636] text-right text-base font-medium leading-[120%]">المجموع الفرعي</span>
-              <span className="text-[#212529] text-right text-base font-bold leading-[150%] w-full">{formatCurrency(order.subtotal)}</span>
+              <span className="text-[#212529] text-left text-base font-bold leading-[150%]">{formatCurrency(order.subtotal)}</span>
             </div>
 
-            <div className="flex h-[67px] flex-col items-end gap-2 w-full border-b border-dashed border-[#212529]">
+            <div className="flex flex-row-reverse justify-between items-center w-full pb-4 border-b border-dashed border-[#212529]">
               <span className="text-[#363636] text-right text-base font-medium leading-[120%]">خصم العروض</span>
-              <span className="text-[#212529] text-right text-base font-bold leading-[150%] w-full">- {formatCurrency(order.discountAmount || '0')}</span>
+              <span className="text-[#212529] text-left text-base font-bold leading-[150%]">- {formatCurrency(order.discountAmount || '0')}</span>
             </div>
 
-            <div className="flex h-[67px] flex-col items-end gap-3 w-full border-b border-dashed border-[#212529]">
-              <div className="flex flex-col items-end gap-3 w-full">
-                <span className="text-[#363636] text-right text-base font-medium leading-[120%]">الإجمالي</span>
-                <span className="text-[#FD7E14] text-right text-2xl font-bold leading-[100%] w-full">{formatCurrency(order.total)}</span>
-              </div>
-            </div>
-
-            <div className="flex h-[67px] flex-col items-end gap-2 w-full">
-              <span className="text-[#363636] text-right text-base font-medium leading-[120%]">حالة الطلب</span>
-              <span className="text-[#212529] text-right text-base font-bold leading-[150%] w-full">{getStatusLabel(order.status)}</span>
+            <div className="flex flex-row-reverse justify-between items-center w-full">
+              <span className="text-[#363636] text-right text-base font-medium leading-[120%]">الإجمالي</span>
+              <span className="text-[#FD7E14] text-left text-2xl font-bold leading-[100%]">{formatCurrency(order.total)}</span>
             </div>
           </div>
         </div>

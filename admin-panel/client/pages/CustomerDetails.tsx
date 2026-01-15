@@ -136,9 +136,8 @@ export default function CustomerDetails() {
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-10 lg:p-[60px] flex">
-        <div className="flex flex-col items-center flex-1 w-full">
-          <div className="flex flex-col items-end gap-6 md:gap-8 w-full">
+      <main className="flex-1 p-6 md:p-10 lg:p-[60px]">
+        <div className="flex flex-col gap-6 md:gap-8 w-full">
             {/* Page Header */}
             <div className="flex flex-col items-end gap-6 md:gap-8 self-stretch">
               <div className="flex flex-row items-center gap-4 self-stretch">
@@ -546,7 +545,6 @@ export default function CustomerDetails() {
               </>
             )}
           </div>
-        </div>
       </main>
     </div>
   );

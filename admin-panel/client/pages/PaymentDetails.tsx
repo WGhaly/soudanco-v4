@@ -72,8 +72,8 @@ export default function PaymentDetails() {
     <div className="flex min-h-screen bg-gray-50" dir="rtl">
       <Sidebar />
       
-      <div className="flex-1 flex flex-col items-center p-6 md:p-10 lg:p-15">
-        <div className="w-full max-w-[708px] flex flex-col gap-8">
+      <div className="flex-1 p-6 md:p-10 lg:p-15">
+        <div className="w-full flex flex-col gap-8">
           {/* Header */}
           <div className="flex flex-row items-center gap-4">
             {/* Title - Right */}

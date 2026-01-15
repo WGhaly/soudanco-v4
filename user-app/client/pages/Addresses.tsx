@@ -97,20 +97,22 @@ export default function Addresses() {
           primaryAddresses.map((address) => (
             <div key={address.id} className="flex p-4 flex-col justify-center items-end gap-6 w-full rounded-lg border border-[#D3D3D3] bg-white">
               <div className="flex flex-col items-end gap-3 w-full">
-                <div className="flex flex-row-reverse items-center gap-1.5 w-full">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M12.1658 8.93977C11.6418 10.0015 10.9325 11.0601 10.2058 12.01C9.48132 12.957 8.75442 13.7768 8.20768 14.3605C8.13503 14.438 8.06566 14.5113 8 14.5801C7.93434 14.5113 7.86497 14.438 7.79232 14.3605C7.24558 13.7768 6.51868 12.957 5.79425 12.01C5.06754 11.0601 4.35825 10.0015 3.83423 8.93977C3.3048 7.86708 3 6.86191 3 6C3 3.23858 5.23858 1 8 1C10.7614 1 13 3.23858 13 6C13 6.86191 12.6952 7.86708 12.1658 8.93977ZM8 16C8 16 14 10.3137 14 6C14 2.68629 11.3137 0 8 0C4.68629 0 2 2.68629 2 6C2 10.3137 8 16 8 16Z" fill="#FD7E14"/>
-                    <path d="M8 8C6.89543 8 6 7.10457 6 6C6 4.89543 6.89543 4 8 4C9.10457 4 10 4.89543 10 6C10 7.10457 9.10457 8 8 8ZM8 9C9.65685 9 11 7.65685 11 6C11 4.34315 9.65685 3 8 3C6.34315 3 5 4.34315 5 6C5 7.65685 6.34315 9 8 9Z" fill="#FD7E14"/>
-                  </svg>
-                  <div className="flex flex-row-reverse justify-between items-center flex-1">
-                    <div className="flex px-2.5 py-1 justify-center items-center gap-1.5 rounded-full border border-[#198754] bg-[#A3CFBB]">
-                      <span className="text-white text-center text-sm font-normal leading-[150%]">
-                        الاساسي
-                      </span>
-                    </div>
+                <div className="flex items-center gap-1.5 w-full">
+                  <div className="flex justify-between items-center flex-1">
                     <span className="text-[#212529] text-right text-base font-normal leading-[130%]">
                       {address.label}
                     </span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex px-2.5 py-1 justify-center items-center gap-1.5 rounded-full border border-[#198754] bg-[#A3CFBB]">
+                        <span className="text-white text-center text-sm font-normal leading-[150%]">
+                          الاساسي
+                        </span>
+                      </div>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M12.1658 8.93977C11.6418 10.0015 10.9325 11.0601 10.2058 12.01C9.48132 12.957 8.75442 13.7768 8.20768 14.3605C8.13503 14.438 8.06566 14.5113 8 14.5801C7.93434 14.5113 7.86497 14.438 7.79232 14.3605C7.24558 13.7768 6.51868 12.957 5.79425 12.01C5.06754 11.0601 4.35825 10.0015 3.83423 8.93977C3.3048 7.86708 3 6.86191 3 6C3 3.23858 5.23858 1 8 1C10.7614 1 13 3.23858 13 6C13 6.86191 12.6952 7.86708 12.1658 8.93977ZM8 16C8 16 14 10.3137 14 6C14 2.68629 11.3137 0 8 0C4.68629 0 2 2.68629 2 6C2 10.3137 8 16 8 16Z" fill="#FD7E14"/>
+                        <path d="M8 8C6.89543 8 6 7.10457 6 6C6 4.89543 6.89543 4 8 4C9.10457 4 10 4.89543 10 6C10 7.10457 9.10457 8 8 8ZM8 9C9.65685 9 11 7.65685 11 6C11 4.34315 9.65685 3 8 3C6.34315 3 5 4.34315 5 6C5 7.65685 6.34315 9 8 9Z" fill="#FD7E14"/>
+                      </svg>
+                    </div>
                   </div>
                 </div>
                 
@@ -150,28 +152,28 @@ export default function Addresses() {
         {otherAddresses.map((address) => (
           <div key={address.id} className="flex p-4 flex-col justify-center items-end gap-6 w-full rounded-lg border border-[#D3D3D3] bg-white">
             <div className="flex flex-col items-end gap-3 w-full">
-              <div className="flex flex-row-reverse items-center gap-4 w-full">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M12.1658 8.93977C11.6418 10.0015 10.9325 11.0601 10.2058 12.01C9.48132 12.957 8.75442 13.7768 8.20768 14.3605C8.13503 14.438 8.06566 14.5113 8 14.5801C7.93434 14.5113 7.86497 14.438 7.79232 14.3605C7.24558 13.7768 6.51868 12.957 5.79425 12.01C5.06754 11.0601 4.35825 10.0015 3.83423 8.93977C3.3048 7.86708 3 6.86191 3 6C3 3.23858 5.23858 1 8 1C10.7614 1 13 3.23858 13 6C13 6.86191 12.6952 7.86708 12.1658 8.93977ZM8 16C8 16 14 10.3137 14 6C14 2.68629 11.3137 0 8 0C4.68629 0 2 2.68629 2 6C2 10.3137 8 16 8 16Z" fill="#FD7E14"/>
-                  <path d="M8 8C6.89543 8 6 7.10457 6 6C6 4.89543 6.89543 4 8 4C9.10457 4 10 4.89543 10 6C10 7.10457 9.10457 8 8 8ZM8 9C9.65685 9 11 7.65685 11 6C11 4.34315 9.65685 3 8 3C6.34315 3 5 4.34315 5 6C5 7.65685 6.34315 9 8 9Z" fill="#FD7E14"/>
-                </svg>
+              <div className="flex items-center gap-4 w-full">
+                <button 
+                  onClick={() => setPrimaryAddress(address.id)} 
+                  disabled={updateAddress.isPending}
+                  className="flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 0L10 6H16L11 10L13 16L8 12L3 16L5 10L0 6H6L8 0Z" fill="#FD7E14"/>
+                  </svg>
+                  <span className="text-[#FD7E14] text-center text-sm font-normal leading-[150%]">
+                    تعيين كاعنوان اساسي
+                  </span>
+                </button>
                 <div className="flex justify-end items-center flex-1">
                   <span className="text-[#212529] text-right text-base font-normal leading-[130%]">
                     {address.label}
                   </span>
                 </div>
-                <button 
-                  onClick={() => setPrimaryAddress(address.id)} 
-                  disabled={updateAddress.isPending}
-                  className="flex justify-end items-center gap-1.5 disabled:opacity-50"
-                >
-                  <span className="text-[#FD7E14] text-center text-sm font-normal leading-[150%]">
-                    تعيين كاعنوان اساسي
-                  </span>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M8 0L10 6H16L11 10L13 16L8 12L3 16L5 10L0 6H6L8 0Z" fill="#FD7E14"/>
-                  </svg>
-                </button>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M12.1658 8.93977C11.6418 10.0015 10.9325 11.0601 10.2058 12.01C9.48132 12.957 8.75442 13.7768 8.20768 14.3605C8.13503 14.438 8.06566 14.5113 8 14.5801C7.93434 14.5113 7.86497 14.438 7.79232 14.3605C7.24558 13.7768 6.51868 12.957 5.79425 12.01C5.06754 11.0601 4.35825 10.0015 3.83423 8.93977C3.3048 7.86708 3 6.86191 3 6C3 3.23858 5.23858 1 8 1C10.7614 1 13 3.23858 13 6C13 6.86191 12.6952 7.86708 12.1658 8.93977ZM8 16C8 16 14 10.3137 14 6C14 2.68629 11.3137 0 8 0C4.68629 0 2 2.68629 2 6C2 10.3137 8 16 8 16Z" fill="#FD7E14"/>
+                  <path d="M8 8C6.89543 8 6 7.10457 6 6C6 4.89543 6.89543 4 8 4C9.10457 4 10 4.89543 10 6C10 7.10457 9.10457 8 8 8ZM8 9C9.65685 9 11 7.65685 11 6C11 4.34315 9.65685 3 8 3C6.34315 3 5 4.34315 5 6C5 7.65685 6.34315 9 8 9Z" fill="#FD7E14"/>
+                </svg>
               </div>
               
               <div className="flex flex-col items-end gap-1.5 w-full px-3">

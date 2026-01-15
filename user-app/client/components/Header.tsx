@@ -1,29 +1,22 @@
+/**
+ * @deprecated This component is deprecated. Use PageHeader instead for all pages.
+ * PageHeader provides consistent header layout with optional title and back button.
+ */
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
 
 export default function Header() {
   return (
-    <div className="flex flex-row-reverse items-center gap-[87px] w-full px-4 py-[3px] rounded-xl bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.08)]">
-      <div className="flex flex-row-reverse items-center gap-1.5 flex-1">
-        <Link 
-          to="/cart" 
-          className="flex p-1.5 justify-center items-center gap-2.5 rounded-lg hover:bg-[rgba(253,126,20,0.1)] transition-colors"
-          title="Shopping Cart"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2.5 3.33334H3.00526C3.85578 3.33334 4.56169 3.97375 4.6470 4.81926L5.3529 11.8475C5.43821 12.6931 6.14412 13.3333 6.99464 13.3333H14.205C14.9669 13.3333 15.6317 12.7923 15.82 12.0382L17.0699 7.20487C17.3279 6.18732 16.5947 5.16667 15.5549 5.16667H5.83333M6.66667 17.5C6.66667 18.1904 6.10702 18.75 5.41667 18.75C4.72631 18.75 4.16667 18.1904 4.16667 17.5C4.16667 16.8096 4.72631 16.25 5.41667 16.25C6.10702 16.25 6.66667 16.8096 6.66667 17.5ZM15.8333 17.5C15.8333 18.1904 15.2737 18.75 14.5833 18.75C13.893 18.75 13.3333 18.1904 13.3333 17.5C13.3333 16.8096 13.893 16.25 14.5833 16.25C15.2737 16.25 15.8333 16.8096 15.8333 17.5Z" stroke="#FD7E14" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </Link>
+    <div className="flex flex-row-reverse items-center w-full px-4 py-1.5 rounded-xl bg-white shadow-[0_2px_4px_0_rgba(0,0,0,0.08)]">
+      {/* Logo on the very right */}
+      <Logo className="w-[31px] h-[51px] py-3 mr-2" />
+      {/* Name (سودانكو) next to logo */}
+      <span className="text-[#FD7E14] text-right text-xl font-medium leading-[120%] whitespace-nowrap mr-2">سودانكو</span>
+      {/* Title centered (for Header, you may want to pass a prop for title, or leave blank) */}
+      <div className="flex-1 flex justify-center items-center">
+        {/* If you want a title, add it here */}
       </div>
-      
-      <div className="flex flex-row-reverse items-center gap-4">
-        <Link to="/home" className="hover:opacity-80 transition-opacity">
-          <Logo className="w-[31px] h-[51px] py-3" />
-        </Link>
-        <span className="text-[#FD7E14] text-right text-xl font-medium leading-[120%] whitespace-nowrap">
-          سودانكو
-        </span>
-      </div>
+      {/* Chevron on the very left (optional for Header) */}
     </div>
   );
 }

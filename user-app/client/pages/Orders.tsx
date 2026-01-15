@@ -108,69 +108,71 @@ export default function Orders() {
                     key={order.id}
                     className="flex p-2 flex-col items-center gap-[15px] w-full rounded-xl border border-[#F1F1F1] bg-white shadow-[0_0_15px_0_rgba(0,0,0,0.20)]"
                   >
-                    {/* Order Header */}
-                    <div className="flex flex-row-reverse px-4 py-4 justify-between items-center w-full rounded-lg bg-[#DEE2E6]">
-                      {/* Order Info */}
-                      <div className="flex flex-col items-end gap-1.5 flex-1">
-                        <span className="text-[#212529] text-right text-base font-medium leading-[125%] w-full">
+                    {/* Order Header: Tag LEFT | Order Info RIGHT (RTL layout) */}
+                    <div className="flex flex-row px-4 py-4 justify-between items-center w-full rounded-lg bg-[#DEE2E6]">
+                      {/* Order Info - on RIGHT side (first in RTL) */}
+                      <div className="flex flex-col items-start gap-1">
+                        <span className="text-[#212529] text-base font-medium leading-[125%]">
                           رقم الطلب #{order.orderNumber}
                         </span>
-                        <span className="text-[#ADB5BD] text-right text-sm font-normal leading-[150%] w-full">
+                        <span className="text-[#ADB5BD] text-sm font-normal leading-[150%]">
                           {new Date(order.createdAt).toLocaleDateString('ar-EG')}
                         </span>
                       </div>
 
-                      <div className="flex flex-row items-center gap-1.5">
-                        {/* Status Badge */}
-                        <div className={`flex px-2.5 py-1 justify-center items-center gap-1.5 rounded-full border ${config.border} ${config.bg}`}>
-                          <span className={`text-center text-sm font-normal leading-[150%] ${config.text}`}>
-                            {config.label}
-                          </span>
-                        </div>
+                      {/* Status Badge - on LEFT side (last in RTL) */}
+                      <div className={`flex px-2.5 py-1.5 justify-center items-center rounded-full border whitespace-nowrap ${config.border} ${config.bg}`}>
+                        <span className={`text-center text-sm font-normal leading-none ${config.text}`}>
+                          {config.label}
+                        </span>
                       </div>
                     </div>
 
                     {/* Order Details */}
-                    <div className="flex px-4 flex-col justify-center items-end gap-3 w-full">
-                      {/* Order Preview */}
-                      <div className="flex flex-row h-[57px] items-center gap-3 w-full">
+                    <div className="flex px-4 flex-col justify-center items-stretch gap-3 w-full">
+                      {/* Product Row: Price LEFT | Info MIDDLE | Image RIGHT (RTL layout) */}
+                      <div className="flex flex-row items-center w-full">
+                        {/* Image - RIGHT side (first in RTL) */}
                         <img
                           src={defaultImage}
                           alt="Order"
-                          className="w-[57px] h-[57px] rounded-xl object-cover"
+                          className="w-[57px] h-[57px] rounded-xl object-cover shrink-0"
                         />
-                        <div className="flex flex-col items-end gap-1.5 flex-1">
-                          <span className="text-[#363636] text-right text-base font-normal leading-[130%] w-full">
+                        
+                        {/* Product Info - MIDDLE (left of image in RTL) */}
+                        <div className="flex flex-col items-start gap-1.5 mr-3">
+                          <span className="text-[#363636] text-base font-normal leading-[130%]">
                             {order.itemCount || 0} منتجات
                           </span>
-                          <span className="text-[#C0C0C0] text-right text-sm font-normal leading-[150%] w-full">
+                          <span className="text-[#C0C0C0] text-sm font-normal leading-[150%]">
                             {order.addressLabel ? `${order.addressLabel} - ${order.city}` : ''}
                           </span>
                         </div>
-                      </div>
-
-                      {/* Price and Actions */}
-                      <div className="flex flex-row py-2 items-center justify-between gap-4 w-full border-t border-[#DEE2E6]">
-                        <div className="flex gap-2">
-                          <Link 
-                            to={`/order/${order.id}`}
-                            className="px-3 py-1 text-sm text-[#FD7E14] border border-[#FD7E14] rounded-full hover:bg-[rgba(253,126,20,0.05)]"
-                          >
-                            عرض التفاصيل
-                          </Link>
-                          {order.status === 'delivered' && (
-                            <button
-                              onClick={() => handleReorder(order.id)}
-                              disabled={reorder.isPending}
-                              className="px-3 py-1 text-sm text-white bg-[#FD7E14] rounded-full hover:bg-[#E56D04] disabled:opacity-50"
-                            >
-                              إعادة الطلب
-                            </button>
-                          )}
-                        </div>
-                        <span className="text-[#FD7E14] text-xl font-medium leading-[120%]">
+                        
+                        {/* Spacer to push price to left */}
+                        <div className="flex-1" />
+                        
+                        {/* Price - LEFT side (last in RTL) */}
+                        <span className="text-[#FD7E14] text-xl font-medium leading-[120%] shrink-0">
                           {order.total} جم
                         </span>
+                      </div>
+
+                      {/* Actions - Horizontal (always show both buttons) */}
+                      <div className="flex flex-row py-2 items-center gap-2 w-full border-t border-[#DEE2E6]">
+                        <button
+                          onClick={() => handleReorder(order.id)}
+                          disabled={reorder.isPending}
+                          className="flex-1 px-3 py-2 text-sm text-center text-white bg-[#FD7E14] rounded-full hover:bg-[#E56D04] disabled:opacity-50"
+                        >
+                          إعادة الطلب
+                        </button>
+                        <Link 
+                          to={`/order/${order.id}`}
+                          className="flex-1 px-3 py-2 text-sm text-center text-[#FD7E14] border border-[#FD7E14] rounded-full hover:bg-[rgba(253,126,20,0.05)]"
+                        >
+                          عرض التفاصيل
+                        </Link>
                       </div>
                     </div>
                   </div>

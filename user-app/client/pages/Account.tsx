@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
+import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/lib/auth";
 import { useDashboard } from "@/hooks/useProfile";
@@ -20,7 +20,7 @@ export default function Account() {
 
   return (
     <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5">
-      <Header />
+      <PageHeader showBackButton={false} showCart={true} />
       
       <div className="flex flex-col justify-between items-end flex-1 w-full">
         <div className="flex px-4 flex-col items-end gap-6 w-full">
@@ -113,22 +113,6 @@ export default function Account() {
               </span>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M3.33333 2.5H0.833333V20H19.1667V2.5H16.6667M3.33333 2.5V0H16.6667V2.5M3.33333 2.5H16.6667" stroke="#212529" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </Link>
-
-            <Link
-              to="/notifications"
-              className="flex flex-row-reverse px-6 py-2 items-center gap-4 w-full hover:bg-[#F1F1F1] rounded-lg transition-colors"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M5 2L2 8L5 14" stroke="#212529" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span className="flex-1 text-[#212529] text-right text-xl font-medium leading-[120%]">
-                الإشعارات
-              </span>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M15 6.66667C15 5.34058 14.4732 4.06881 13.5355 3.13113C12.5979 2.19345 11.3261 1.66667 10 1.66667C8.67392 1.66667 7.40215 2.19345 6.46447 3.13113C5.52678 4.06881 5 5.34058 5 6.66667C5 12.5 2.5 14.1667 2.5 14.1667H17.5C17.5 14.1667 15 12.5 15 6.66667Z" stroke="#212529" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M11.4419 17.5C11.2954 17.7526 11.0851 17.9622 10.8321 18.1079C10.5791 18.2537 10.2922 18.3304 10.0003 18.3304C9.70828 18.3304 9.42142 18.2537 9.16841 18.1079C8.91539 17.9622 8.70516 17.7526 8.55859 17.5" stroke="#212529" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </Link>
 

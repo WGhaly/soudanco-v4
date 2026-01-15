@@ -1,5 +1,6 @@
+
 import { Link } from "react-router-dom";
-import Header from "@/components/Header";
+import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
 import ProductCard from "@/components/ProductCard";
 import { useAuth } from "@/lib/auth";
@@ -45,17 +46,32 @@ export default function Home() {
   const defaultImage = "https://api.builder.io/api/v1/image/assets/TEMP/86501bd89bfb43fe0882378e0ea38736bf4ebf29";
 
   return (
-    <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5">
-      <Header />
+    <div className="flex flex-col items-end gap-6 bg-[#F8F9FA] p-5">
+      <PageHeader showBackButton={false} />
       
       <div className="flex flex-col items-center gap-10 w-full">
-        {/* Ads Banner - Scrollable */}
-        <div className="flex h-[185px] justify-center items-center gap-3 w-full overflow-x-auto">
-          <img
-            src="https://api.builder.io/api/v1/image/assets/TEMP/7a594b41f8082709d6bdd8d64064f23d084fd240"
-            alt="Banner 1"
-            className="min-w-[372px] h-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
-          />
+        {/* Ads Banner - Scrollable Carousel */}
+        <div className="w-full flex justify-center">
+          <div className="flex h-[185px] gap-4 w-full max-w-3xl overflow-x-auto scrollbar-hide px-2">
+            <img
+              src="/assets/Rectangle 2.jpg"
+              alt="Banner Center"
+              className="min-w-[372px] h-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity mx-auto"
+              style={{ order: 2 }}
+            />
+            <img
+              src="/assets/Rectangle 1.jpg"
+              alt="Banner Left"
+              className="min-w-[372px] h-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
+              style={{ order: 1 }}
+            />
+            <img
+              src="/assets/Rectangle 3.jpg"
+              alt="Banner Right"
+              className="min-w-[372px] h-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
+              style={{ order: 3 }}
+            />
+          </div>
         </div>
 
         {/* Statistics */}
@@ -131,16 +147,20 @@ export default function Home() {
                 <Link 
                   key={order.id} 
                   to={`/order/${order.id}`}
-                  className="flex flex-row-reverse justify-between items-center p-3 w-full bg-white rounded-lg hover:shadow-md transition-shadow"
+                  className="flex flex-row justify-between items-center p-3 w-full bg-white rounded-lg hover:shadow-md transition-shadow"
                 >
+                  {/* Right side: order name/code and date */}
                   <div className="flex flex-col items-end gap-1">
                     <span className="text-[#212529] text-right text-sm font-medium">
                       طلب #{order.orderNumber}
                     </span>
-                    <span className="text-[#6C757D] text-right text-xs">
-                      {new Date(order.createdAt).toLocaleDateString('ar-EG')}
-                    </span>
+                    <div className="w-full flex">
+                      <span className="text-[#6C757D] text-left text-xs">
+                        {new Date(order.createdAt).toLocaleDateString('ar-EG')}
+                      </span>
+                    </div>
                   </div>
+                  {/* Left side: price and status tag */}
                   <div className="flex flex-col items-start gap-1">
                     <span className="text-[#FD7E14] text-sm font-medium">{order.total} ج.م</span>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
@@ -174,16 +194,34 @@ export default function Home() {
             </div>
           ) : products.length > 0 ? (
             <div className="grid grid-cols-2 gap-3 w-full">
-              {products.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  image={product.imageUrl || defaultImage}
-                  title={product.nameAr || product.name}
-                  subtitle={`${product.unitsPerCase} ${product.unit}`}
-                  price={`${product.price} جم / ${product.unit}`}
-                  onAddToCart={(qty) => handleAddToCart(product.id, qty)}
-                />
-              ))}
+              {products.map((product, idx) => {
+                // Remove 'soda' from the title for the card on the right in the third row
+                let title = product.nameAr || product.name;
+                if (
+                  // 3rd row, right card: idx === 4 in a 0-based, 2-column grid
+                  idx === 4
+                ) {
+                  title = title.replace(/soda|Soda|صودا/g, '').replace(/\s+/g, ' ').trim();
+                }
+                return (
+                  <div
+                    key={product.id}
+                    className={
+                      products.length % 2 === 1 && idx === products.length - 1
+                        ? 'flex flex-col h-full -mt-3'
+                        : 'flex flex-col h-full'
+                    }
+                  >
+                    <ProductCard
+                      image={defaultImage}
+                      title={title}
+                      subtitle={`${product.unitsPerCase} ${product.unit}`}
+                      price={`${product.price} جم / ${product.unit}`}
+                      onAddToCart={(qty) => handleAddToCart(product.id, qty)}
+                    />
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="flex justify-center items-center w-full py-8">

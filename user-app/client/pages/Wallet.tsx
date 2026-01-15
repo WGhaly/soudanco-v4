@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Header from "@/components/Header";
+import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
 import { useDashboard, useWalletTopUp } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
@@ -137,20 +137,10 @@ export default function Wallet() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
       <div className="p-5 flex-1">
-        <Header />
+        <PageHeader title="المحفظة" />
         
-        {/* Page Title */}
-        <div className="flex flex-row-reverse items-center gap-3 mt-6 mb-6">
-          <button onClick={() => navigate(-1)} className="p-2">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M9 18L15 12L9 6" stroke="#212529" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          <h1 className="text-[#212529] text-2xl font-semibold flex-1 text-right">المحفظة</h1>
-        </div>
-
         {/* Total Available Balance */}
-        <div className="bg-gradient-to-br from-[#FD7E14] to-[#E06500] rounded-2xl p-6 mb-6 text-white">
+        <div className="bg-gradient-to-br from-[#FD7E14] to-[#E06500] rounded-2xl p-6 mb-6 mt-6 text-white">
           <p className="text-right text-sm opacity-80 mb-2">الرصيد المتاح للشراء</p>
           <p className="text-right text-4xl font-bold">{totalAvailable.toFixed(2)} جم</p>
           <div className="flex flex-row-reverse gap-4 mt-4 text-sm">
@@ -170,21 +160,21 @@ export default function Wallet() {
           <h3 className="text-[#212529] text-lg font-semibold text-right mb-4">تفاصيل الائتمان</h3>
           
           <div className="space-y-3">
-            <div className="flex flex-row-reverse justify-between items-center">
-              <span className="text-[#6C757D]">الحد الائتماني</span>
+            <div className="flex justify-between items-center">
               <span className="text-[#212529] font-medium">{creditLimit.toFixed(2)} جم</span>
+              <span className="text-[#6C757D]">الحد الائتماني</span>
             </div>
             
-            <div className="flex flex-row-reverse justify-between items-center">
-              <span className="text-[#6C757D]">الائتمان المستخدم</span>
+            <div className="flex justify-between items-center">
               <span className={`font-medium ${creditUsed > 0 ? 'text-[#DC3545]' : 'text-[#28A745]'}`}>
                 {creditUsed.toFixed(2)} جم
               </span>
+              <span className="text-[#6C757D]">الائتمان المستخدم</span>
             </div>
             
-            <div className="flex flex-row-reverse justify-between items-center">
-              <span className="text-[#6C757D]">الائتمان المتاح</span>
+            <div className="flex justify-between items-center">
               <span className="text-[#28A745] font-medium">{availableCredit.toFixed(2)} جم</span>
+              <span className="text-[#6C757D]">الائتمان المتاح</span>
             </div>
             
             {/* Credit Usage Bar */}

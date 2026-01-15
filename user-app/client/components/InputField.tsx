@@ -15,7 +15,7 @@ export default function InputField({
 }: InputFieldProps) {
   return (
     <div className="flex flex-col items-end gap-1.5 w-full">
-      <label className="text-[#363636] text-base font-medium leading-[120%]">
+      <label className="text-[#363636] text-right text-base font-medium leading-[120%] w-full">
         {label}
       </label>
       <input
