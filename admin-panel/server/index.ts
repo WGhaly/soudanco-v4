@@ -20,9 +20,7 @@ export function createServer() {
 
   // Middleware
   app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? process.env.FRONTEND_URL 
-      : ['http://localhost:8080', 'http://localhost:5173'],
+    origin: true, // Allow all origins (same-origin requests will work)
     credentials: true,
   }));
   app.use(express.json());
