@@ -8,7 +8,8 @@ import {
   discounts,
   discountProducts,
   products,
-  orders
+  orders,
+  payments
 } from '../db/schema';
 import { eq, and, desc, gte, lte, sql, inArray } from 'drizzle-orm';
 import { customerAuthMiddleware, AuthenticatedRequest } from '../middleware/auth';
@@ -584,6 +585,7 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res: Response) => {
         contactName: customers.contactName,
         creditLimit: customers.creditLimit,
         currentBalance: customers.currentBalance,
+        walletBalance: customers.walletBalance,
         totalOrders: customers.totalOrders,
         totalSpent: customers.totalSpent,
       })
@@ -644,6 +646,7 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res: Response) => {
         // Credit info
         creditLimit: customer.creditLimit,
         currentBalance: customer.currentBalance,
+        walletBalance: customer.walletBalance,
         availableCredit: (parseFloat(customer.creditLimit || '0') - parseFloat(customer.currentBalance || '0')).toFixed(2),
         // Order info
         totalOrders: customer.totalOrders,
@@ -666,6 +669,124 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res: Response) => {
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch dashboard data',
+    });
+  }
+});
+
+// ============================================
+// WALLET
+// ============================================
+
+// Helper function to generate payment number
+function generatePaymentNumber(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `PAY-${timestamp}-${random}`;
+}
+
+// POST /api/profile/wallet/topup - Top up wallet
+router.post('/wallet/topup', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { customerId } = req.user!;
+    const { amount, paymentMethod = 'credit' } = req.body;
+
+    // Validate payment method - must be one of: cash, bank_transfer, credit
+    const validMethods = ['cash', 'bank_transfer', 'credit'];
+    const method = validMethods.includes(paymentMethod) ? paymentMethod : 'credit';
+
+    // Validate amount
+    const topUpAmount = parseFloat(amount);
+    if (isNaN(topUpAmount) || topUpAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid amount. Must be a positive number.',
+      });
+    }
+
+    // Get current customer data
+    const [customer] = await db
+      .select({
+        id: customers.id,
+        currentBalance: customers.currentBalance,
+        walletBalance: customers.walletBalance,
+      })
+      .from(customers)
+      .where(eq(customers.id, customerId))
+      .limit(1);
+
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        error: 'Customer not found',
+      });
+    }
+
+    const currentCreditUsed = parseFloat(customer.currentBalance || '0');
+    const currentWalletBalance = parseFloat(customer.walletBalance || '0');
+
+    // Calculate how much goes to credit payment vs wallet
+    let creditPaid = 0;
+    let walletAdded = 0;
+
+    if (currentCreditUsed > 0) {
+      // First, pay off debt
+      creditPaid = Math.min(topUpAmount, currentCreditUsed);
+      walletAdded = topUpAmount - creditPaid;
+    } else {
+      // No debt, all goes to wallet
+      walletAdded = topUpAmount;
+    }
+
+    const newCreditUsed = currentCreditUsed - creditPaid;
+    const newWalletBalance = currentWalletBalance + walletAdded;
+
+    // Generate payment number
+    const paymentNumber = generatePaymentNumber();
+
+    // Create payment record
+    const [payment] = await db
+      .insert(payments)
+      .values({
+        paymentNumber,
+        customerId,
+        orderId: null, // Wallet top-up is not tied to an order
+        amount: topUpAmount.toFixed(2),
+        method: method as 'cash' | 'bank_transfer' | 'credit',
+        status: 'completed',
+        notes: creditPaid > 0 
+          ? `Wallet top-up: ${creditPaid.toFixed(2)} paid to credit, ${walletAdded.toFixed(2)} added to wallet`
+          : `Wallet top-up: ${walletAdded.toFixed(2)} added to wallet`,
+        processedAt: new Date(),
+      })
+      .returning();
+
+    // Update customer balances
+    await db
+      .update(customers)
+      .set({
+        currentBalance: newCreditUsed.toFixed(2),
+        walletBalance: newWalletBalance.toFixed(2),
+        updatedAt: new Date(),
+      })
+      .where(eq(customers.id, customerId));
+
+    return res.json({
+      success: true,
+      data: {
+        paymentId: payment.id,
+        paymentNumber: payment.paymentNumber,
+        amount: topUpAmount,
+        creditPaid,
+        walletAdded,
+        newCreditUsed,
+        newWalletBalance,
+      },
+    });
+  } catch (error) {
+    console.error('Wallet top-up error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to process wallet top-up',
     });
   }
 });

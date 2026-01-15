@@ -341,6 +341,14 @@ export default function CustomerDetails() {
                   <div className="flex flex-col md:flex-row-reverse items-start gap-6 self-stretch">
                     <div className="flex flex-col items-stretch gap-1.5 flex-1 rounded-2xl bg-white px-6 py-2">
                       <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        رصيد المحفظة
+                      </label>
+                      <div className="text-[#FD7E14] text-right text-base font-bold leading-[150%]">
+                        {formatCurrency(customer?.walletBalance || 0)}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-stretch gap-1.5 flex-1 rounded-2xl bg-white px-6 py-2">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
                         الرصيد المتاح
                       </label>
                       <div className="text-body-text text-right text-base font-bold leading-[150%]">

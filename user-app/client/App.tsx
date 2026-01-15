@@ -19,6 +19,7 @@ import Addresses from "./pages/Addresses";
 import Settings from "./pages/Settings";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import Wallet from "./pages/Wallet";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -85,6 +86,7 @@ function AppRoutes() {
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
       <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+      <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

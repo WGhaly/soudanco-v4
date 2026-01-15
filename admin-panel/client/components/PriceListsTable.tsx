@@ -1,9 +1,16 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MoreVertical } from "lucide-react";
 import type { PriceList } from "@/hooks/usePriceLists";
 
+interface MenuState {
+  priceListId: string | null;
+  position: { x: number; y: number };
+}
+
 interface PriceListsTableProps {
   priceLists: PriceList[];
+  onDelete?: (id: string) => void;
   pagination?: {
     page: number;
     totalPages: number;
@@ -38,8 +45,45 @@ function getPageNumbers(page: number, totalPages: number): (number | 'dots')[] {
   return pages;
 }
 
-export default function PriceListsTable({ priceLists, pagination }: PriceListsTableProps) {
+export default function PriceListsTable({ priceLists, onDelete, pagination }: PriceListsTableProps) {
   const navigate = useNavigate();
+  const [menuState, setMenuState] = useState<MenuState>({ priceListId: null, position: { x: 0, y: 0 } });
+
+  const handleMenuToggle = (priceListId: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = event.currentTarget.getBoundingClientRect();
+    
+    if (menuState.priceListId === priceListId) {
+      setMenuState({ priceListId: null, position: { x: 0, y: 0 } });
+    } else {
+      setMenuState({
+        priceListId,
+        position: { x: rect.left, y: rect.bottom },
+      });
+    }
+  };
+
+  const closeMenu = () => {
+    setMenuState({ priceListId: null, position: { x: 0, y: 0 } });
+  };
+
+  const handleView = (id: string) => {
+    navigate(`/price-lists/${id}`);
+    closeMenu();
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/price-lists/${id}/edit`);
+    closeMenu();
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('هل أنت متأكد من حذف قائمة الأسعار هذه؟')) {
+      onDelete?.(id);
+    }
+    closeMenu();
+  };
 
   const handleRowClick = (id: string) => {
     navigate(`/price-lists/${id}`);
@@ -118,13 +162,50 @@ export default function PriceListsTable({ priceLists, pagination }: PriceListsTa
               </div>
 
               {/* Menu Icon */}
-              <div className="w-8 flex justify-center">
+              <div className="w-8 flex justify-center relative">
                 <button
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => handleMenuToggle(priceList.id, e)}
                   className="p-2 hover:bg-gray-100 rounded transition-colors"
                 >
                   <MoreVertical className="w-4 h-4 text-secondary" />
                 </button>
+                {menuState.priceListId === priceList.id && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={closeMenu}></div>
+                    <div className="absolute left-0 top-full z-50 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                      <button
+                        onClick={() => handleView(priceList.id)}
+                        className="w-full px-4 py-2 text-right text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-end gap-2"
+                      >
+                        عرض
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleEdit(priceList.id)}
+                        className="w-full px-4 py-2 text-right text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-end gap-2"
+                      >
+                        تعديل
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(priceList.id)}
+                        className="w-full px-4 py-2 text-right text-sm text-red-600 hover:bg-red-50 flex items-center justify-end gap-2"
+                      >
+                        حذف
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           ))}

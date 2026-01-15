@@ -1,14 +1,19 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { ArrowRight, Loader2, Plus } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import { useCreateCustomer } from "@/hooks/useCustomers";
+import { useCreateCustomer, useCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
 import { usePriceLists } from "@/hooks/usePriceLists";
 import { useSupervisors } from "@/hooks/useSupervisors";
 
 export default function NewCustomer() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = Boolean(id);
+  
   const createCustomer = useCreateCustomer();
+  const updateCustomer = useUpdateCustomer();
+  const { data: customerData, isLoading: customerLoading } = useCustomer(id);
   
   // Fetch price lists and supervisors
   const { data: priceListsData, isLoading: priceListsLoading } = usePriceLists(1, 100);
@@ -40,6 +45,34 @@ export default function NewCustomer() {
     },
   });
   
+  // Load existing customer data in edit mode
+  useEffect(() => {
+    if (isEditMode && customerData?.data) {
+      const customer = customerData.data;
+      setFormData({
+        email: customer.email || "",
+        password: "", // Don't show password
+        businessName: customer.businessName || "",
+        businessNameAr: customer.businessNameAr || "",
+        contactName: customer.contactName || "",
+        phone: customer.phone || "",
+        priceListId: customer.priceListId || "",
+        supervisorId: customer.supervisorId || "",
+        creditLimit: customer.creditLimit?.toString() || "0",
+        isActive: customer.isActive !== false,
+        address: customer.addresses?.[0] || {
+          label: "Main Office",
+          addressLine1: "",
+          addressLine2: "",
+          city: "",
+          region: "",
+          postalCode: "",
+          country: "Saudi Arabia",
+        },
+      });
+    }
+  }, [isEditMode, customerData]);
+  
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const handleChange = (field: string, value: any) => {
@@ -60,7 +93,8 @@ export default function NewCustomer() {
     const newErrors: Record<string, string> = {};
     
     if (!formData.email) newErrors.email = "البريد الإلكتروني مطلوب";
-    if (!formData.password) newErrors.password = "كلمة المرور مطلوبة";
+    // Password is only required for new customers
+    if (!isEditMode && !formData.password) newErrors.password = "كلمة المرور مطلوبة";
     if (!formData.businessName) newErrors.businessName = "اسم العمل مطلوب";
     if (!formData.contactName) newErrors.contactName = "اسم جهة الاتصال مطلوب";
     if (!formData.phone) newErrors.phone = "رقم الهاتف مطلوب";
@@ -75,9 +109,8 @@ export default function NewCustomer() {
     if (!validate()) return;
     
     try {
-      await createCustomer.mutateAsync({
+      const customerPayload: any = {
         email: formData.email,
-        password: formData.password,
         businessName: formData.businessName,
         businessNameAr: formData.businessNameAr,
         contactName: formData.contactName,
@@ -85,17 +118,38 @@ export default function NewCustomer() {
         priceListId: formData.priceListId || undefined,
         supervisorId: formData.supervisorId || undefined,
         creditLimit: formData.creditLimit,
+        isActive: formData.isActive,
         address: formData.address,
-      });
+      };
+      
+      // Only include password for new customers or if changed
+      if (formData.password) {
+        customerPayload.password = formData.password;
+      }
+      
+      if (isEditMode && id) {
+        await updateCustomer.mutateAsync({ id, ...customerPayload });
+      } else {
+        await createCustomer.mutateAsync(customerPayload);
+      }
       
       navigate("/customers");
     } catch (error: any) {
-      console.error("Error creating customer:", error);
-      alert(error?.message || "فشل في إنشاء العميل");
+      console.error(isEditMode ? "Error updating customer:" : "Error creating customer:", error);
+      alert(error?.message || (isEditMode ? "فشل في تحديث العميل" : "فشل في إنشاء العميل"));
     }
   };
   
-  const isLoading = priceListsLoading || supervisorsLoading || createCustomer.isPending;
+  const isLoading = priceListsLoading || supervisorsLoading || createCustomer.isPending || updateCustomer.isPending;
+  
+  // Loading state for edit mode
+  if (isEditMode && customerLoading) {
+    return (
+      <div className="flex min-h-screen bg-gray-50 items-center justify-center" dir="rtl">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
   
   return (
     <div className="flex min-h-screen bg-gray-50" dir="rtl">
@@ -107,7 +161,7 @@ export default function NewCustomer() {
           <div className="flex flex-row items-center gap-4 mb-8">
             {/* Title - Right */}
             <h1 className="flex-1 text-3xl font-medium text-primary text-right">
-              إضافة عميل جديد
+              {isEditMode ? "تعديل بيانات العميل" : "إضافة عميل جديد"}
             </h1>
             
             {/* Save Button */}
@@ -121,7 +175,7 @@ export default function NewCustomer() {
               ) : (
                 <Plus className="w-4 h-4" />
               )}
-              <span>إنشاء العميل</span>
+              <span>{isEditMode ? "حفظ التعديلات" : "إنشاء العميل"}</span>
             </button>
 
             {/* Back Button - Left */}

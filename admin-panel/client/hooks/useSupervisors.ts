@@ -65,7 +65,7 @@ export function useSupervisor(id: string | undefined) {
   return useQuery<{ success: boolean; data: Supervisor }>({
     queryKey: ['supervisor', id],
     queryFn: () => fetchWithAuth(`/api/supervisors/${id}`),
-    enabled: !!id,
+    enabled: !!id && id !== 'undefined',
   });
 }
 

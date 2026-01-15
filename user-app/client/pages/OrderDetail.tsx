@@ -186,8 +186,8 @@ export default function OrderDetail() {
                 <span className="flex-1 text-[#212529] text-right text-base font-normal leading-[130%]">{formatCurrency(item.totalPrice)}</span>
                 <span className="flex-1 text-[#212529] text-right text-base font-normal leading-[130%]">{formatCurrency(item.unitPrice)}</span>
                 <span className="flex-1 text-[#212529] text-right text-base font-normal leading-[130%]">{item.quantity} {item.unit}</span>
-                {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.productNameAr || item.productName} className="h-[57px] flex-1 rounded-xl object-cover" />
+                {item.productImage ? (
+                  <img src={item.productImage} alt={item.productNameAr || item.productName} className="h-[57px] flex-1 rounded-xl object-cover" />
                 ) : (
                   <div className="h-[57px] flex-1 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-xs">{item.productNameAr || item.productName}</div>
                 )}

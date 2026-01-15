@@ -1,5 +1,6 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth";
 
 interface NavItem {
   label: string;
@@ -113,6 +114,13 @@ const bottomNavItems: NavItem[] = [
 
 export default function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <aside className="flex flex-col justify-between items-end min-h-screen rounded-[20px] border-r border-theme-border bg-white shadow-[0_5px_15px_0_rgba(0,0,0,0.15)] p-4 pb-8">
@@ -164,25 +172,27 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      {/* Bottom navigation */}
+      {/* Bottom navigation - Logout */}
       <div className="flex flex-col items-start gap-1 self-stretch">
-        {bottomNavItems.map((item) => (
-          <div key={item.href} className="flex flex-col items-start gap-1 self-stretch px-4">
-            <Link
-              to={item.href}
-              className="flex flex-col items-start gap-1.5 self-stretch rounded-[10px] px-6 py-2"
-            >
-              <div className="flex items-center gap-4 self-stretch rounded border border-transparent">
-                <div className="flex flex-col justify-center items-center text-body-text">
-                  {item.icon}
-                </div>
-                <span className="flex-1 text-body-text text-right text-base font-normal leading-[130%]">
-                  {item.label}
-                </span>
+        <div className="flex flex-col items-start gap-1 self-stretch px-4">
+          <button
+            onClick={handleLogout}
+            className="flex flex-col items-start gap-1.5 self-stretch rounded-[10px] px-6 py-2 w-full hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex items-center gap-4 self-stretch rounded border border-transparent">
+              <div className="flex flex-col justify-center items-center text-body-text">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M7.5 17.5H4.16667C3.72464 17.5 3.30072 17.3244 2.98816 17.0118C2.67559 16.6993 2.5 16.2754 2.5 15.8333V4.16667C2.5 3.72464 2.67559 3.30072 2.98816 2.98816C3.30072 2.67559 3.72464 2.5 4.16667 2.5H7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M13.3333 14.1667L17.5 10L13.3333 5.83334" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M17.5 10H7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </div>
-            </Link>
-          </div>
-        ))}
+              <span className="flex-1 text-body-text text-right text-base font-normal leading-[130%]">
+                الخروج
+              </span>
+            </div>
+          </button>
+        </div>
       </div>
     </aside>
   );

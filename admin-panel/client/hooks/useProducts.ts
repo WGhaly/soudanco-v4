@@ -198,10 +198,10 @@ export function useProducts(params?: { search?: string; category?: string; statu
   });
 }
 
-export function useProduct(id: string) {
+export function useProduct(id?: string) {
   return useQuery({
     queryKey: ['product', id],
-    queryFn: () => fetchProduct(id),
+    queryFn: () => fetchProduct(id!),
     enabled: !!id,
   });
 }

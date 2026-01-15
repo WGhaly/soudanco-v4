@@ -26,7 +26,7 @@ export interface PriceList {
 // Input type for creating/updating price list items (no id required)
 export interface PriceListItemInput {
   productId: string;
-  price: number;
+  price: string;
 }
 
 // Input type for creating a price list

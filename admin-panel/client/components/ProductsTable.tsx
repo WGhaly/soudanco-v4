@@ -1,9 +1,17 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import StockStatusBadge from "./StockStatusBadge";
 import type { Product } from "@/hooks/useProducts";
+import { useUpdateProduct, useDeleteProduct } from "@/hooks/useProducts";
+
+interface MenuState {
+  productId: string | null;
+  position: { x: number; y: number };
+}
 
 interface ProductsTableProps {
   products: Product[];
+  onDelete?: (id: string) => void;
   pagination?: {
     page: number;
     totalPages: number;
@@ -38,7 +46,57 @@ function getPageNumbers(page: number, totalPages: number): (number | 'dots')[] {
   return pages;
 }
 
-export default function ProductsTable({ products, pagination }: ProductsTableProps) {
+export default function ProductsTable({ products, onDelete, pagination }: ProductsTableProps) {
+  const navigate = useNavigate();
+  const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
+  const [menuState, setMenuState] = useState<MenuState>({ productId: null, position: { x: 0, y: 0 } });
+
+  const handleMenuToggle = (productId: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = event.currentTarget.getBoundingClientRect();
+    
+    if (menuState.productId === productId) {
+      setMenuState({ productId: null, position: { x: 0, y: 0 } });
+    } else {
+      setMenuState({
+        productId,
+        position: { x: rect.left, y: rect.bottom },
+      });
+    }
+  };
+
+  const closeMenu = () => {
+    setMenuState({ productId: null, position: { x: 0, y: 0 } });
+  };
+
+  const handleView = (id: string) => {
+    navigate(`/products/${id}`);
+    closeMenu();
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/products/${id}/edit`);
+    closeMenu();
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+      deleteProduct.mutate(id);
+    }
+    closeMenu();
+  };
+
+  const handleToggleAvailability = (e: React.MouseEvent, product: Product) => {
+    e.preventDefault();
+    e.stopPropagation();
+    updateProduct.mutate({
+      id: product.id,
+      data: { isActive: !product.isActive }
+    });
+  };
+
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-4">
@@ -70,6 +128,9 @@ export default function ProductsTable({ products, pagination }: ProductsTablePro
           </div>
           <div className="flex-1 text-theme-secondary text-right text-sm font-normal leading-[150%]">
             حالة المنتج
+          </div>
+          <div className="w-16 text-theme-secondary text-center text-sm font-normal leading-[150%]">
+            متاح
           </div>
           <div className="w-8 px-2 py-2 flex flex-col items-start gap-4 self-stretch"></div>
         </div>
@@ -111,14 +172,72 @@ export default function ProductsTable({ products, pagination }: ProductsTablePro
               {product.unitsPerCase} {product.unit}
             </div>
             <div className="flex-1">
-              <StockStatusBadge status={mapStockStatus(product.stockStatus)} />
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${product.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {product.isActive ? 'متاح' : 'غير متاح'}
+              </span>
             </div>
-            <div className="px-2 py-2 flex flex-col items-start gap-4">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="8" cy="3" r="1.5" fill="#6C757D"/>
-                <circle cx="8" cy="8" r="1.5" fill="#6C757D"/>
-                <circle cx="8" cy="13" r="1.5" fill="#6C757D"/>
-              </svg>
+            <div className="w-16 flex justify-center">
+              <button
+                onClick={(e) => handleToggleAvailability(e, product)}
+                className={`w-10 h-5 relative rounded-full transition-colors ${
+                  product.isActive ? "bg-brand-primary" : "bg-gray-300"
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all ${
+                    product.isActive ? "right-0.5" : "right-[22px]"
+                  }`}
+                ></div>
+              </button>
+            </div>
+            <div className="px-2 py-2 flex flex-col items-start gap-4 relative">
+              <button
+                onClick={(e) => handleMenuToggle(product.id, e)}
+                className="p-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="8" cy="3" r="1.5" fill="#6C757D"/>
+                  <circle cx="8" cy="8" r="1.5" fill="#6C757D"/>
+                  <circle cx="8" cy="13" r="1.5" fill="#6C757D"/>
+                </svg>
+              </button>
+              {menuState.productId === product.id && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={closeMenu}></div>
+                  <div className="absolute left-0 top-full z-50 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                    <button
+                      onClick={() => handleView(product.id)}
+                      className="w-full px-4 py-2 text-right text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-end gap-2"
+                    >
+                      عرض
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleEdit(product.id)}
+                      className="w-full px-4 py-2 text-right text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-end gap-2"
+                    >
+                      تعديل
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product.id)}
+                      className="w-full px-4 py-2 text-right text-sm text-red-600 hover:bg-red-50 flex items-center justify-end gap-2"
+                    >
+                      حذف
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </Link>
         ))}
@@ -163,10 +282,25 @@ export default function ProductsTable({ products, pagination }: ProductsTablePro
                 <div className="text-theme-secondary text-sm">حجم العبوة</div>
               </div>
               <div className="flex justify-between items-center">
-                <div className="w-32">
-                  <StockStatusBadge status={mapStockStatus(product.stockStatus)} />
-                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${product.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {product.isActive ? 'متاح' : 'غير متاح'}
+                </span>
                 <div className="text-theme-secondary text-sm">حالة المنتج</div>
+              </div>
+              <div className="flex justify-between items-center">
+                <button
+                  onClick={(e) => handleToggleAvailability(e, product)}
+                  className={`w-10 h-5 relative rounded-full transition-colors ${
+                    product.isActive ? "bg-brand-primary" : "bg-gray-300"
+                  }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all ${
+                      product.isActive ? "right-0.5" : "right-[22px]"
+                    }`}
+                  ></div>
+                </button>
+                <div className="text-theme-secondary text-sm">متاح</div>
               </div>
             </div>
           </Link>

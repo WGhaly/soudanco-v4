@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import { usePayment, useUpdatePaymentStatus } from "@/hooks/usePayments";
+import { usePayment } from "@/hooks/usePayments";
 
 export default function PaymentDetails() {
   const navigate = useNavigate();
@@ -9,7 +9,6 @@ export default function PaymentDetails() {
   
   const { data: paymentData, isLoading, error } = usePayment(id);
   const payment = paymentData?.data;
-  const updateStatus = useUpdatePaymentStatus();
 
   const formatCurrency = (amount: string | number) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -131,28 +130,11 @@ export default function PaymentDetails() {
               </div>
             </div>
 
-            {/* Payment Status */}
+            {/* Payment Status & Date */}
             <div className="flex items-start gap-6 w-full">
               <div className="flex-1 flex flex-col items-end gap-1.5">
                 <span className="text-base font-medium text-gray-900">حالة الدفع</span>
-                <select
-                  value={payment.status}
-                  onChange={(e) => {
-                    if (id && confirm('هل تريد تغيير حالة الدفع؟')) {
-                      updateStatus.mutate({ 
-                        id, 
-                        status: e.target.value as 'pending' | 'completed' | 'failed' | 'refunded'
-                      });
-                    }
-                  }}
-                  disabled={updateStatus.isPending}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-right disabled:opacity-50 cursor-pointer"
-                >
-                  <option value="pending">قيد الانتظار</option>
-                  <option value="completed">تم الدفع</option>
-                  <option value="failed">فشل</option>
-                  <option value="refunded">تم الاسترداد</option>
-                </select>
+                {getPaymentStatusBadge(payment.status)}
               </div>
               
               <div className="flex-1 flex flex-col items-end gap-1.5">

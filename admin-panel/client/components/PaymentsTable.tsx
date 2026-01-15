@@ -1,6 +1,12 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MoreVertical } from "lucide-react";
 import type { Payment } from "@/hooks/usePayments";
+
+interface MenuState {
+  paymentId: string | null;
+  position: { x: number; y: number };
+}
 
 interface PaymentsTableProps {
   payments: Payment[];
@@ -69,6 +75,31 @@ function getPageNumbers(page: number, totalPages: number): (number | 'dots')[] {
 
 export default function PaymentsTable({ payments, pagination }: PaymentsTableProps) {
   const navigate = useNavigate();
+  const [menuState, setMenuState] = useState<MenuState>({ paymentId: null, position: { x: 0, y: 0 } });
+
+  const handleMenuToggle = (paymentId: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = event.currentTarget.getBoundingClientRect();
+    
+    if (menuState.paymentId === paymentId) {
+      setMenuState({ paymentId: null, position: { x: 0, y: 0 } });
+    } else {
+      setMenuState({
+        paymentId,
+        position: { x: rect.left, y: rect.bottom },
+      });
+    }
+  };
+
+  const closeMenu = () => {
+    setMenuState({ paymentId: null, position: { x: 0, y: 0 } });
+  };
+
+  const handleView = (id: string) => {
+    navigate(`/payments/${id}`);
+    closeMenu();
+  };
 
   const handleRowClick = (paymentId: string) => {
     navigate(`/payments/${paymentId}`);
@@ -95,7 +126,6 @@ export default function PaymentsTable({ payments, pagination }: PaymentsTablePro
         <div className="flex items-center gap-[30px] px-2.5 py-2.5 bg-gray-300 rounded-t-lg">
           <div className="flex-1 text-sm text-gray-600 font-normal text-right">اسم العميل</div>
           <div className="flex-1 text-sm text-gray-600 font-normal text-right">المبلغ</div>
-          <div className="flex-1 text-sm text-gray-600 font-normal text-right">طريقة الدفع</div>
           <div className="flex-1 text-sm text-gray-600 font-normal text-right">الحالة</div>
           <div className="flex-1 text-sm text-gray-600 font-normal text-right">رقم الدفعة</div>
           <div className="flex-1 text-sm text-gray-600 font-normal text-right">تاريخ العملية</div>
@@ -120,11 +150,6 @@ export default function PaymentsTable({ payments, pagination }: PaymentsTablePro
                 {formatCurrency(payment.amount)}
               </div>
 
-              {/* Payment Method */}
-              <div className="flex-1 text-base text-gray-900 text-right">
-                {getMethodLabel(payment.method)}
-              </div>
-
               {/* Status */}
               <div className="flex-1 text-right">
                 {getStatusBadge(payment.status)}
@@ -141,13 +166,30 @@ export default function PaymentsTable({ payments, pagination }: PaymentsTablePro
               </div>
 
               {/* Menu Icon */}
-              <div className="flex items-start px-2 py-2">
+              <div className="flex items-start px-2 py-2 relative">
                 <button
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                  onClick={(e) => handleMenuToggle(payment.id, e)}
+                  className="text-gray-600 hover:text-gray-900 transition-colors p-1 hover:bg-gray-100 rounded"
                 >
                   <MoreVertical className="w-4 h-4" />
                 </button>
+                {menuState.paymentId === payment.id && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={closeMenu}></div>
+                    <div className="absolute left-0 top-full z-50 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                      <button
+                        onClick={() => handleView(payment.id)}
+                        className="w-full px-4 py-2 text-right text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-end gap-2"
+                      >
+                        عرض
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           ))}
@@ -173,7 +215,6 @@ export default function PaymentsTable({ payments, pagination }: PaymentsTablePro
               <span className="text-gray-900 font-bold">{formatCurrency(payment.amount)}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-500 text-sm">{getMethodLabel(payment.method)}</span>
               <span className="text-gray-900 underline">{payment.paymentNumber}</span>
             </div>
           </div>

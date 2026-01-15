@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { db, products, categories } from '../db';
+import { db, products, categories, priceListItems } from '../db';
 import { eq, desc, ilike, or, sql } from 'drizzle-orm';
 import { authenticateToken, AuthenticatedRequest, requireSupervisor } from '../middleware/auth';
 
@@ -172,6 +172,8 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       stockQuantity,
       lowStockThreshold,
       imageUrl,
+      isActive,
+      priceListItems: priceListItemsData,
     } = req.body;
 
     // Validation
@@ -228,8 +230,23 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       lowStockThreshold: threshold,
       stockStatus,
       imageUrl,
-      isActive: true,
+      isActive: isActive !== undefined ? isActive : true,
     }).returning();
+
+    // Insert price list items if provided
+    if (priceListItemsData && Array.isArray(priceListItemsData) && priceListItemsData.length > 0) {
+      const itemsToInsert = priceListItemsData
+        .filter((item: any) => item.priceListId && item.price)
+        .map((item: any) => ({
+          priceListId: item.priceListId,
+          productId: newProduct.id,
+          price: item.price,
+        }));
+
+      if (itemsToInsert.length > 0) {
+        await db.insert(priceListItems).values(itemsToInsert);
+      }
+    }
 
     return res.status(201).json({
       success: true,

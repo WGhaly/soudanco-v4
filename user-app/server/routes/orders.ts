@@ -8,8 +8,7 @@ import {
   customerAddresses,
   cartItems,
   priceListItems,
-  notifications,
-  payments
+  notifications
 } from '../db/schema';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { customerAuthMiddleware, AuthenticatedRequest } from '../middleware/auth';
@@ -24,13 +23,6 @@ function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 6);
   return `ORD-${timestamp}-${random}`.toUpperCase();
-}
-
-// Generate payment number
-function generatePaymentNumber(): string {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 6);
-  return `PAY-${timestamp}-${random}`.toUpperCase();
 }
 
 // ============================================
@@ -217,6 +209,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
         priceListId: customers.priceListId,
         creditLimit: customers.creditLimit,
         currentBalance: customers.currentBalance,
+        walletBalance: customers.walletBalance,
         totalOrders: customers.totalOrders,
         totalSpent: customers.totalSpent,
       })
@@ -309,26 +302,43 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
 
     const total = subtotal; // No discounts or taxes for now
 
-    // Determine payment method and paid amount based on payment type
-    let paidAmount = '0';
-    let paymentStatus: 'pending' | 'completed' = 'pending';
-    
-    if (paymentType === 'advance' || paymentType === 'card') {
-      // Prepaid or card payment: mark order as fully paid
-      paidAmount = total.toFixed(2);
-      paymentStatus = 'completed';
-    } else if (paymentType === 'deferred' || paymentType === 'credit') {
-      // Postpaid/Credit: increase customer's current balance (uses credit)
-      const newBalance = parseFloat(customer.currentBalance || '0') + total;
-      await db
-        .update(customers)
-        .set({ 
-          currentBalance: newBalance.toFixed(2),
-          updatedAt: new Date(),
-        })
-        .where(eq(customers.id, customerId));
+    // ============================================
+    // NEW WALLET-BASED PAYMENT LOGIC
+    // ============================================
+    const walletBalance = parseFloat(customer.walletBalance || '0');
+    const creditLimit = parseFloat(customer.creditLimit || '0');
+    const creditUsed = parseFloat(customer.currentBalance || '0');
+    const availableCredit = creditLimit - creditUsed;
+    const totalAvailable = walletBalance + availableCredit;
+
+    // Check if customer can afford the order
+    if (total > totalAvailable) {
+      return res.status(400).json({
+        success: false,
+        error: 'Insufficient funds. Please top up your wallet.',
+        errorAr: 'رصيد غير كافٍ. الرجاء شحن المحفظة.',
+        requiredAmount: total,
+        availableAmount: totalAvailable,
+      });
     }
-    // partial payment type doesn't auto-update anything yet
+
+    // Calculate how to split payment between wallet and credit
+    let walletDeduction = 0;
+    let creditDeduction = 0;
+    let newWalletBalance = walletBalance;
+    let newCreditUsed = creditUsed;
+
+    if (walletBalance >= total) {
+      // Wallet covers everything
+      walletDeduction = total;
+      newWalletBalance = walletBalance - total;
+    } else {
+      // Use all wallet balance, rest from credit
+      walletDeduction = walletBalance;
+      creditDeduction = total - walletBalance;
+      newWalletBalance = 0;
+      newCreditUsed = creditUsed + creditDeduction;
+    }
 
     // Create order
     const orderNumber = generateOrderNumber();
@@ -344,8 +354,8 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
         taxAmount: '0',
         total: total.toFixed(2),
         notes: notes || null,
-        paymentMethod: null, // We'll link to payment method via payment record
-        paidAmount: paidAmount,
+        paymentMethod: null,
+        paidAmount: walletDeduction.toFixed(2), // Track how much was paid from wallet
       })
       .returning();
 
@@ -357,25 +367,12 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       }))
     );
 
-    // Create payment record
-    const paymentNumber = generatePaymentNumber();
-    await db.insert(payments).values({
-      paymentNumber,
-      customerId,
-      orderId: order.id,
-      amount: total.toFixed(2),
-      method: paymentMethodId ? 'credit' : 'cash', // Default to cash if no payment method
-      status: paymentStatus,
-      notes: paymentType === 'advance' ? 'دفع مسبق - تم الدفع عند الطلب' : 
-             paymentType === 'partial' ? 'دفع جزئي' : 
-             'دفع آجل - قيد الانتظار',
-      processedAt: paymentStatus === 'completed' ? new Date() : null,
-    });
-
-    // Update customer stats
+    // Update customer balances (wallet and credit) and stats
     await db
       .update(customers)
       .set({
+        walletBalance: newWalletBalance.toFixed(2),
+        currentBalance: newCreditUsed.toFixed(2),
         totalOrders: customer.totalOrders + 1,
         totalSpent: (parseFloat(customer.totalSpent || '0') + total).toFixed(2),
         updatedAt: new Date(),

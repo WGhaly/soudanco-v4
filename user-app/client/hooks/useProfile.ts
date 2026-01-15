@@ -225,6 +225,7 @@ export interface DashboardStats {
   // Credit info
   creditLimit: string;
   currentBalance: string;
+  walletBalance: string;
   availableCredit: string;
   // Order info
   totalOrders: number;
@@ -249,6 +250,35 @@ export function useDashboard() {
     queryKey: ['dashboard'],
     queryFn: async () => {
       return authFetch('/api/profile/dashboard');
+    },
+  });
+}
+
+// Wallet Top-up
+export interface WalletTopUpResponse {
+  paymentId: string;
+  paymentNumber: string;
+  amount: number;
+  creditPaid: number;
+  walletAdded: number;
+  newCreditUsed: number;
+  newWalletBalance: number;
+}
+
+export function useWalletTopUp() {
+  const queryClient = useQueryClient();
+  const authFetch = useAuthFetch();
+  
+  return useMutation<{ success: boolean; data: WalletTopUpResponse }, Error, { amount: number; paymentMethod?: string }>({
+    mutationFn: async ({ amount, paymentMethod = 'credit' }) => {
+      return authFetch('/api/profile/wallet/topup', {
+        method: 'POST',
+        body: JSON.stringify({ amount, paymentMethod }),
+      });
+    },
+    onSuccess: () => {
+      // Invalidate dashboard to refresh balances
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }

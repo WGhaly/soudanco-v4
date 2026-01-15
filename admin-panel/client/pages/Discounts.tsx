@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Search, Plus, Loader2, AlertCircle, RefreshCw, ArrowRight } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import DiscountsTable from "@/components/DiscountsTable";
-import { useDiscounts, useUpdateDiscount } from "@/hooks/useDiscounts";
+import { useDiscounts, useUpdateDiscount, useDeleteDiscount } from "@/hooks/useDiscounts";
 import { useToast } from "@/hooks/use-toast";
 
 type DiscountFilter = "all" | "percentage" | "fixed" | "buy_get" | "spend_bonus";
@@ -18,6 +18,24 @@ export default function Discounts() {
   // API hooks
   const { data, isLoading, error, refetch, isFetching } = useDiscounts(page, 10);
   const updateDiscount = useUpdateDiscount();
+  const deleteDiscount = useDeleteDiscount();
+
+  // Handle delete
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDiscount.mutateAsync(id);
+      toast({
+        title: "تم الحذف",
+        description: "تم حذف الخصم بنجاح",
+      });
+    } catch (err) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء حذف الخصم",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Handle toggle status
   const handleToggleStatus = async (id: string, currentStatus: boolean) => {
@@ -150,6 +168,7 @@ export default function Discounts() {
               <DiscountsTable 
                 discounts={filteredDiscounts}
                 onToggleStatus={handleToggleStatus}
+                onDelete={handleDelete}
                 pagination={pagination ? {
                   page: pagination.page,
                   totalPages: pagination.totalPages,

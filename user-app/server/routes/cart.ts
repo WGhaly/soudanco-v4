@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { db } from '../db';
-import { cartItems, products, categories, priceListItems, customers } from '../db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { cartItems, products, categories, priceListItems, customers, discounts, discountProducts } from '../db/schema';
+import { eq, and, sql, lte, gte, inArray } from 'drizzle-orm';
 import { customerAuthMiddleware, AuthenticatedRequest } from '../middleware/auth';
 
 const router = Router();
@@ -31,6 +31,8 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
         id: cartItems.id,
         productId: cartItems.productId,
         quantity: cartItems.quantity,
+        isFreeItem: cartItems.isFreeItem,
+        sourceDiscountId: cartItems.sourceDiscountId,
         productName: products.name,
         productNameAr: products.nameAr,
         productSku: products.sku,
@@ -78,9 +80,185 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
       };
     });
 
-    // Calculate cart totals
-    const subtotal = itemsWithPrices.reduce((sum, item) => sum + parseFloat(item.totalPrice), 0);
+    // Calculate cart totals (exclude free items from subtotal display but keep for reference)
+    const paidItems = itemsWithPrices.filter(item => !item.isFreeItem);
+    const freeItems = itemsWithPrices.filter(item => item.isFreeItem);
+    const subtotal = paidItems.reduce((sum, item) => sum + parseFloat(item.totalPrice), 0);
     const itemCount = itemsWithPrices.reduce((sum, item) => sum + item.quantity, 0);
+    
+    // Track which discounts have already been claimed (have free items in cart)
+    const claimedDiscountIds = new Set(
+      freeItems.filter(item => item.sourceDiscountId).map(item => item.sourceDiscountId)
+    );
+
+    // Fetch active discounts
+    const now = new Date();
+    const activeDiscounts = await db
+      .select({
+        id: discounts.id,
+        name: discounts.name,
+        nameAr: discounts.nameAr,
+        description: discounts.description,
+        type: discounts.type,
+        value: discounts.value,
+        minOrderAmount: discounts.minOrderAmount,
+        minQuantity: discounts.minQuantity,
+        bonusQuantity: discounts.bonusQuantity,
+        bonusProductId: discounts.bonusProductId,
+      })
+      .from(discounts)
+      .where(
+        and(
+          eq(discounts.isActive, true),
+          lte(discounts.startDate, now),
+          gte(discounts.endDate, now)
+        )
+      );
+
+    // Get discount-product associations for product-specific discounts
+    const discountIds = activeDiscounts.map(d => d.id);
+    let discountProductMap: Record<string, string[]> = {};
+    if (discountIds.length > 0) {
+      const discountProductsData = await db
+        .select({
+          discountId: discountProducts.discountId,
+          productId: discountProducts.productId,
+        })
+        .from(discountProducts)
+        .where(inArray(discountProducts.discountId, discountIds));
+
+      discountProductsData.forEach(dp => {
+        if (!discountProductMap[dp.discountId]) {
+          discountProductMap[dp.discountId] = [];
+        }
+        discountProductMap[dp.discountId].push(dp.productId);
+      });
+    }
+
+    // Calculate applicable discounts
+    const appliedDiscounts: Array<{
+      id: string;
+      name: string;
+      nameAr: string | null;
+      type: string;
+      value: string;
+      discountAmount: number;
+      description: string | null;
+      bonusQuantity?: number;
+      bonusProductId?: string | null;
+      alreadyClaimed?: boolean;
+    }> = [];
+
+    let totalDiscount = 0;
+
+    for (const discount of activeDiscounts) {
+      const discountProductIds = discountProductMap[discount.id] || [];
+      const isGlobalDiscount = discountProductIds.length === 0;
+      
+      // Filter cart items that this discount applies to (EXCLUDE free items from eligibility)
+      const applicableItems = (isGlobalDiscount 
+        ? paidItems 
+        : paidItems.filter(item => discountProductIds.includes(item.productId)));
+
+      if (applicableItems.length === 0) continue;
+
+      const applicableSubtotal = applicableItems.reduce((sum, item) => sum + parseFloat(item.totalPrice), 0);
+      const applicableQuantity = applicableItems.reduce((sum, item) => sum + item.quantity, 0);
+
+      let discountAmount = 0;
+      let isApplicable = false;
+
+      switch (discount.type) {
+        case 'percentage':
+          // Pay X get Y% off - Check minimum order amount
+          if (discount.minOrderAmount) {
+            if (applicableSubtotal >= parseFloat(discount.minOrderAmount)) {
+              discountAmount = applicableSubtotal * (parseFloat(discount.value) / 100);
+              isApplicable = true;
+            }
+          } else {
+            // No minimum, apply percentage to all applicable items
+            discountAmount = applicableSubtotal * (parseFloat(discount.value) / 100);
+            isApplicable = true;
+          }
+          break;
+
+        case 'fixed':
+          // Fixed amount off
+          if (discount.minOrderAmount) {
+            if (applicableSubtotal >= parseFloat(discount.minOrderAmount)) {
+              discountAmount = parseFloat(discount.value);
+              isApplicable = true;
+            }
+          } else {
+            discountAmount = parseFloat(discount.value);
+            isApplicable = true;
+          }
+          break;
+
+        case 'buy_get':
+          // Buy X get Y free (applied only once - max Y free items)
+          if (discount.minQuantity && discount.bonusQuantity) {
+            // Check if this discount has already been claimed
+            const alreadyClaimed = claimedDiscountIds.has(discount.id);
+            
+            if (applicableQuantity >= discount.minQuantity) {
+              if (alreadyClaimed) {
+                // Discount already claimed - still show it but don't allow re-claiming
+                const freeItemsInCart = freeItems.filter(item => item.sourceDiscountId === discount.id);
+                const claimedCount = freeItemsInCart.reduce((sum, item) => sum + item.quantity, 0);
+                const avgPrice = applicableSubtotal / applicableQuantity;
+                discountAmount = claimedCount * avgPrice;
+                isApplicable = true;
+                (discount as any).freeItemsCount = 0; // No more free items available
+                (discount as any).alreadyClaimed = true;
+                (discount as any).eligibleProductIds = discountProductIds.length > 0 ? discountProductIds : null;
+              } else {
+                // Promotion not yet claimed - allow selection
+                const freeItemsCount = discount.bonusQuantity;
+                const avgPrice = applicableSubtotal / applicableQuantity;
+                discountAmount = freeItemsCount * avgPrice;
+                isApplicable = true;
+                (discount as any).freeItemsCount = freeItemsCount;
+                (discount as any).alreadyClaimed = false;
+                (discount as any).eligibleProductIds = discountProductIds.length > 0 ? discountProductIds : null;
+              }
+            }
+          }
+          break;
+
+        case 'spend_bonus':
+          // Spend X get bonus percentage off
+          if (discount.minOrderAmount) {
+            if (applicableSubtotal >= parseFloat(discount.minOrderAmount)) {
+              discountAmount = applicableSubtotal * (parseFloat(discount.value) / 100);
+              isApplicable = true;
+            }
+          }
+          break;
+      }
+
+      if (isApplicable && discountAmount > 0) {
+        totalDiscount += discountAmount;
+        appliedDiscounts.push({
+          id: discount.id,
+          name: discount.name,
+          nameAr: discount.nameAr,
+          type: discount.type,
+          value: discount.value,
+          discountAmount: parseFloat(discountAmount.toFixed(2)),
+          description: discount.description,
+          bonusQuantity: discount.bonusQuantity || undefined,
+          bonusProductId: discount.bonusProductId,
+          minQuantity: discount.minQuantity || undefined,
+          freeItemsCount: (discount as any).freeItemsCount || undefined,
+          eligibleProductIds: (discount as any).eligibleProductIds || undefined,
+          alreadyClaimed: (discount as any).alreadyClaimed || false,
+        });
+      }
+    }
+
+    const finalTotal = Math.max(0, subtotal - totalDiscount);
 
     return res.json({
       success: true,
@@ -89,9 +267,10 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
         summary: {
           itemCount,
           subtotal: subtotal.toFixed(2),
-          discount: '0.00',
-          total: subtotal.toFixed(2),
+          discount: totalDiscount.toFixed(2),
+          total: finalTotal.toFixed(2),
         },
+        appliedDiscounts,
       },
     });
   } catch (error) {
@@ -109,7 +288,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
 router.post('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { customerId } = req.user!;
-    const { productId, quantity = 1 } = req.body;
+    const { productId, quantity = 1, isFreeItem = false, sourceDiscountId = null } = req.body;
 
     if (!productId) {
       return res.status(400).json({
@@ -132,14 +311,18 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       });
     }
 
-    // Check if item already in cart
+    // Check if item already in cart (for free items, check by discount source too)
     const [existing] = await db
       .select()
       .from(cartItems)
       .where(
         and(
           eq(cartItems.customerId, customerId),
-          eq(cartItems.productId, productId)
+          eq(cartItems.productId, productId),
+          eq(cartItems.isFreeItem, isFreeItem),
+          isFreeItem && sourceDiscountId 
+            ? eq(cartItems.sourceDiscountId, sourceDiscountId)
+            : sql`${cartItems.sourceDiscountId} IS NULL`
         )
       )
       .limit(1);
@@ -169,6 +352,8 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
         customerId,
         productId,
         quantity,
+        isFreeItem,
+        sourceDiscountId,
       })
       .returning();
 

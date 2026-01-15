@@ -1,9 +1,17 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MoreVertical } from "lucide-react";
 import type { Discount } from "@/hooks/useDiscounts";
+
+interface MenuState {
+  discountId: string | null;
+  position: { x: number; y: number };
+}
 
 interface DiscountsTableProps {
   discounts: Discount[];
   onToggleStatus?: (id: string, currentStatus: boolean) => void;
+  onDelete?: (id: string) => void;
   pagination?: {
     page: number;
     totalPages: number;
@@ -66,7 +74,46 @@ function getPageNumbers(page: number, totalPages: number): (number | 'dots')[] {
   return pages;
 }
 
-export default function DiscountsTable({ discounts, onToggleStatus, pagination }: DiscountsTableProps) {
+export default function DiscountsTable({ discounts, onToggleStatus, onDelete, pagination }: DiscountsTableProps) {
+  const navigate = useNavigate();
+  const [menuState, setMenuState] = useState<MenuState>({ discountId: null, position: { x: 0, y: 0 } });
+
+  const handleMenuToggle = (discountId: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = event.currentTarget.getBoundingClientRect();
+    
+    if (menuState.discountId === discountId) {
+      setMenuState({ discountId: null, position: { x: 0, y: 0 } });
+    } else {
+      setMenuState({
+        discountId,
+        position: { x: rect.left, y: rect.bottom },
+      });
+    }
+  };
+
+  const closeMenu = () => {
+    setMenuState({ discountId: null, position: { x: 0, y: 0 } });
+  };
+
+  const handleView = (id: string) => {
+    navigate(`/discounts/${id}`);
+    closeMenu();
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/discounts/${id}/edit`);
+    closeMenu();
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('هل أنت متأكد من حذف هذا الخصم؟')) {
+      onDelete?.(id);
+    }
+    closeMenu();
+  };
+
   if (discounts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-4">
@@ -133,10 +180,50 @@ export default function DiscountsTable({ discounts, onToggleStatus, pagination }
               </div>
 
               {/* Menu Icon */}
-              <div className="flex items-start px-2 py-2">
-                <button className="text-gray-600 hover:text-gray-900 transition-colors">
+              <div className="flex items-start px-2 py-2 relative">
+                <button
+                  onClick={(e) => handleMenuToggle(discount.id, e)}
+                  className="text-gray-600 hover:text-gray-900 transition-colors p-1 hover:bg-gray-100 rounded"
+                >
                   <MoreVertical className="w-4 h-4" />
                 </button>
+                {menuState.discountId === discount.id && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={closeMenu}></div>
+                    <div className="absolute left-0 top-full z-50 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                      <button
+                        onClick={() => handleView(discount.id)}
+                        className="w-full px-4 py-2 text-right text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-end gap-2"
+                      >
+                        عرض
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleEdit(discount.id)}
+                        className="w-full px-4 py-2 text-right text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-end gap-2"
+                      >
+                        تعديل
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(discount.id)}
+                        className="w-full px-4 py-2 text-right text-sm text-red-600 hover:bg-red-50 flex items-center justify-end gap-2"
+                      >
+                        حذف
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           ))}

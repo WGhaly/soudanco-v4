@@ -1,14 +1,22 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowRight, Loader2 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
-import { useCreateProduct, useCategories } from "../hooks/useProducts";
+import { useCreateProduct, useCategories, useProduct, useUpdateProduct } from "../hooks/useProducts";
+import { usePriceLists } from "../hooks/usePriceLists";
 
 export default function AddProduct() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = Boolean(id);
+  
   const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
+  const { data: productData, isLoading: productLoading } = useProduct(id);
   const { data: categoriesData } = useCategories();
+  const { data: priceListsData, isLoading: priceListsLoading } = usePriceLists(1, 100);
   const categories = categoriesData?.data || [];
+  const priceLists = priceListsData?.data || [];
   
   const [productName, setProductName] = useState("");
   const [packageSize, setPackageSize] = useState("");
@@ -18,6 +26,37 @@ export default function AddProduct() {
   const [categoryId, setCategoryId] = useState("");
   const [productImage, setProductImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [priceListPrices, setPriceListPrices] = useState<Record<string, string>>({});
+  
+  // Load existing product data in edit mode
+  useEffect(() => {
+    if (isEditMode && productData?.data) {
+      const product = productData.data;
+      setProductName(product.nameAr || product.name || "");
+      setPackageSize(product.unit || "");
+      setSku(product.sku || "");
+      setBasePrice(product.basePrice?.toString() || "");
+      setIsAvailable(product.isActive !== false);
+      setCategoryId(product.categoryId || "");
+      setProductImage(product.imageUrl || null);
+      
+      // Load price list prices if available
+      if (product.priceListItems && Array.isArray(product.priceListItems)) {
+        const prices: Record<string, string> = {};
+        product.priceListItems.forEach((item: any) => {
+          prices[item.priceListId] = item.price?.toString() || "";
+        });
+        setPriceListPrices(prices);
+      }
+    }
+  }, [isEditMode, productData]);
+
+  const handlePriceListPriceChange = (priceListId: string, value: string) => {
+    setPriceListPrices(prev => ({
+      ...prev,
+      [priceListId]: value
+    }));
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -42,31 +81,55 @@ export default function AddProduct() {
     
     try {
       setError(null);
-      const productData: any = {
+      
+      // Build price list items array from prices entered
+      const priceListItems = Object.entries(priceListPrices)
+        .filter(([_, price]) => price && price.trim() !== "" && parseFloat(price) > 0)
+        .map(([priceListId, price]) => ({
+          priceListId,
+          price: price.trim(),
+        }));
+      
+      const productPayload: any = {
         name: productName,
         nameAr: productName,
         sku: sku,
         unit: packageSize || "case",
         basePrice: basePrice && basePrice.trim() !== "" ? basePrice : "0.00",
+        isActive: isAvailable,
+        priceListItems, // Include price list items
       };
       
       // Only add categoryId if a valid category was selected
       if (categoryId && categoryId.trim() !== "") {
-        productData.categoryId = categoryId;
+        productPayload.categoryId = categoryId;
       }
       
       // Only add imageUrl if present
       if (productImage) {
-        productData.imageUrl = productImage;
+        productPayload.imageUrl = productImage;
       }
       
-      await createProduct.mutateAsync(productData);
+      if (isEditMode && id) {
+        await updateProduct.mutateAsync({ id, ...productPayload });
+      } else {
+        await createProduct.mutateAsync(productPayload);
+      }
       navigate("/products");
     } catch (err: any) {
-      console.error("Error creating product:", err);
-      setError(err.message || "فشل في إنشاء المنتج");
+      console.error(isEditMode ? "Error updating product:" : "Error creating product:", err);
+      setError(err.message || (isEditMode ? "فشل في تحديث المنتج" : "فشل في إنشاء المنتج"));
     }
   };
+  
+  // Loading state for edit mode
+  if (isEditMode && productLoading) {
+    return (
+      <div className="flex min-h-screen bg-[#FFF] items-center justify-center" dir="rtl">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-[#FFF]" dir="rtl">
@@ -93,21 +156,21 @@ export default function AddProduct() {
             <div className="flex flex-row items-center gap-4 self-stretch">
               {/* Title - Right */}
               <h1 className="flex-1 text-primary text-right text-[32px] font-medium leading-[120%]">
-                إضافة المنتج
+                {isEditMode ? "تعديل المنتج" : "إضافة المنتج"}
               </h1>
 
               {/* Save Button */}
               <button
                 onClick={handleSubmit}
-                disabled={createProduct.isPending}
+                disabled={createProduct.isPending || updateProduct.isPending}
                 className="flex px-4 py-1.5 justify-center items-center gap-1.5 rounded-full bg-primary hover:opacity-90 transition-colors disabled:opacity-50"
               >
-                {createProduct.isPending ? (
+                {(createProduct.isPending || updateProduct.isPending) ? (
                   <Loader2 className="w-4 h-4 animate-spin text-white" />
                 ) : (
                   <>
                     <span className="text-white text-center text-base font-normal leading-[130%]">
-                      إنشاء المنتج
+                      {isEditMode ? "حفظ التعديلات" : "إنشاء المنتج"}
                     </span>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M13 4L6 11L3 8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -292,6 +355,54 @@ export default function AddProduct() {
                   </div>
                 </div>
               </div>
+
+              {/* Price Lists Section */}
+              {priceLists.length > 0 && (
+                <div className="flex flex-col items-end gap-4 self-stretch">
+                  <div className="flex justify-end items-center gap-2 self-stretch border-t border-theme-border pt-6">
+                    <h3 className="text-new-black text-right text-lg font-medium leading-[120%]">
+                      أسعار قوائم الأسعار
+                    </h3>
+                  </div>
+                  <p className="text-gray-500 text-right text-sm">
+                    يمكنك تحديد سعر مختلف لهذا المنتج في كل قائمة أسعار. اتركه فارغاً لاستخدام السعر الأساسي.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 self-stretch">
+                    {priceListsLoading ? (
+                      <div className="flex justify-center items-center py-4">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                      </div>
+                    ) : (
+                      priceLists.map((priceList) => (
+                        <div key={priceList.id} className="flex flex-col items-start gap-2 flex-1">
+                          <div className="flex justify-end items-center gap-2 self-stretch">
+                            <label className="text-new-black text-right text-sm font-medium leading-[120%]">
+                              {priceList.nameAr || priceList.name}
+                            </label>
+                            {!priceList.isActive && (
+                              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                                غير نشط
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex px-3 py-2.5 justify-center items-center gap-2.5 self-stretch rounded-full border border-theme-border bg-white">
+                            <input
+                              type="number"
+                              value={priceListPrices[priceList.id] || ""}
+                              onChange={(e) => handlePriceListPriceChange(priceList.id, e.target.value)}
+                              placeholder={basePrice || "0.00"}
+                              step="0.01"
+                              min="0"
+                              className="flex-1 text-gray-500 text-right text-base font-normal leading-[130%] outline-none bg-transparent"
+                            />
+                            <span className="text-gray-400">جم</span>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

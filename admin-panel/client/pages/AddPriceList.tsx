@@ -72,9 +72,14 @@ export default function AddPriceList() {
   };
 
   const handleSave = async () => {
+    if (!listName.trim()) {
+      alert('يجب إدخال اسم القائمة');
+      return;
+    }
+
     const items = products.map(p => ({
       productId: p.id,
-      price: parseFloat(p.price.replace(/,/g, '')) || 0,
+      price: p.price.replace(/,/g, ''), // Keep as string for server
     }));
     
     try {
@@ -189,7 +194,7 @@ export default function AddPriceList() {
               type="text"
               value={listName}
               onChange={(e) => setListName(e.target.value)}
-              placeholder="اسم العميل"
+              placeholder="اسم القائمة"
               className="w-full px-4 py-3 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 text-right placeholder:text-gray-400"
             />
           </div>

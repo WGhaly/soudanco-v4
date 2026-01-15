@@ -21,6 +21,7 @@ import PriceListDetails from "./pages/PriceListDetails";
 import AddPriceList from "./pages/AddPriceList";
 import Discounts from "./pages/Discounts";
 import AddDiscount from "./pages/AddDiscount";
+import DiscountDetails from "./pages/DiscountDetails";
 import Payments from "./pages/Payments";
 import PaymentDetails from "./pages/PaymentDetails";
 import Supervisors from "./pages/Supervisors";
@@ -58,9 +59,11 @@ export function App() {
               <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
               <Route path="/customers/new" element={<ProtectedRoute><NewCustomer /></ProtectedRoute>} />
               <Route path="/customers/:id" element={<ProtectedRoute><CustomerDetails /></ProtectedRoute>} />
+              <Route path="/customers/:id/edit" element={<ProtectedRoute><NewCustomer /></ProtectedRoute>} />
               <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
               <Route path="/products/new" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
               <Route path="/products/:id" element={<ProtectedRoute><ProductDetails /></ProtectedRoute>} />
+              <Route path="/products/:id/edit" element={<ProtectedRoute><AddProduct /></ProtectedRoute>} />
               <Route path="/price-lists" element={<ProtectedRoute><PriceLists /></ProtectedRoute>} />
               <Route path="/price-lists/add" element={<ProtectedRoute><AddPriceList /></ProtectedRoute>} />
               <Route path="/price-lists/:id" element={<ProtectedRoute><PriceListDetails /></ProtectedRoute>} />
@@ -71,6 +74,7 @@ export function App() {
               <Route path="/payments/:id" element={<ProtectedRoute><PaymentDetails /></ProtectedRoute>} />
               <Route path="/discounts" element={<ProtectedRoute><Discounts /></ProtectedRoute>} />
               <Route path="/discounts/add" element={<ProtectedRoute><AddDiscount /></ProtectedRoute>} />
+              <Route path="/discounts/:id" element={<ProtectedRoute><DiscountDetails /></ProtectedRoute>} />
               <Route path="/discounts/:id/edit" element={<ProtectedRoute><AddDiscount /></ProtectedRoute>} />
               <Route path="/supervisors" element={<ProtectedRoute><Supervisors /></ProtectedRoute>} />
               <Route path="/supervisors/new" element={<ProtectedRoute><EditSupervisor /></ProtectedRoute>} />

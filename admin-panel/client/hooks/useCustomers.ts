@@ -186,10 +186,10 @@ export function useCustomers(params?: { search?: string; status?: string; page?:
   });
 }
 
-export function useCustomer(id: string) {
+export function useCustomer(id?: string) {
   return useQuery({
     queryKey: ['customer', id],
-    queryFn: () => fetchCustomer(id),
+    queryFn: () => fetchCustomer(id!),
     enabled: !!id,
   });
 }

@@ -69,6 +69,23 @@ export default function Account() {
           {/* Menu Items */}
           <div className="flex flex-col items-end gap-3 w-full">
             <Link
+              to="/wallet"
+              className="flex flex-row-reverse px-6 py-2 items-center gap-4 w-full hover:bg-[#F1F1F1] rounded-lg transition-colors"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M5 2L2 8L5 14" stroke="#212529" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="flex-1 text-[#212529] text-right text-xl font-medium leading-[120%]">
+                المحفظة
+              </span>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M17.5 6.66667H2.5V15.8333H17.5V6.66667Z" stroke="#212529" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M15 10.8333C15 11.2936 14.6269 11.6667 14.1667 11.6667C13.7064 11.6667 13.3333 11.2936 13.3333 10.8333C13.3333 10.3731 13.7064 10 14.1667 10C14.6269 10 15 10.3731 15 10.8333Z" fill="#212529"/>
+                <path d="M2.5 6.66667L3.75 3.33333H16.25L17.5 6.66667" stroke="#212529" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+
+            <Link
               to="/address"
               className="flex flex-row-reverse px-6 py-2 items-center gap-4 w-full hover:bg-[#F1F1F1] rounded-lg transition-colors"
             >

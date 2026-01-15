@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { ChevronRight, ChevronLeft, Check, ArrowLeft, ArrowRight, ChevronDown, Calendar, Loader2 } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
-import { useCreateDiscount } from "@/hooks/useDiscounts";
+import { useCreateDiscount, useDiscount, useUpdateDiscount } from "@/hooks/useDiscounts";
 
 type DiscountType = "buy-get" | "spend-bonus" | null;
 
@@ -19,7 +19,13 @@ interface DiscountFormData {
 
 export default function AddDiscount() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = Boolean(id);
+  
   const createDiscount = useCreateDiscount();
+  const updateDiscount = useUpdateDiscount();
+  const { data: discountData, isLoading: discountLoading } = useDiscount(id);
+  
   const [step, setStep] = useState<"select-type" | "fill-form">("select-type");
   const [selectedType, setSelectedType] = useState<DiscountType>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +39,27 @@ export default function AddDiscount() {
     validUntil: "",
     isActive: false,
   });
+  
+  // Load existing discount data in edit mode
+  useEffect(() => {
+    if (isEditMode && discountData?.data) {
+      const discount = discountData.data;
+      const type = discount.type === "buy_get" ? "buy-get" : "spend-bonus";
+      setSelectedType(type);
+      setStep("fill-form"); // Skip type selection in edit mode
+      
+      setFormData({
+        name: discount.nameAr || discount.name || "",
+        buyQuantity: discount.minQuantity?.toString() || "",
+        getQuantity: discount.bonusQuantity?.toString() || discount.value?.toString() || "",
+        spendAmount: discount.minOrderAmount?.toString() || "",
+        bonusPercent: discount.type === "spend_bonus" ? discount.value?.toString() || "" : "",
+        validFrom: discount.startDate ? discount.startDate.split('T')[0] : "",
+        validUntil: discount.endDate ? discount.endDate.split('T')[0] : "",
+        isActive: discount.isActive !== false,
+      });
+    }
+  }, [isEditMode, discountData]);
 
   const handleTypeSelect = (type: DiscountType) => {
     setSelectedType(type);
@@ -61,22 +88,39 @@ export default function AddDiscount() {
         ? parseInt(formData.getQuantity) || 1
         : parseFloat(formData.bonusPercent) || 0;
       
-      await createDiscount.mutateAsync({
+      const discountPayload = {
         name: formData.name,
         nameAr: formData.name,
         type: discountType,
         value: discountValue,
         minQuantity: selectedType === "buy-get" ? parseInt(formData.buyQuantity) || 1 : undefined,
+        bonusQuantity: selectedType === "buy-get" ? parseInt(formData.getQuantity) || 1 : undefined,
+        minOrderAmount: selectedType === "spend-bonus" ? parseFloat(formData.spendAmount) || undefined : undefined,
         startDate: formData.validFrom || new Date().toISOString(),
         endDate: formData.validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         isActive: formData.isActive,
-      });
+      };
+      
+      if (isEditMode && id) {
+        await updateDiscount.mutateAsync({ id, ...discountPayload });
+      } else {
+        await createDiscount.mutateAsync(discountPayload);
+      }
       navigate("/discounts");
     } catch (err: any) {
-      console.error("Error creating discount:", err);
-      setError(err.message || "فشل في إنشاء الخصم");
+      console.error(isEditMode ? "Error updating discount:" : "Error creating discount:", err);
+      setError(err.message || (isEditMode ? "فشل في تحديث الخصم" : "فشل في إنشاء الخصم"));
     }
   };
+  
+  // Loading state for edit mode
+  if (isEditMode && discountLoading) {
+    return (
+      <div className="flex min-h-screen bg-gray-50 items-center justify-center" dir="rtl">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
 
   const updateField = (field: keyof DiscountFormData, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

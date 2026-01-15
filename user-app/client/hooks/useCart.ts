@@ -50,11 +50,16 @@ export function useAddToCart() {
   const authFetch = useAuthFetch();
   
   return useMutation({
-    mutationFn: async ({ productId, quantity }: { productId: string; quantity: number }) => {
+    mutationFn: async ({ productId, quantity, isFreeItem, sourceDiscountId }: { 
+      productId: string; 
+      quantity: number;
+      isFreeItem?: boolean;
+      sourceDiscountId?: string;
+    }) => {
       // authFetch already returns parsed JSON and handles errors
       return authFetch('/api/cart', {
         method: 'POST',
-        body: JSON.stringify({ productId, quantity }),
+        body: JSON.stringify({ productId, quantity, isFreeItem, sourceDiscountId }),
       });
     },
     onSuccess: () => {

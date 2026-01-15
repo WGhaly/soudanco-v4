@@ -1,10 +1,17 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import type { Order } from "@/hooks/useOrders";
 
 type PaymentStatus = "paid" | "partial" | "unpaid";
 
+interface MenuState {
+  orderId: string | null;
+  position: { x: number; y: number };
+}
+
 interface OrdersTableProps {
   orders: Order[];
+  onCancelOrder?: (id: string) => void;
   pagination?: {
     page: number;
     totalPages: number;
@@ -89,7 +96,46 @@ function getPageNumbers(page: number, totalPages: number): (number | 'dots')[] {
   return pages;
 }
 
-export default function OrdersTable({ orders, pagination }: OrdersTableProps) {
+export default function OrdersTable({ orders, onCancelOrder, pagination }: OrdersTableProps) {
+  const navigate = useNavigate();
+  const [menuState, setMenuState] = useState<MenuState>({ orderId: null, position: { x: 0, y: 0 } });
+
+  const handleMenuToggle = (orderId: string, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = event.currentTarget.getBoundingClientRect();
+    
+    if (menuState.orderId === orderId) {
+      setMenuState({ orderId: null, position: { x: 0, y: 0 } });
+    } else {
+      setMenuState({
+        orderId,
+        position: { x: rect.left, y: rect.bottom },
+      });
+    }
+  };
+
+  const closeMenu = () => {
+    setMenuState({ orderId: null, position: { x: 0, y: 0 } });
+  };
+
+  const handleView = (id: string) => {
+    navigate(`/orders/${id}`);
+    closeMenu();
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/orders/${id}/edit`);
+    closeMenu();
+  };
+
+  const handleCancel = (id: string) => {
+    if (window.confirm('هل أنت متأكد من إلغاء هذا الطلب؟')) {
+      onCancelOrder?.(id);
+    }
+    closeMenu();
+  };
+
   if (orders.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-4">
@@ -151,14 +197,57 @@ export default function OrdersTable({ orders, pagination }: OrdersTableProps) {
                   <td className="px-2.5 py-5 text-right text-gray-500 text-base font-normal leading-[130%]">
                     {formatDate(order.createdAt)}
                   </td>
-                  <td className="px-2.5 py-5">
-                    <button className="p-2 hover:bg-gray-100 rounded">
+                  <td className="px-2.5 py-5 relative">
+                    <button
+                      onClick={(e) => handleMenuToggle(order.id, e)}
+                      className="p-2 hover:bg-gray-100 rounded"
+                    >
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="8" cy="4" r="1.5" fill="#6C757D"/>
                         <circle cx="8" cy="8" r="1.5" fill="#6C757D"/>
                         <circle cx="8" cy="12" r="1.5" fill="#6C757D"/>
                       </svg>
                     </button>
+                    {menuState.orderId === order.id && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={closeMenu}></div>
+                        <div className="absolute left-0 top-full z-50 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                          <button
+                            onClick={() => handleView(order.id)}
+                            className="w-full px-4 py-2 text-right text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-end gap-2"
+                          >
+                            عرض
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                              <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleEdit(order.id)}
+                            className="w-full px-4 py-2 text-right text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-end gap-2"
+                          >
+                            تعديل
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                          </button>
+                          {order.status !== 'cancelled' && order.status !== 'delivered' && (
+                            <button
+                              onClick={() => handleCancel(order.id)}
+                              className="w-full px-4 py-2 text-right text-sm text-red-600 hover:bg-red-50 flex items-center justify-end gap-2"
+                            >
+                              إلغاء الطلب
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </td>
                 </tr>
               );

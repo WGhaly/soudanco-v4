@@ -28,7 +28,7 @@ export default function PriceLists() {
   }, [priceLists, searchQuery]);
 
   const handleAddClick = () => {
-    navigate('/price-lists/new');
+    navigate('/price-lists/add');
   };
 
   if (error) {

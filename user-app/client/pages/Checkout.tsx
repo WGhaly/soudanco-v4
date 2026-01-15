@@ -1,21 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, CreditCard, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { useCart } from "@/hooks/useCart";
 import { useCreateOrder } from "@/hooks/useOrders";
-import { useAddresses } from "@/hooks/useProfile";
-import { useAuth } from "@/lib/auth";
+import { useAddresses, useDashboard } from "@/hooks/useProfile";
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { customer } = useAuth();
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardName, setCardName] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Fetch dashboard data for wallet/credit info
+  const { data: dashboardData, isLoading: dashboardLoading } = useDashboard();
+  const dashboard = dashboardData?.data;
 
   // Fetch cart data
   const { data: cartData, isLoading: cartLoading, error: cartError } = useCart();
@@ -36,76 +33,39 @@ export default function Checkout() {
     return `${num.toLocaleString('ar-EG')} جم`;
   };
 
-  // Calculate credit info
-  const creditLimit = parseFloat(customer?.creditLimit || '0');
-  const creditUsed = parseFloat(customer?.creditUsed || '0');
+  // Calculate wallet and credit info
+  const walletBalance = parseFloat(dashboard?.walletBalance || '0');
+  const creditLimit = parseFloat(dashboard?.creditLimit || '0');
+  const creditUsed = parseFloat(dashboard?.currentBalance || '0');
   const availableCredit = creditLimit - creditUsed;
+  const totalAvailable = walletBalance + availableCredit;
   const orderTotal = parseFloat(cart?.summary?.total || cart?.summary?.subtotal || '0');
-  const hasEnoughCredit = availableCredit >= orderTotal;
+  const canAffordOrder = totalAvailable >= orderTotal;
 
-  // Handle order on credit (no payment now)
-  const handleOrderOnCredit = async () => {
-    if (!hasEnoughCredit) {
-      alert('الرصيد الائتماني غير كافٍ. يرجى الدفع الآن أو التواصل مع خدمة العملاء.');
+  // Calculate payment breakdown
+  const walletDeduction = Math.min(walletBalance, orderTotal);
+  const creditDeduction = orderTotal - walletDeduction;
+
+  // Handle place order
+  const handlePlaceOrder = async () => {
+    if (!canAffordOrder) {
+      navigate('/wallet');
       return;
     }
 
+    setIsSubmitting(true);
     createOrder.mutate(
       { 
         addressId: defaultAddress?.id,
-        paymentType: 'credit',
-        notes: 'تم الطلب بالآجل - خصم من الحد الائتماني' 
+        notes: '' 
       },
       {
         onSuccess: () => {
+          setIsSubmitting(false);
           navigate("/orders");
         },
         onError: (error) => {
-          alert(`فشل في إتمام الطلب: ${error.message}`);
-        }
-      }
-    );
-  };
-
-  // Handle pay now (enter card details)
-  const handlePayNow = async () => {
-    // Validate card details
-    if (!cardNumber.replace(/\s/g, '').match(/^\d{16}$/)) {
-      alert('رقم البطاقة غير صحيح');
-      return;
-    }
-    if (!cardName.trim()) {
-      alert('يرجى إدخال اسم حامل البطاقة');
-      return;
-    }
-    if (!expiryDate.match(/^\d{2}\/\d{2}$/)) {
-      alert('تاريخ انتهاء البطاقة غير صحيح');
-      return;
-    }
-    if (!cvv.match(/^\d{3,4}$/)) {
-      alert('رمز CVV غير صحيح');
-      return;
-    }
-
-    setIsProcessingPayment(true);
-
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Create order with payment
-    createOrder.mutate(
-      { 
-        addressId: defaultAddress?.id,
-        paymentType: 'card',
-        notes: 'تم الدفع ببطاقة الائتمان'
-      },
-      {
-        onSuccess: () => {
-          setIsProcessingPayment(false);
-          navigate("/orders");
-        },
-        onError: (error) => {
-          setIsProcessingPayment(false);
+          setIsSubmitting(false);
           alert(`فشل في إتمام الطلب: ${error.message}`);
         }
       }
@@ -118,28 +78,7 @@ export default function Checkout() {
     }
   };
 
-  // Format card number with spaces
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s/g, '').replace(/\D/g, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || '';
-    const parts = [];
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-    return parts.length ? parts.join(' ') : value;
-  };
-
-  // Format expiry date
-  const formatExpiry = (value: string) => {
-    const v = value.replace(/\D/g, '');
-    if (v.length >= 2) {
-      return v.substring(0, 2) + '/' + v.substring(2, 4);
-    }
-    return v;
-  };
-
-  if (cartLoading) {
+  if (cartLoading || dashboardLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
         <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
@@ -195,9 +134,9 @@ export default function Checkout() {
                   }`}
                 >
                   <div className="flex flex-row items-start gap-3 w-full justify-end">
-                    {item.imageUrl ? (
+                    {item.productImage ? (
                       <img
-                        src={item.imageUrl}
+                        src={item.productImage}
                         alt={item.productNameAr || item.productName}
                         className="w-[62px] h-[66px] rounded-lg object-cover"
                       />
@@ -273,33 +212,75 @@ export default function Checkout() {
           </button>
         </div>
         
-        {/* Credit Info */}
+        {/* Payment Info - Wallet & Credit */}
         <div className="flex flex-col items-end gap-4 w-full">
           <h2 className="text-[#212529] text-right text-xl font-medium leading-[120%] w-full">
-            الحد الائتماني
+            طريقة الدفع
           </h2>
           
-          <div className="flex p-4 flex-col gap-3 w-full rounded-xl border border-[#DEE2E6] bg-white">
+          <div className="flex p-4 flex-col gap-4 w-full rounded-xl border border-[#DEE2E6] bg-white">
+            {/* Wallet Balance */}
             <div className="flex flex-row-reverse justify-between items-center w-full">
-              <span className="text-[#6C757D] text-right text-sm">الحد الائتماني الكلي</span>
-              <span className="text-[#212529] font-medium">{formatCurrency(creditLimit)}</span>
+              <div className="flex flex-row-reverse items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M17.5 6.66667H2.5V15.8333H17.5V6.66667Z" stroke="#FD7E14" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2.5 6.66667L3.75 3.33333H16.25L17.5 6.66667" stroke="#FD7E14" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span className="text-[#212529] text-right text-sm font-medium">رصيد المحفظة</span>
+              </div>
+              <span className="text-[#FD7E14] font-bold">{formatCurrency(walletBalance)}</span>
             </div>
+            
+            {/* Available Credit */}
             <div className="flex flex-row-reverse justify-between items-center w-full">
-              <span className="text-[#6C757D] text-right text-sm">المستخدم</span>
-              <span className="text-[#DC3545] font-medium">{formatCurrency(creditUsed)}</span>
+              <div className="flex flex-row-reverse items-center gap-2">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M17.5 10C17.5 14.1421 14.1421 17.5 10 17.5C5.85786 17.5 2.5 14.1421 2.5 10C2.5 5.85786 5.85786 2.5 10 2.5C14.1421 2.5 17.5 5.85786 17.5 10Z" stroke="#28A745" strokeWidth="1.5"/>
+                  <path d="M10 6.66667V10L12.5 12.5" stroke="#28A745" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                <span className="text-[#212529] text-right text-sm font-medium">الائتمان المتاح</span>
+              </div>
+              <span className="text-[#28A745] font-bold">{formatCurrency(availableCredit)}</span>
             </div>
+            
             <div className="h-px bg-[#DEE2E6]"></div>
+            
+            {/* Total Available */}
             <div className="flex flex-row-reverse justify-between items-center w-full">
-              <span className="text-[#212529] text-right text-sm font-medium">المتاح</span>
-              <span className={`font-bold ${hasEnoughCredit ? 'text-[#28A745]' : 'text-[#DC3545]'}`}>
-                {formatCurrency(availableCredit)}
+              <span className="text-[#212529] text-right font-medium">إجمالي الرصيد المتاح</span>
+              <span className={`text-xl font-bold ${canAffordOrder ? 'text-[#28A745]' : 'text-[#DC3545]'}`}>
+                {formatCurrency(totalAvailable)}
               </span>
             </div>
-            {!hasEnoughCredit && (
-              <div className="flex items-center gap-2 p-2 bg-red-50 rounded-lg">
-                <span className="text-red-600 text-sm text-right flex-1">
-                  الرصيد الائتماني غير كافٍ. يرجى الدفع الآن لإتمام الطلب.
+            
+            {/* Insufficient Balance Warning */}
+            {!canAffordOrder && (
+              <div className="flex flex-col gap-2 p-3 bg-red-50 rounded-lg">
+                <span className="text-red-600 text-sm text-right">
+                  الرصيد غير كافٍ لإتمام هذا الطلب
                 </span>
+                <span className="text-red-500 text-xs text-right">
+                  المطلوب: {formatCurrency(orderTotal)} | المتاح: {formatCurrency(totalAvailable)} | الفرق: {formatCurrency(orderTotal - totalAvailable)}
+                </span>
+              </div>
+            )}
+            
+            {/* Payment Breakdown (if can afford) */}
+            {canAffordOrder && orderTotal > 0 && (
+              <div className="flex flex-col gap-2 p-3 bg-[#E7F3FF] rounded-lg">
+                <span className="text-[#0D6EFD] text-sm font-medium text-right">سيتم الخصم كالتالي:</span>
+                {walletDeduction > 0 && (
+                  <div className="flex flex-row-reverse justify-between">
+                    <span className="text-[#0D6EFD] text-xs">من المحفظة</span>
+                    <span className="text-[#0D6EFD] text-xs font-medium">{formatCurrency(walletDeduction)}</span>
+                  </div>
+                )}
+                {creditDeduction > 0 && (
+                  <div className="flex flex-row-reverse justify-between">
+                    <span className="text-[#0D6EFD] text-xs">من الائتمان</span>
+                    <span className="text-[#0D6EFD] text-xs font-medium">{formatCurrency(creditDeduction)}</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -307,13 +288,45 @@ export default function Checkout() {
       </div>
       
       {/* Order Summary Footer */}
-      <div className="flex px-4 pt-[21px] pb-4 flex-col justify-end items-end gap-7 w-full bg-white shadow-[0_-11px_25px_0_rgba(0,0,0,0.12)]">
-        <div className="flex px-6 flex-col items-end gap-[26px] w-full">
-          <div className="flex flex-col items-end gap-[23px] w-full">
+      <div className="flex px-4 pt-[21px] pb-4 flex-col justify-end items-end gap-4 w-full bg-white shadow-[0_-11px_25px_0_rgba(0,0,0,0.12)]">
+        <div className="flex px-6 flex-col items-end gap-4 w-full">
+          {/* Applied Discounts */}
+          {cart.appliedDiscounts && cart.appliedDiscounts.length > 0 && (
+            <div className="flex flex-col gap-2 w-full">
+              {cart.appliedDiscounts.map((discount: any) => (
+                <div key={discount.id} className="flex flex-row-reverse justify-between items-center w-full p-2 rounded-lg bg-[#E8F5E9]">
+                  <div className="flex flex-col items-end">
+                    <span className="text-[#2E7D32] text-sm font-medium">
+                      🎉 {discount.nameAr || discount.name}
+                    </span>
+                    {discount.description && (
+                      <span className="text-[#4CAF50] text-xs">
+                        {discount.description}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[#2E7D32] text-sm font-bold">
+                    -{discount.discountAmount} جم
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-col items-end gap-3 w-full">
             <div className="flex flex-row-reverse justify-center items-center gap-2.5 w-full">
               <span className="text-[#262626] text-base font-normal leading-[130%]">{formatCurrency(cart.summary?.subtotal || '0')}</span>
               <span className="flex-1 text-[#262626] text-right text-base font-normal leading-[130%]">المجموع الفرعي ({cart.summary?.itemCount || cart.items.length} منتج)</span>
             </div>
+
+            {/* Discount if any */}
+            {parseFloat(cart.summary?.discount || '0') > 0 && (
+              <div className="flex flex-row-reverse justify-center items-center gap-2.5 w-full">
+                <span className="text-[#2E7D32] text-base font-medium">-{formatCurrency(cart.summary?.discount || '0')}</span>
+                <span className="flex-1 text-[#2E7D32] text-right text-base font-normal leading-[130%]">الخصم</span>
+              </div>
+            )}
+
             <div className="flex flex-row-reverse justify-center items-center gap-2.5 w-full">
               <span className="text-[#75B798] text-sm font-medium leading-[120%]">توصيل مجاني</span>
               <span className="flex-1 text-[#262626] text-right text-base font-normal leading-[130%]">التوصيل</span>
@@ -328,7 +341,7 @@ export default function Checkout() {
         <div className="flex px-6 flex-col items-end gap-3 w-full">
           <button
             onClick={handleCancelOrder}
-            disabled={createOrder.isPending || isProcessingPayment}
+            disabled={isSubmitting}
             className="flex px-4 py-2 justify-center items-center gap-1.5 w-full rounded-full border border-[#6C757D] text-[#6C757D] hover:bg-gray-50 disabled:opacity-50 transition-colors"
           >
             <span className="text-center text-base font-normal leading-[130%]">
@@ -336,131 +349,39 @@ export default function Checkout() {
             </span>
           </button>
           
-          {hasEnoughCredit && (
+          {canAffordOrder ? (
             <button
-              onClick={handleOrderOnCredit}
-              disabled={createOrder.isPending || isProcessingPayment}
-              className="flex px-4 py-2 justify-center items-center gap-1.5 w-full rounded-full border-2 border-[#FD7E14] text-[#FD7E14] hover:bg-[rgba(253,126,20,0.05)] disabled:opacity-50 transition-colors"
+              onClick={handlePlaceOrder}
+              disabled={isSubmitting}
+              className="flex px-4 py-3 justify-center items-center gap-2 w-full rounded-full bg-[#FD7E14] hover:bg-[#E56D04] disabled:bg-[#ADB5BD] transition-colors active:scale-95"
             >
-              {createOrder.isPending && !showPaymentForm ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin text-white" />
+                  <span className="text-white text-center text-base font-medium leading-[130%]">جاري تأكيد الطلب...</span>
+                </>
               ) : (
-                <span className="text-center text-base font-medium leading-[130%]">
-                  اطلب بالآجل
+                <span className="text-white text-center text-base font-medium leading-[130%]">
+                  تأكيد الطلب
                 </span>
               )}
             </button>
+          ) : (
+            <button
+              onClick={() => navigate('/wallet')}
+              className="flex px-4 py-3 justify-center items-center gap-2 w-full rounded-full bg-[#28A745] hover:bg-[#218838] transition-colors active:scale-95"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M17.5 6.66667H2.5V15.8333H17.5V6.66667Z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M10 10V13.3333M10 10L7.5 12.5M10 10L12.5 12.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span className="text-white text-center text-base font-medium leading-[130%]">
+                شحن المحفظة
+              </span>
+            </button>
           )}
-          
-          <button
-            onClick={() => setShowPaymentForm(true)}
-            disabled={createOrder.isPending || isProcessingPayment}
-            className="flex px-4 py-2 justify-center items-center gap-2 w-full rounded-full bg-[#FD7E14] hover:bg-[#E56D04] disabled:bg-[#ADB5BD] transition-colors active:scale-95"
-          >
-            <CreditCard className="w-5 h-5 text-white" />
-            <span className="text-white text-center text-base font-medium leading-[130%]">
-              ادفع الآن
-            </span>
-          </button>
         </div>
       </div>
-
-      {/* Payment Form Modal */}
-      {showPaymentForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50">
-          <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 pb-8 animate-slide-up">
-            <div className="flex justify-between items-center mb-6">
-              <button onClick={() => setShowPaymentForm(false)} className="p-2">
-                <X className="w-6 h-6 text-gray-500" />
-              </button>
-              <h2 className="text-xl font-medium text-[#212529]">إدخال بيانات البطاقة</h2>
-              <div className="w-10"></div>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              {/* Card Number */}
-              <div className="flex flex-col gap-2">
-                <label className="text-right text-sm text-[#6C757D]">رقم البطاقة</label>
-                <div className="flex px-4 py-3 items-center gap-2 rounded-xl border border-[#DEE2E6] bg-white">
-                  <CreditCard className="w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                    placeholder="0000 0000 0000 0000"
-                    maxLength={19}
-                    className="flex-1 text-left text-base outline-none bg-transparent"
-                    dir="ltr"
-                  />
-                </div>
-              </div>
-
-              {/* Cardholder Name */}
-              <div className="flex flex-col gap-2">
-                <label className="text-right text-sm text-[#6C757D]">اسم حامل البطاقة</label>
-                <input
-                  type="text"
-                  value={cardName}
-                  onChange={(e) => setCardName(e.target.value)}
-                  placeholder="الاسم كما يظهر على البطاقة"
-                  className="px-4 py-3 rounded-xl border border-[#DEE2E6] text-right text-base outline-none"
-                />
-              </div>
-
-              {/* Expiry and CVV */}
-              <div className="flex gap-4">
-                <div className="flex-1 flex flex-col gap-2">
-                  <label className="text-right text-sm text-[#6C757D]">تاريخ الانتهاء</label>
-                  <input
-                    type="text"
-                    value={expiryDate}
-                    onChange={(e) => setExpiryDate(formatExpiry(e.target.value))}
-                    placeholder="MM/YY"
-                    maxLength={5}
-                    className="px-4 py-3 rounded-xl border border-[#DEE2E6] text-center text-base outline-none"
-                    dir="ltr"
-                  />
-                </div>
-                <div className="flex-1 flex flex-col gap-2">
-                  <label className="text-right text-sm text-[#6C757D]">CVV</label>
-                  <input
-                    type="password"
-                    value={cvv}
-                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, ''))}
-                    placeholder="***"
-                    maxLength={4}
-                    className="px-4 py-3 rounded-xl border border-[#DEE2E6] text-center text-base outline-none"
-                  />
-                </div>
-              </div>
-
-              {/* Pay Button */}
-              <button
-                onClick={handlePayNow}
-                disabled={isProcessingPayment}
-                className="flex px-4 py-3 justify-center items-center gap-2 w-full rounded-full bg-[#FD7E14] hover:bg-[#E56D04] disabled:bg-[#ADB5BD] transition-colors mt-4"
-              >
-                {isProcessingPayment ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin text-white" />
-                    <span className="text-white text-base font-medium">جاري الدفع...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-white text-base font-medium">
-                      ادفع {formatCurrency(orderTotal)}
-                    </span>
-                  </>
-                )}
-              </button>
-
-              <p className="text-center text-xs text-[#6C757D] mt-2">
-                بياناتك آمنة ومشفرة. لن يتم حفظ بيانات البطاقة.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
