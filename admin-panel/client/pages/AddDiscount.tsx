@@ -83,7 +83,7 @@ export default function AddDiscount() {
     
     try {
       setError(null);
-      const discountType = selectedType === "buy-get" ? "buy_get" : "spend_bonus";
+      const discountType = (selectedType === "buy-get" ? "buy_get" : "spend_bonus") as "fixed" | "percentage" | "buy_get" | "spend_bonus";
       const discountValue = selectedType === "buy-get" 
         ? parseInt(formData.getQuantity) || 1
         : parseFloat(formData.bonusPercent) || 0;

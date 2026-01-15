@@ -37,10 +37,10 @@ export default function NewCustomer() {
     address: {
       label: "Main Office",
       addressLine1: "",
-      addressLine2: "",
+      addressLine2: "" as string | undefined,
       city: "",
-      region: "",
-      postalCode: "",
+      region: "" as string | undefined,
+      postalCode: "" as string | undefined,
       country: "Saudi Arabia",
     },
   });
@@ -49,6 +49,7 @@ export default function NewCustomer() {
   useEffect(() => {
     if (isEditMode && customerData?.data) {
       const customer = customerData.data;
+      const existingAddress = customer.addresses?.[0];
       setFormData({
         email: customer.email || "",
         password: "", // Don't show password
@@ -60,14 +61,14 @@ export default function NewCustomer() {
         supervisorId: customer.supervisorId || "",
         creditLimit: customer.creditLimit?.toString() || "0",
         isActive: customer.isActive !== false,
-        address: customer.addresses?.[0] || {
-          label: "Main Office",
-          addressLine1: "",
-          addressLine2: "",
-          city: "",
-          region: "",
-          postalCode: "",
-          country: "Saudi Arabia",
+        address: {
+          label: existingAddress?.label || "Main Office",
+          addressLine1: existingAddress?.addressLine1 || "",
+          addressLine2: existingAddress?.addressLine2,
+          city: existingAddress?.city || "",
+          region: existingAddress?.region,
+          postalCode: existingAddress?.postalCode,
+          country: existingAddress?.country || "Saudi Arabia",
         },
       });
     }

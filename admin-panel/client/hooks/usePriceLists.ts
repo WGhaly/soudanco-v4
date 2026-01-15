@@ -18,6 +18,7 @@ export interface PriceList {
   description?: string;
   isActive: boolean;
   itemCount?: number;
+  customerCount?: number;
   items?: PriceListItem[];
   createdAt: string;
   updatedAt: string;

@@ -28,7 +28,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
     // Build where conditions
     const conditions = [];
     if (status) {
-      conditions.push(eq(payments.status, status as string));
+      conditions.push(eq(payments.status, status as "pending" | "completed" | "failed" | "refunded"));
     }
     if (customerId) {
       conditions.push(eq(payments.customerId, customerId as string));

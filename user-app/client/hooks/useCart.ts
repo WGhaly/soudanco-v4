@@ -12,6 +12,7 @@ export interface CartItem {
   quantity: number;
   totalPrice: string;
   imageUrl?: string;
+  productImage?: string;
   stockStatus: 'in_stock' | 'low_stock' | 'out_of_stock';
   stockQuantity: number;
 }
@@ -23,9 +24,18 @@ export interface CartSummary {
   total: string;
 }
 
+export interface AppliedDiscount {
+  id: string;
+  name: string;
+  nameAr?: string;
+  description?: string;
+  discountAmount: string;
+}
+
 export interface Cart {
   items: CartItem[];
   summary: CartSummary;
+  appliedDiscounts?: AppliedDiscount[];
 }
 
 export interface CartResponse {

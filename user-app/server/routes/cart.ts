@@ -146,6 +146,9 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
       description: string | null;
       bonusQuantity?: number;
       bonusProductId?: string | null;
+      minQuantity?: number;
+      freeItemsCount?: number;
+      eligibleProductIds?: string[];
       alreadyClaimed?: boolean;
     }> = [];
 

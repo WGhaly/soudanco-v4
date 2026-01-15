@@ -34,6 +34,10 @@ export interface Product {
     name: string;
     nameAr?: string;
   };
+  priceListItems?: Array<{
+    priceListId: string;
+    price: string;
+  }>;
 }
 
 export interface Category {
