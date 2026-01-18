@@ -34,6 +34,16 @@ export default defineConfig({
         "dns",
         "zlib",
         "string_decoder",
+        // Database dependencies (pg has native bindings)
+        "pg",
+        "pg-native",
+        "pg-pool",
+        "pg-protocol",
+        "pg-types",
+        "pg-connection-string",
+        "pgpass",
+        // Other dependencies with native bindings
+        "bcrypt",
       ],
       output: {
         format: "es",
