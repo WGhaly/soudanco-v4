@@ -135,7 +135,7 @@ export default function Wallet() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
+    <div className="min-h-screen flex flex-col bg-[#F8F9FA] pb-24">
       <div className="p-5 flex-1">
         <PageHeader title="المحفظة" />
         

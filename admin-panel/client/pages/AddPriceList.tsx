@@ -205,19 +205,19 @@ export default function AddPriceList() {
             <div className="hidden md:flex flex-col rounded-lg border border-gray-200 bg-white overflow-hidden">
               {/* Table Header */}
               <div className="flex items-center gap-8 px-4 py-3 bg-gray-200 rounded-t-lg">
-                <div className="flex-1 text-sm text-secondary text-right">
+                <div className="flex-1 text-sm text-secondary text-center">
                   صورة المنتج
                 </div>
-                <div className="flex-1 text-sm text-secondary text-right">
+                <div className="flex-1 text-sm text-secondary text-center">
                   اسم المنتج
                 </div>
-                <div className="flex-1 text-sm text-secondary text-right">
+                <div className="flex-1 text-sm text-secondary text-center">
                   كود المنتج
                 </div>
-                <div className="flex-1 text-sm text-secondary text-right">
+                <div className="flex-1 text-sm text-secondary text-center">
                   حجم العبوة
                 </div>
-                <div className="flex-1 text-sm text-secondary text-right">
+                <div className="flex-1 text-sm text-secondary text-center">
                   السعر الحالي
                 </div>
               </div>
@@ -230,7 +230,7 @@ export default function AddPriceList() {
                     className="flex items-center gap-8 px-4 py-4"
                   >
                     {/* Product Image */}
-                    <div className="flex-1 flex justify-end">
+                    <div className="flex-1 flex justify-center">
                       <img
                         src={product.image}
                         alt={product.name}
@@ -239,33 +239,32 @@ export default function AddPriceList() {
                     </div>
 
                     {/* Product Name */}
-                    <div className="flex-1 text-base text-gray-900 text-right">
+                    <div className="flex-1 text-base text-gray-900 text-center">
                       {product.name}
                     </div>
 
                     {/* Product Code */}
-                    <div className="flex-1 text-base text-gray-900 text-right underline">
+                    <div className="flex-1 text-base text-gray-900 text-center underline">
                       {product.code}
                     </div>
 
                     {/* Size */}
-                    <div className="flex-1 text-base font-bold text-gray-900 text-right">
+                    <div className="flex-1 text-base font-bold text-gray-900 text-center">
                       {product.size}
                     </div>
 
                     {/* Price Input */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 bg-gray-50">
+                    <div className="flex-1 flex justify-center">
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-full border border-gray-200 bg-gray-50 w-32">
                         <input
                           type="text"
                           value={product.price}
                           onChange={(e) =>
                             handlePriceChange(product.id, e.target.value)
                           }
-                          className="flex-1 bg-transparent text-base text-gray-900 text-left focus:outline-none"
+                          className="flex-1 bg-transparent text-base text-gray-900 text-left focus:outline-none w-full"
                         />
-                        <span className="text-base text-gray-900">جم</span>
-                        <Edit className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-500 whitespace-nowrap">ج.م</span>
                       </div>
                     </div>
                   </div>

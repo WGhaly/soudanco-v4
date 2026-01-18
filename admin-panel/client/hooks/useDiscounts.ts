@@ -178,5 +178,5 @@ export function formatDiscountValue(discount: Discount) {
   if (discount.type === 'percentage') {
     return `${discount.value}%`;
   }
-  return `${discount.value} ر.س`;
+  return `${discount.value} ج.م`;
 }

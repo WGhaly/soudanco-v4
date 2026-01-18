@@ -78,7 +78,7 @@ export default function DiscountsTable({ discounts, onToggleStatus, onDelete, pa
   const navigate = useNavigate();
   const [menuState, setMenuState] = useState<MenuState>({ discountId: null, position: { x: 0, y: 0 } });
 
-  const handleMenuToggle = (discountId: string, event: React.MouseEvent) => {
+  const handleMenuToggle = (discountId: string, event: React.MouseEvent, isLastItems: boolean = false) => {
     event.preventDefault();
     event.stopPropagation();
     const rect = event.currentTarget.getBoundingClientRect();
@@ -88,10 +88,12 @@ export default function DiscountsTable({ discounts, onToggleStatus, onDelete, pa
     } else {
       setMenuState({
         discountId,
-        position: { x: rect.left, y: rect.bottom },
+        position: { x: rect.left, y: isLastItems ? rect.top : rect.bottom },
       });
     }
   };
+
+  const isLastTwoItems = (index: number) => index >= discounts.length - 2;
 
   const closeMenu = () => {
     setMenuState({ discountId: null, position: { x: 0, y: 0 } });
@@ -141,7 +143,7 @@ export default function DiscountsTable({ discounts, onToggleStatus, onDelete, pa
 
         {/* Table Rows */}
         <div className="divide-y divide-gray-300">
-          {discounts.map((discount) => (
+          {discounts.map((discount, index) => (
             <div
               key={discount.id}
               className="flex items-center gap-[30px] px-2.5 py-3.5 bg-white hover:bg-gray-50 transition-colors"
@@ -182,7 +184,7 @@ export default function DiscountsTable({ discounts, onToggleStatus, onDelete, pa
               {/* Menu Icon */}
               <div className="flex items-start px-2 py-2 relative">
                 <button
-                  onClick={(e) => handleMenuToggle(discount.id, e)}
+                  onClick={(e) => handleMenuToggle(discount.id, e, isLastTwoItems(index))}
                   className="text-gray-600 hover:text-gray-900 transition-colors p-1 hover:bg-gray-100 rounded"
                 >
                   <MoreVertical className="w-4 h-4" />
@@ -190,7 +192,7 @@ export default function DiscountsTable({ discounts, onToggleStatus, onDelete, pa
                 {menuState.discountId === discount.id && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={closeMenu}></div>
-                    <div className="absolute left-0 top-full z-50 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
+                    <div className={`absolute left-0 z-50 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 ${isLastTwoItems(index) ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
                       <button
                         onClick={() => handleView(discount.id)}
                         className="w-full px-4 py-2 text-right text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-end gap-2"

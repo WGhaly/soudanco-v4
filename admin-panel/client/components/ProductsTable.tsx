@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import StockStatusBadge from "./StockStatusBadge";
 import type { Product } from "@/hooks/useProducts";
 import { useUpdateProduct, useDeleteProduct } from "@/hooks/useProducts";
 
@@ -17,15 +16,6 @@ interface ProductsTableProps {
     totalPages: number;
     onPageChange: (page: number) => void;
   };
-}
-
-function mapStockStatus(status: string): 'in-stock' | 'out-of-stock' {
-  switch (status) {
-    case 'in_stock': return 'in-stock';
-    case 'low_stock': return 'in-stock'; // Map low stock to in-stock for badge display
-    case 'out_of_stock': return 'out-of-stock';
-    default: return 'out-of-stock';
-  }
 }
 
 // Generate page numbers for pagination
@@ -114,20 +104,17 @@ export default function ProductsTable({ products, onDelete, pagination }: Produc
       {/* Desktop Table */}
       <div className="hidden md:flex flex-col items-start self-stretch rounded-lg border border-theme-border bg-white p-2.5">
         <div className="flex px-2.5 py-2.5 items-center gap-[30px] self-stretch rounded-lg bg-theme-border">
-          <div className="flex-1 text-theme-secondary text-right text-sm font-normal leading-[150%]">
+          <div className="flex-1 text-theme-secondary text-center text-sm font-normal leading-[150%]">
             صورة المنتج
           </div>
-          <div className="flex-1 text-theme-secondary text-right text-sm font-normal leading-[150%]">
+          <div className="flex-1 text-theme-secondary text-center text-sm font-normal leading-[150%]">
             اسم المنتج
           </div>
-          <div className="flex-1 text-theme-secondary text-right text-sm font-normal leading-[150%]">
+          <div className="flex-1 text-theme-secondary text-center text-sm font-normal leading-[150%]">
             كود المنتج
           </div>
-          <div className="flex-1 text-theme-secondary text-right text-sm font-normal leading-[150%]">
+          <div className="flex-1 text-theme-secondary text-center text-sm font-normal leading-[150%]">
             حجم العبوة
-          </div>
-          <div className="flex-1 text-theme-secondary text-right text-sm font-normal leading-[150%]">
-            حالة المنتج
           </div>
           <div className="w-16 text-theme-secondary text-center text-sm font-normal leading-[150%]">
             متاح
@@ -160,19 +147,16 @@ export default function ProductsTable({ products, onDelete, pagination }: Produc
                 </div>
               )}
             </div>
-            <div className="flex justify-end items-center gap-2.5 flex-1">
-              <div className="text-body-text text-right text-base font-normal leading-[130%]">
+            <div className="flex justify-center items-center gap-2.5 flex-1">
+              <div className="text-body-text text-center text-base font-normal leading-[130%]">
                 {product.nameAr || product.name}
               </div>
             </div>
-            <div className="flex-1 text-body-text text-right text-base font-normal leading-[130%] underline">
+            <div className="flex-1 text-body-text text-center text-base font-normal leading-[130%] underline">
               {product.sku}
             </div>
-            <div className="flex-1 text-body-text text-right text-base font-bold leading-[150%]">
+            <div className="flex-1 text-body-text text-center text-base font-bold leading-[150%]">
               {product.unit || '-'}
-            </div>
-            <div className="flex-1">
-              <StockStatusBadge status={mapStockStatus(product.stockStatus)} />
             </div>
             <div className="w-16 flex justify-center">
               <button
@@ -278,10 +262,6 @@ export default function ProductsTable({ products, onDelete, pagination }: Produc
               <div className="flex justify-between items-center">
                 <div className="text-body-text text-base font-bold">{product.unit || '-'}</div>
                 <div className="text-theme-secondary text-sm">حجم العبوة</div>
-              </div>
-              <div className="flex justify-between items-center">
-                <StockStatusBadge status={mapStockStatus(product.stockStatus)} />
-                <div className="text-theme-secondary text-sm">حالة المنتج</div>
               </div>
               <div className="flex justify-between items-center">
                 <button

@@ -53,7 +53,7 @@ export default function Products() {
 
   return (
     <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24">
-      <PageHeader title="المنتجات" />
+      <PageHeader title="المنتجات" showCart={true} />
       
       <div className="flex flex-col items-end gap-6 w-full">
         {/* Search Bar */}
@@ -97,7 +97,6 @@ export default function Products() {
             >
               <option value="">الكل</option>
               <option value="in_stock">متوفر</option>
-              <option value="low_stock">مخزون منخفض</option>
               <option value="out_of_stock">غير متوفر</option>
             </select>
           </div>

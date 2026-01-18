@@ -1,4 +1,5 @@
 
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
@@ -8,6 +9,12 @@ import { useProducts } from "@/hooks/useProducts";
 import { useDashboard, useCustomerDiscounts } from "@/hooks/useProfile";
 import { useAddToCart } from "@/hooks/useCart";
 import { useToast } from "@/hooks/use-toast";
+
+const bannerImages = [
+  "/assets/Rectangle 1.jpg",
+  "/assets/Rectangle 2.jpg",
+  "/assets/Rectangle 3.jpg",
+];
 
 export default function Home() {
   const { customer } = useAuth();
@@ -21,6 +28,32 @@ export default function Home() {
   const dashboard = dashboardData?.data;
   const discounts = discountsData?.data || [];
   const activeDiscount = discounts.find(d => d.isActive);
+
+  // Auto-rotate carousel
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (carouselRef.current) {
+      const container = carouselRef.current;
+      const images = container.querySelectorAll('img');
+      if (images[currentSlide]) {
+        const targetImage = images[currentSlide] as HTMLElement;
+        const scrollPosition = targetImage.offsetLeft - 8; // account for padding
+        container.scrollTo({
+          left: scrollPosition,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [currentSlide]);
 
   const handleAddToCart = (productId: string, quantity: number) => {
     addToCart.mutate(
@@ -46,31 +79,37 @@ export default function Home() {
   const defaultImage = "https://api.builder.io/api/v1/image/assets/TEMP/86501bd89bfb43fe0882378e0ea38736bf4ebf29";
 
   return (
-    <div className="flex flex-col items-end gap-6 bg-[#F8F9FA] p-5">
+    <div className="flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24 min-h-screen">
       <PageHeader showBackButton={false} showCart={true} />
       
       <div className="flex flex-col items-center gap-10 w-full">
-        {/* Ads Banner - Scrollable Carousel */}
-        <div className="w-full flex justify-center">
-          <div className="flex h-[185px] gap-4 w-full max-w-3xl overflow-x-auto scrollbar-hide px-2">
-            <img
-              src="/assets/Rectangle 2.jpg"
-              alt="Banner Center"
-              className="min-w-[372px] h-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity mx-auto"
-              style={{ order: 2 }}
-            />
-            <img
-              src="/assets/Rectangle 1.jpg"
-              alt="Banner Left"
-              className="min-w-[372px] h-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
-              style={{ order: 1 }}
-            />
-            <img
-              src="/assets/Rectangle 3.jpg"
-              alt="Banner Right"
-              className="min-w-[372px] h-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
-              style={{ order: 3 }}
-            />
+        {/* Ads Banner - Auto-rotating Carousel */}
+        <div className="w-full flex flex-col items-center gap-3">
+          <div 
+            ref={carouselRef}
+            className="flex h-[185px] gap-4 w-full max-w-3xl overflow-x-auto scrollbar-hide px-2"
+          >
+            {bannerImages.map((src, index) => (
+              <img
+                key={index}
+                src={src}
+                alt={`Banner ${index + 1}`}
+                className="min-w-[372px] h-full rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => setCurrentSlide(index)}
+              />
+            ))}
+          </div>
+          {/* Carousel Indicators */}
+          <div className="flex gap-2">
+            {bannerImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  currentSlide === index ? 'bg-[#FD7E14]' : 'bg-gray-300'
+                }`}
+              />
+            ))}
           </div>
         </div>
 
@@ -81,7 +120,7 @@ export default function Home() {
               الرصيد المستحق
             </p>
             <p className="text-[#212529] text-right text-xl font-medium leading-[120%] w-full">
-              {dashboardLoading ? "..." : (dashboard?.currentBalance || "0")}
+              {dashboardLoading ? "..." : `${parseFloat(dashboard?.currentBalance || "0").toLocaleString('ar-EG')} جنيه`}
             </p>
           </div>
 
@@ -90,7 +129,7 @@ export default function Home() {
               الحد<br />الائتماني
             </p>
             <p className="text-[#212529] text-right text-xl font-medium leading-[120%] w-full">
-              {dashboardLoading ? "..." : (dashboard?.creditLimit || "0")}
+              {dashboardLoading ? "..." : `${parseFloat(dashboard?.creditLimit || "0").toLocaleString('ar-EG')} جنيه`}
             </p>
           </div>
 
@@ -239,57 +278,7 @@ export default function Home() {
           </button>
         </Link>
 
-        {/* Info Cards */}
-        <div className="flex flex-col items-end gap-3 w-full rounded-lg">
-          <div className="flex flex-row-reverse px-6 py-1.5 flex-col items-end w-full border-b border-[#DEE2E6] hover:bg-[#F1F1F1] rounded-lg transition-colors cursor-pointer">
-            <div className="flex flex-col justify-center items-center gap-2.5 w-full">
-              <div className="flex flex-row-reverse items-center gap-1.5 w-full">
-                <h3 className="flex-1 text-[#FD7E14] text-right text-base font-medium leading-[120%]">
-                  جودة موثوقة
-                </h3>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 1L10.163 5.37607L15 6.12786L11.5 9.52786L12.326 14.3443L8 12.0761L3.674 14.3443L4.5 9.52786L1 6.12786L5.837 5.37607L8 1Z" fill="#FD7E14"/>
-                </svg>
-              </div>
-              <p className="text-[#6C757D] text-right text-sm font-normal leading-[150%] w-full">
-                منتجات أصلية 100%
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex flex-row-reverse px-6 py-1.5 flex-col items-end w-full border-b border-[#DEE2E6] hover:bg-[#F1F1F1] rounded-lg transition-colors cursor-pointer">
-            <div className="flex flex-col justify-center items-center gap-2.5 w-full">
-              <div className="flex flex-row-reverse items-center gap-1.5 w-full">
-                <h3 className="flex-1 text-[#FD7E14] text-right text-base font-medium leading-[120%]">
-                  توصيل سريع
-                </h3>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z" fill="#FD7E14"/>
-                  <path d="M8 5V8L10 10" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              </div>
-              <p className="text-[#6C757D] text-right text-sm font-normal leading-[150%] w-full">
-                توصيل خلال 24-48 ساعة
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex flex-row-reverse px-6 py-1.5 flex-col items-end w-full border-b border-[#DEE2E6] hover:bg-[#F1F1F1] rounded-lg transition-colors cursor-pointer">
-            <div className="flex flex-col justify-center items-center gap-2.5 w-full">
-              <div className="flex flex-row-reverse items-center gap-1.5 w-full">
-                <h3 className="flex-1 text-[#FD7E14] text-right text-base font-medium leading-[120%]">
-                  دعم على مدار الساعة
-                </h3>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M2 6H14M2 10H14M6 2L8 14M10 2L8 14" stroke="#FD7E14" strokeWidth="1.5"/>
-                </svg>
-              </div>
-              <p className="text-[#6C757D] text-right text-sm font-normal leading-[150%] w-full">
-                فريق دعم متاح دائماً لمساعدتك
-              </p>
-            </div>
-          </div>
-        </div>
+
       </div>
 
       <BottomNav />

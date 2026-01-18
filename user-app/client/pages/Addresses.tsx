@@ -83,7 +83,7 @@ export default function Addresses() {
   const otherAddresses = addresses.filter(a => !a.isDefault);
 
   return (
-    <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5">
+    <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24">
       <PageHeader title="العناوين" />
       
       <div className="flex flex-col items-end gap-4 w-full">

@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { db, orders, payments, customers } from '../db';
-import { eq, sql, and, gte } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { authenticateToken, AuthenticatedRequest, requireSupervisor } from '../middleware/auth';
 
 const router = Router();
@@ -11,19 +11,16 @@ router.use(requireSupervisor);
 // GET /api/stats/dashboard - Get dashboard statistics
 router.get('/dashboard', async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // Get total customer count
+    const [customerCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(customers);
+
     // Get pending orders count
     const [pendingOrders] = await db
       .select({ count: sql<number>`count(*)` })
       .from(orders)
       .where(eq(orders.status, 'pending'));
-
-    // Get total orders for today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const [todayOrders] = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(orders)
-      .where(gte(orders.createdAt, today));
 
     // Get total outstanding balance (sum of customer current balances)
     const [outstandingBalance] = await db
@@ -53,7 +50,7 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res: Response) => {
       success: true,
       data: {
         stats: {
-          incomingOrders: Number(todayOrders.count),
+          customerCount: Number(customerCount.count),
           pendingOrders: Number(pendingOrders.count),
           outstandingBalance: outstandingBalance.total || '0',
         },

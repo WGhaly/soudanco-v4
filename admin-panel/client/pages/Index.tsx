@@ -46,9 +46,9 @@ export default function Index() {
                   </div>
                 ) : (
                   <>
-                    <StatCard title="الطلبات الواردة" value={String(stats?.incomingOrders || 0)} />
+                    <StatCard title="عدد العملاء" value={String(stats?.customerCount || 0)} />
                     <StatCard title="إجمالي الطلبات المعلّقة" value={String(stats?.pendingOrders || 0)} />
-                    <StatCard title="إجمالي المستحق" value={`${stats?.outstandingBalance || '0'} ر.س`} />
+                    <StatCard title="إجمالي المستحق" value={`${stats?.outstandingBalance || '0'} ج.م`} />
                   </>
                 )}
               </div>
@@ -96,7 +96,7 @@ export default function Index() {
                           <td className="px-4 py-3 text-gray-900">
                             {order.customer?.businessNameAr || order.customer?.businessName || '-'}
                           </td>
-                          <td className="px-4 py-3 text-gray-900">{order.total} ر.س</td>
+                          <td className="px-4 py-3 text-gray-900">{order.total} ج.م</td>
                           <td className="px-4 py-3">
                             <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
                               order.status === 'delivered' ? 'bg-green-100 text-green-800' :

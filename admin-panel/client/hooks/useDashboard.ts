@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 const ACCESS_TOKEN_KEY = 'soudanco_access_token';
 
 export interface DashboardStats {
-  incomingOrders: number;
+  customerCount: number;
   pendingOrders: number;
   outstandingBalance: string;
 }

@@ -242,7 +242,7 @@ export default function AddProduct() {
                       value={productName}
                       onChange={(e) => setProductName(e.target.value)}
                       placeholder="اسم المنتج"
-                      className="flex-1 text-gray-500 text-right text-base font-normal leading-[130%] outline-none bg-transparent"
+                      className="flex-1 text-gray-900 text-right text-base font-normal leading-[130%] outline-none bg-transparent placeholder:text-gray-400"
                     />
                   </div>
                 </div>
@@ -260,7 +260,7 @@ export default function AddProduct() {
                     <select
                       value={packageSize}
                       onChange={(e) => setPackageSize(e.target.value)}
-                      className="flex-1 text-gray-500 text-right text-base font-normal leading-[130%] outline-none bg-transparent appearance-none cursor-pointer"
+                      className="flex-1 text-gray-900 text-right text-base font-normal leading-[130%] outline-none bg-transparent appearance-none cursor-pointer"
                     >
                       <option value="">اختر الحجم</option>
                       <option value="1 لتر">1 لتر</option>
@@ -284,8 +284,8 @@ export default function AddProduct() {
                       type="text"
                       value={sku}
                       onChange={(e) => setSku(e.target.value)}
-                      placeholder="يُولّد تلقائياً إن تُرك فارغاً"
-                      className="flex-1 text-gray-500 text-right text-base font-normal leading-[130%] outline-none bg-transparent"
+                      placeholder="كود المنتج"
+                      className="flex-1 text-gray-900 text-right text-base font-normal leading-[130%] outline-none bg-transparent placeholder:text-gray-400"
                     />
                   </div>
                 </div>
@@ -306,7 +306,7 @@ export default function AddProduct() {
                       value={basePrice}
                       onChange={(e) => setBasePrice(e.target.value)}
                       placeholder="0.00"
-                      className="flex-1 text-gray-500 text-right text-base font-normal leading-[130%] outline-none bg-transparent"
+                      className="flex-1 text-gray-900 text-right text-base font-normal leading-[130%] outline-none bg-transparent placeholder:text-gray-400"
                     />
                     <span className="text-gray-400">جم</span>
                   </div>
@@ -343,7 +343,7 @@ export default function AddProduct() {
                     <select
                       value={categoryId}
                       onChange={(e) => setCategoryId(e.target.value)}
-                      className="flex-1 text-gray-500 text-right text-base font-normal leading-[130%] outline-none bg-transparent cursor-pointer"
+                      className="flex-1 text-gray-900 text-right text-base font-normal leading-[130%] outline-none bg-transparent cursor-pointer"
                     >
                       <option value="">يرجي الاختيار</option>
                       {categories.map((cat) => (
@@ -393,7 +393,7 @@ export default function AddProduct() {
                               placeholder={basePrice || "0.00"}
                               step="0.01"
                               min="0"
-                              className="flex-1 text-gray-500 text-right text-base font-normal leading-[130%] outline-none bg-transparent"
+                              className="flex-1 text-gray-900 text-right text-base font-normal leading-[130%] outline-none bg-transparent placeholder:text-gray-400"
                             />
                             <span className="text-gray-400">جم</span>
                           </div>

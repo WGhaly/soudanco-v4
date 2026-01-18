@@ -19,7 +19,7 @@ export default function Account() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5">
+    <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24">
       <PageHeader showBackButton={false} showCart={true} />
       
       <div className="flex flex-col justify-between items-end flex-1 w-full">
@@ -136,7 +136,7 @@ export default function Account() {
           </div>
         </div>
 
-        <div className="flex px-6 pt-3 flex-col items-end gap-3 w-full border-t border-[#DEE2E6]">
+        <div className="flex px-6 pt-3 pb-6 flex-col items-end gap-3 w-full border-t border-[#DEE2E6]">
           <button
             onClick={handleLogout}
             className="flex flex-row-reverse px-6 py-2 items-center gap-3 w-full hover:bg-red-50 rounded-lg transition-colors"
@@ -149,6 +149,8 @@ export default function Account() {
             </span>
           </button>
         </div>
+        {/* Safe space for bottom navigation */}
+        <div className="h-20"></div>
       </div>
 
       <BottomNav />

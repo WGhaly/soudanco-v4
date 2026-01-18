@@ -81,7 +81,7 @@ export default function OrderDetail() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5">
+    <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24">
       <PageHeader title="الطلبات" />
 
       <div className="flex flex-col items-end gap-6 w-full">
@@ -197,8 +197,8 @@ export default function OrderDetail() {
               >
                 {/* Product Image */}
                 <div className="w-20 flex justify-start">
-                  {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.productNameAr || item.productName} className="h-16 w-14 rounded-lg object-cover" />
+                  {item.productImage ? (
+                    <img src={item.productImage} alt={item.productNameAr || item.productName} className="h-16 w-14 rounded-lg object-contain" />
                   ) : (
                     <div className="h-16 w-14 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">{item.productNameAr || item.productName}</div>
                   )}

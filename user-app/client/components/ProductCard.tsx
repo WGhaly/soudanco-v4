@@ -76,12 +76,11 @@ export default function ProductCard({
   return (
     <>
       <div className={`flex px-2.5 pt-2.5 pb-2 flex-col justify-end items-end gap-3 rounded-xl border border-[#DEE2E6] bg-white shadow-[0_0_5px_0_rgba(0,0,0,0.1)] ${outOfStock ? 'opacity-60' : ''}`} style={{ minHeight: 260 }}>
-        <div className="relative w-full" style={{ aspectRatio: '1.6/1', height: '120px', minHeight: '120px', maxHeight: '120px' }}>
+        <div className="relative w-full flex items-center justify-center bg-gray-50 rounded-xl" style={{ height: '120px', minHeight: '120px', maxHeight: '120px' }}>
           <img
             src={image}
             alt={title}
-            className={`w-full h-full object-cover rounded-xl ${highlightOutOfStock ? 'grayscale-[60%] brightness-95' : ''}`}
-            style={{ aspectRatio: '1.6/1', height: '120px', minHeight: '120px', maxHeight: '120px' }}
+            className={`max-w-full max-h-full object-contain rounded-xl ${highlightOutOfStock ? 'grayscale-[60%] brightness-95' : ''}`}
           />
           {outOfStock && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-xl">

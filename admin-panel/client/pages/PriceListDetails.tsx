@@ -121,7 +121,7 @@ export default function PriceListDetails() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-4 py-3 pr-4 pl-10 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 text-right appearance-none bg-white text-gray-400"
+                className="w-full px-4 py-3 pr-4 pl-10 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 text-right appearance-none bg-white text-gray-900"
               >
                 <option value="">الكل ({items.length})</option>
                 {categories.map((category) => (
@@ -150,19 +150,19 @@ export default function PriceListDetails() {
             <div className="hidden md:flex flex-col rounded-lg border border-gray-200 bg-white overflow-hidden">
               {/* Table Header */}
               <div className="flex items-center gap-8 px-4 py-3 bg-gray-200 rounded-t-lg">
-                <div className="flex-1 text-sm text-secondary text-right">
+                <div className="flex-1 text-sm text-secondary text-center">
                   السعر الحالي
                 </div>
-                <div className="flex-1 text-sm text-secondary text-right">
+                <div className="flex-1 text-sm text-secondary text-center">
                   حجم العبوة
                 </div>
-                <div className="flex-1 text-sm text-secondary text-right">
+                <div className="flex-1 text-sm text-secondary text-center">
                   كود المنتج
                 </div>
-                <div className="flex-1 text-sm text-secondary text-right">
+                <div className="flex-1 text-sm text-secondary text-center">
                   اسم المنتج
                 </div>
-                <div className="flex-1 text-sm text-secondary text-right">
+                <div className="flex-1 text-sm text-secondary text-center">
                   صورة المنتج
                 </div>
               </div>
@@ -178,27 +178,27 @@ export default function PriceListDetails() {
                       className="flex items-center gap-8 px-4 py-4 hover:bg-gray-50 transition-colors"
                     >
                       {/* Price */}
-                      <div className="flex-1 text-base font-bold text-gray-900 text-right">
+                      <div className="flex-1 text-base font-bold text-gray-900 text-center">
                         {formatCurrency(item.price)}
                       </div>
 
                       {/* Size/Unit */}
-                      <div className="flex-1 text-base font-bold text-gray-900 text-right">
+                      <div className="flex-1 text-base font-bold text-gray-900 text-center">
                         {item.productUnit || '-'}
                       </div>
 
                       {/* Product Code */}
-                      <div className="flex-1 text-base text-gray-900 text-right underline">
+                      <div className="flex-1 text-base text-gray-900 text-center underline">
                         {item.productSku || '-'}
                       </div>
 
                       {/* Product Name */}
-                      <div className="flex-1 text-base text-gray-900 text-right">
+                      <div className="flex-1 text-base text-gray-900 text-center">
                         {item.productNameAr || item.productName || '-'}
                       </div>
 
                       {/* Product Image */}
-                      <div className="flex-1 flex justify-end">
+                      <div className="flex-1 flex justify-center">
                         {item.productImageUrl ? (
                           <img 
                             src={item.productImageUrl} 
