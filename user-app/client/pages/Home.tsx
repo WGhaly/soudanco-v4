@@ -47,7 +47,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-end gap-6 bg-[#F8F9FA] p-5">
-      <PageHeader showBackButton={false} />
+      <PageHeader showBackButton={false} showCart={true} />
       
       <div className="flex flex-col items-center gap-10 w-full">
         {/* Ads Banner - Scrollable Carousel */}
