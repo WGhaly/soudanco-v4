@@ -278,9 +278,11 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
     });
   } catch (error) {
     console.error('Get cart error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({
       success: false,
       error: 'Failed to fetch cart',
+      details: errorMessage,
     });
   }
 });
@@ -367,9 +369,11 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
     });
   } catch (error) {
     console.error('Add to cart error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return res.status(500).json({
       success: false,
       error: 'Failed to add item to cart',
+      details: errorMessage,
     });
   }
 });
