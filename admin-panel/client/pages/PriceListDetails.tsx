@@ -216,52 +216,14 @@ export default function PriceListDetails() {
                 )}
               </div>
 
-              {/* Pagination */}
-              <div className="flex items-center justify-center gap-1 py-4 border-t border-gray-200">
-                <button className="w-11 h-11 flex items-center justify-center hover:bg-gray-100 rounded transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center text-gray-900 font-bold">
-                  1
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center text-primary font-bold">
-                  2
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center text-gray-900 font-bold">
-                  3
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center text-gray-900 font-bold">
-                  4
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center text-gray-900 font-bold">
-                  5
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center text-gray-900 font-bold">
-                  <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 16 16">
-                    <circle cx="2" cy="8" r="2" />
-                    <circle cx="8" cy="8" r="2" />
-                    <circle cx="14" cy="8" r="2" />
-                  </svg>
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center text-gray-900 font-bold">
-                  10
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center hover:bg-gray-100 rounded transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-              </div>
+              {/* Items Count Footer */}
+              {filteredItems.length > 0 && (
+                <div className="flex items-center justify-center py-4 border-t border-gray-200">
+                  <span className="text-gray-500 text-sm">
+                    عرض {filteredItems.length} من {items.length} منتج
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Mobile Cards */}
@@ -319,36 +281,14 @@ export default function PriceListDetails() {
                 ))
               )}
 
-              {/* Mobile Pagination */}
-              <div className="flex items-center justify-center gap-2 py-4">
-                <button className="w-11 h-11 flex items-center justify-center hover:bg-gray-100 rounded transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center text-gray-900 font-bold">
-                  1
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center text-primary font-bold">
-                  2
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center text-gray-900 font-bold">
-                  3
-                </button>
-                <button className="w-11 h-11 flex items-center justify-center hover:bg-gray-100 rounded transition-colors">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </button>
-              </div>
+              {/* Mobile Items Count */}
+              {filteredItems.length > 0 && (
+                <div className="flex items-center justify-center py-4">
+                  <span className="text-gray-500 text-sm">
+                    عرض {filteredItems.length} من {items.length} منتج
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -60,14 +60,6 @@ export default function CustomerDetails() {
   const { data: customerData, isLoading: customerLoading, error: customerError } = useCustomer(id || '');
   const customer = customerData?.data;
 
-  // Local state for isActive toggle (derived from customer.isActive)
-  const [isActive, setIsActive] = useState(true);
-
-  // Update local state when customer data loads
-  if (customer && isActive !== customer.isActive) {
-    setIsActive(customer.isActive);
-  }
-
   // Fetch customer payments
   const { data: paymentsData } = usePayments(1, 10, { customerId: id });
   const payments = paymentsData?.data || [];
@@ -147,7 +139,10 @@ export default function CustomerDetails() {
                 </h1>
 
                 {/* Edit Button */}
-                <button className="flex justify-center items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 transition-opacity hover:opacity-90">
+                <button
+                  onClick={() => navigate(`/customers/${id}/edit`)}
+                  className="flex justify-center items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 transition-opacity hover:opacity-90"
+                >
                   <span className="text-white text-center text-base font-normal leading-[130%]">تعديل البيانات</span>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M11.333 2.00004C11.5081 1.82494 11.716 1.68605 11.9447 1.59129C12.1735 1.49653 12.4187 1.44775 12.6663 1.44775C12.914 1.44775 13.1592 1.49653 13.3879 1.59129C13.6167 1.68605 13.8246 1.82494 13.9997 2.00004C14.1748 2.17513 14.3137 2.383 14.4084 2.61178C14.5032 2.84055 14.552 3.08575 14.552 3.33337C14.552 3.58099 14.5032 3.82619 14.4084 4.05497C14.3137 4.28374 14.1748 4.49161 13.9997 4.66671L5.33301 13.3334L1.99967 14.3334L2.99967 11L11.6663 2.33337L11.333 2.00004Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -264,28 +259,12 @@ export default function CustomerDetails() {
                   <div className="flex flex-col md:flex-row-reverse items-start gap-6 self-stretch">
                     <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
                       <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
-                        تفعيل الحساب
+                        حالة الحساب
                       </label>
-                      <div className="flex justify-end items-center gap-3">
-                        <button
-                          onClick={() => setIsActive(!isActive)}
-                          className="relative w-8 h-[17px]"
-                        >
-                          {isActive ? (
-                            <div className="relative w-8 h-[17px]">
-                              <div className="absolute w-8 h-[17px] rounded-full border-2 border-brand-primary bg-brand-primary"></div>
-                              <div className="absolute w-3.5 h-3.5 rounded-full bg-white left-[17px] top-0.5"></div>
-                            </div>
-                          ) : (
-                            <div className="relative w-8 h-[17px]">
-                              <svg className="absolute w-8 h-[17px]" viewBox="0 0 37 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M25.7998 1C31.0465 1 35.2998 5.25329 35.2998 10.5C35.2998 15.7467 31.0465 20 25.7998 20H10.5C5.2533 20 1 15.7467 1 10.5C1 5.25329 5.2533 1 10.5 1H25.7998Z" stroke="#FD7E14" strokeWidth="2"/>
-                              </svg>
-                              <div className="absolute w-3.5 h-3.5 rounded-full bg-brand-primary left-0.5 top-0.5"></div>
-                            </div>
-                          )}
-                        </button>
-                        <span className="text-body-text text-base font-bold">{isActive ? 'مفعل' : 'غير مفعل'}</span>
+                      <div className="text-body-text text-right text-base font-bold leading-[150%]">
+                        <span className={customer.isActive ? 'text-green-600' : 'text-red-600'}>
+                          {customer.isActive ? 'مفعل' : 'غير مفعل'}
+                        </span>
                       </div>
                     </div>
                     <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
@@ -314,15 +293,6 @@ export default function CustomerDetails() {
                         {customer.email || 'غير محدد'}
                       </div>
                     </div>
-
-                    <button className="flex justify-center items-center gap-1.5 rounded-full bg-brand-primary px-4 py-1.5 transition-opacity hover:opacity-90">
-                      <span className="text-white text-center text-base font-normal leading-[130%]">
-                        إعادة تعيين كلمة المرور
-                      </span>
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15.8333 9.16667C15.8333 5.02453 12.4755 1.66667 8.33333 1.66667C4.19117 1.66667 0.833332 5.02453 0.833332 9.16667C0.833332 13.3088 4.19117 16.6667 8.33333 16.6667H15.8333M15.8333 16.6667L13.3333 14.1667M15.8333 16.6667L13.3333 19.1667" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button>
                   </div>
                 </div>
               </>

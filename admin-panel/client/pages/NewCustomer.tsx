@@ -261,35 +261,41 @@ export default function NewCustomer() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
-                  البريد الإلكتروني *
+                  البريد الإلكتروني {!isEditMode && '*'}
                 </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleChange("email", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 text-right"
+                  disabled={isEditMode}
+                  className={`w-full px-4 py-2 rounded-lg border border-gray-300 text-right ${isEditMode ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                   placeholder="email@example.com"
                 />
+                {isEditMode && (
+                  <p className="text-gray-500 text-xs mt-1 text-right">لا يمكن تعديل البريد الإلكتروني</p>
+                )}
                 {errors.email && (
                   <p className="text-red-500 text-sm mt-1 text-right">{errors.email}</p>
                 )}
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
-                  كلمة المرور *
-                </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => handleChange("password", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 text-right"
-                  placeholder="كلمة المرور"
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-sm mt-1 text-right">{errors.password}</p>
-                )}
-              </div>
+              {!isEditMode && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+                    كلمة المرور *
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => handleChange("password", e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 text-right"
+                    placeholder="كلمة المرور"
+                  />
+                  {errors.password && (
+                    <p className="text-red-500 text-sm mt-1 text-right">{errors.password}</p>
+                  )}
+                </div>
+              )}
             </div>
             
             {/* Price List & Supervisor */}
