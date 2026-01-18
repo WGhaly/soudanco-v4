@@ -137,13 +137,11 @@ export default function Products() {
         ) : (
           <>
             <div className="grid grid-cols-2 gap-4 w-full">
-              {products.length > 1 ? (
-                products.slice(0, -1)
-                  .filter((_, idx) => idx !== 4 && idx !== 6)
-                  .map((product, idx) => (
+              {products.length > 0 ? (
+                products.map((product, idx) => (
                     <ProductCard
                       key={product.id}
-                      image={defaultImage}
+                      image={product.imageUrl || defaultImage}
                       title={product.nameAr || product.name}
                       subtitle={`${product.unitsPerCase} ${product.unit}`}
                       price={`${product.price} جم / ${product.unit}`}

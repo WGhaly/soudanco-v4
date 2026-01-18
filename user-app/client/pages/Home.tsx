@@ -213,11 +213,12 @@ export default function Home() {
                     }
                   >
                     <ProductCard
-                      image={defaultImage}
+                      image={product.imageUrl || defaultImage}
                       title={title}
                       subtitle={`${product.unitsPerCase} ${product.unit}`}
                       price={`${product.price} جم / ${product.unit}`}
                       onAddToCart={(qty) => handleAddToCart(product.id, qty)}
+                      outOfStock={product.stockStatus === 'out_of_stock'}
                     />
                   </div>
                 );
