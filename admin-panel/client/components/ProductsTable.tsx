@@ -169,12 +169,10 @@ export default function ProductsTable({ products, onDelete, pagination }: Produc
               {product.sku}
             </div>
             <div className="flex-1 text-body-text text-right text-base font-bold leading-[150%]">
-              {product.unitsPerCase} {product.unit}
+              {product.unit || '-'}
             </div>
             <div className="flex-1">
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${product.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {product.isActive ? 'متاح' : 'غير متاح'}
-              </span>
+              <StockStatusBadge status={mapStockStatus(product.stockStatus)} />
             </div>
             <div className="w-16 flex justify-center">
               <button
@@ -278,13 +276,11 @@ export default function ProductsTable({ products, onDelete, pagination }: Produc
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-center">
-                <div className="text-body-text text-base font-bold">{product.unitsPerCase} {product.unit}</div>
+                <div className="text-body-text text-base font-bold">{product.unit || '-'}</div>
                 <div className="text-theme-secondary text-sm">حجم العبوة</div>
               </div>
               <div className="flex justify-between items-center">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${product.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                  {product.isActive ? 'متاح' : 'غير متاح'}
-                </span>
+                <StockStatusBadge status={mapStockStatus(product.stockStatus)} />
                 <div className="text-theme-secondary text-sm">حالة المنتج</div>
               </div>
               <div className="flex justify-between items-center">

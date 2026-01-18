@@ -4,7 +4,6 @@ import { ArrowRight, Loader2, Plus } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { useCreateCustomer, useCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
 import { usePriceLists } from "@/hooks/usePriceLists";
-import { useSupervisors } from "@/hooks/useSupervisors";
 
 export default function NewCustomer() {
   const navigate = useNavigate();
@@ -15,12 +14,10 @@ export default function NewCustomer() {
   const updateCustomer = useUpdateCustomer();
   const { data: customerData, isLoading: customerLoading } = useCustomer(id);
   
-  // Fetch price lists and supervisors
+  // Fetch price lists
   const { data: priceListsData, isLoading: priceListsLoading } = usePriceLists(1, 100);
-  const { data: supervisorsData, isLoading: supervisorsLoading } = useSupervisors(1, 100);
   
   const priceLists = priceListsData?.data || [];
-  const supervisors = supervisorsData?.data || [];
   
   // Form state
   const [formData, setFormData] = useState({
@@ -31,7 +28,6 @@ export default function NewCustomer() {
     contactName: "",
     phone: "",
     priceListId: "",
-    supervisorId: "",
     creditLimit: "0",
     isActive: true,
     address: {
@@ -58,7 +54,6 @@ export default function NewCustomer() {
         contactName: customer.contactName || "",
         phone: customer.phone || "",
         priceListId: customer.priceListId || "",
-        supervisorId: customer.supervisorId || "",
         creditLimit: customer.creditLimit?.toString() || "0",
         isActive: customer.isActive !== false,
         address: {
@@ -117,7 +112,6 @@ export default function NewCustomer() {
         contactName: formData.contactName,
         phone: formData.phone,
         priceListId: formData.priceListId || undefined,
-        supervisorId: formData.supervisorId || undefined,
         creditLimit: formData.creditLimit,
         isActive: formData.isActive,
         address: formData.address,
@@ -141,7 +135,7 @@ export default function NewCustomer() {
     }
   };
   
-  const isLoading = priceListsLoading || supervisorsLoading || createCustomer.isPending || updateCustomer.isPending;
+  const isLoading = priceListsLoading || createCustomer.isPending || updateCustomer.isPending;
   
   // Loading state for edit mode
   if (isEditMode && customerLoading) {
@@ -314,25 +308,6 @@ export default function NewCustomer() {
                   {priceLists.map((pl) => (
                     <option key={pl.id} value={pl.id}>
                       {pl.nameAr || pl.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
-                  المشرف
-                </label>
-                <select
-                  value={formData.supervisorId}
-                  onChange={(e) => handleChange("supervisorId", e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 text-right"
-                  disabled={supervisorsLoading}
-                >
-                  <option value="">اختر المشرف</option>
-                  {supervisors.map((sup) => (
-                    <option key={sup.id} value={sup.id}>
-                      {sup.nameAr || sup.name}
                     </option>
                   ))}
                 </select>

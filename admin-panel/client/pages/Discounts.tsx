@@ -6,7 +6,7 @@ import DiscountsTable from "@/components/DiscountsTable";
 import { useDiscounts, useUpdateDiscount, useDeleteDiscount } from "@/hooks/useDiscounts";
 import { useToast } from "@/hooks/use-toast";
 
-type DiscountFilter = "all" | "percentage" | "fixed" | "buy_get" | "spend_bonus";
+type DiscountFilter = "all" | "buy_get" | "spend_bonus";
 
 export default function Discounts() {
   const navigate = useNavigate();
@@ -71,10 +71,8 @@ export default function Discounts() {
 
   const filterOptions: { value: DiscountFilter; label: string }[] = [
     { value: "all", label: "الكل" },
-    { value: "percentage", label: "نسبة مئوية" },
-    { value: "fixed", label: "مبلغ ثابت" },
-    { value: "buy_get", label: "اشتري واحصل" },
-    { value: "spend_bonus", label: "أنفق واحصل" },
+    { value: "buy_get", label: "اشتري X واحصل على Y" },
+    { value: "spend_bonus", label: "أنفق X واحصل على خصم %" },
   ];
 
   return (

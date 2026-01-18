@@ -24,10 +24,7 @@ import AddDiscount from "./pages/AddDiscount";
 import DiscountDetails from "./pages/DiscountDetails";
 import Payments from "./pages/Payments";
 import PaymentDetails from "./pages/PaymentDetails";
-import Supervisors from "./pages/Supervisors";
-import SupervisorDetails from "./pages/SupervisorDetails";
-import EditSupervisor from "./pages/EditSupervisor";
-import RolePermissions from "./pages/RolePermissions";
+
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
 
@@ -76,11 +73,7 @@ export function App() {
               <Route path="/discounts/add" element={<ProtectedRoute><AddDiscount /></ProtectedRoute>} />
               <Route path="/discounts/:id" element={<ProtectedRoute><DiscountDetails /></ProtectedRoute>} />
               <Route path="/discounts/:id/edit" element={<ProtectedRoute><AddDiscount /></ProtectedRoute>} />
-              <Route path="/supervisors" element={<ProtectedRoute><Supervisors /></ProtectedRoute>} />
-              <Route path="/supervisors/new" element={<ProtectedRoute><EditSupervisor /></ProtectedRoute>} />
-              <Route path="/supervisors/:id" element={<ProtectedRoute><SupervisorDetails /></ProtectedRoute>} />
-              <Route path="/supervisors/:id/edit" element={<ProtectedRoute><EditSupervisor /></ProtectedRoute>} />
-              <Route path="/supervisors/:id/permissions" element={<ProtectedRoute><RolePermissions /></ProtectedRoute>} />
+
               <Route path="/settings" element={<ProtectedRoute><PlaceholderPage /></ProtectedRoute>} />
               <Route path="/logout" element={<Navigate to="/login" replace />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

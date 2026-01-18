@@ -8,19 +8,6 @@ export default function Settings() {
     phone: "",
   });
 
-  const [toggles, setToggles] = useState({
-    emailNotifications: true,
-    smsNotifications: true,
-    promotionalEmails: true,
-  });
-
-  const handleToggle = (key: keyof typeof toggles) => {
-    setToggles(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  };
-
   return (
     <div className="min-h-screen flex flex-col justify-between items-end bg-[#F8F9FA] p-5 pb-32">
       <div className="flex flex-col items-end gap-6 flex-1 w-full">
@@ -89,54 +76,6 @@ export default function Settings() {
               dir="rtl"
             />
           </div>
-        </div>
-        
-        <div className="flex flex-col items-end gap-4 w-full">
-          <h2 className="text-[#363636] text-right text-base font-medium leading-[120%] w-full">
-            إجراءات الحساب
-          </h2>
-          
-          <button
-            onClick={() => handleToggle('emailNotifications')}
-            className="flex flex-row-reverse p-1 py-0 justify-end items-start gap-3 w-full hover:bg-[#F8F9FA] rounded-lg transition-colors"
-          >
-            <div className="w-8 h-[17px] flex-shrink-0">
-              <div className={`w-8 h-[17px] rounded-[20px] border-2 ${toggles.emailNotifications ? "border-[#FD7E14] bg-[#FD7E14]" : "border-[#DEE2E6]"} relative`}>
-                <div className={`w-[13px] h-[14px] rounded-[20px] ${toggles.emailNotifications ? "bg-white left-0.5" : "bg-[#DEE2E6] left-[17px]"} absolute top-0.5`}></div>
-              </div>
-            </div>
-            <span className="flex-1 text-[#363636] text-right text-base font-medium leading-[120%]">
-              إشعارات البريد الإلكتروني للطلبات
-            </span>
-          </button>
-          
-          <button
-            onClick={() => handleToggle('smsNotifications')}
-            className="flex flex-row-reverse p-1 py-0 justify-end items-start gap-3 w-full hover:bg-[#F8F9FA] rounded-lg transition-colors"
-          >
-            <div className="w-8 h-[17px] flex-shrink-0">
-              <div className={`w-8 h-[17px] rounded-[20px] border-2 ${toggles.smsNotifications ? "border-[#FD7E14] bg-[#FD7E14]" : "border-[#DEE2E6]"} relative`}>
-                <div className={`w-[13px] h-[14px] rounded-[20px] ${toggles.smsNotifications ? "bg-white left-0.5" : "bg-[#DEE2E6] left-[17px]"} absolute top-0.5`}></div>
-              </div>
-            </div>
-            <span className="flex-1 text-[#363636] text-right text-base font-medium leading-[120%]">
-              إشعارات الرسائل النصية للتوصيل
-            </span>
-          </button>
-          
-          <button
-            onClick={() => handleToggle('promotionalEmails')}
-            className="flex flex-row-reverse p-1 py-0 justify-end items-start gap-3 w-full hover:bg-[#F8F9FA] rounded-lg transition-colors"
-          >
-            <div className="w-8 h-[17px] flex-shrink-0">
-              <div className={`w-8 h-[17px] rounded-[20px] border-2 ${toggles.promotionalEmails ? "border-[#FD7E14] bg-[#FD7E14]" : "border-[#DEE2E6]"} relative`}>
-                <div className={`w-[13px] h-[14px] rounded-[20px] ${toggles.promotionalEmails ? "bg-white left-0.5" : "bg-[#DEE2E6] left-[17px]"} absolute top-0.5`}></div>
-              </div>
-            </div>
-            <span className="flex-1 text-[#363636] text-right text-base font-medium leading-[120%]">
-              رسائل وعروض ترويجية عبر البريد الإلكتروني
-            </span>
-          </button>
         </div>
       </div>
       

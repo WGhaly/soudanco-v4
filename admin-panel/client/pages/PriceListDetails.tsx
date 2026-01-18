@@ -184,7 +184,7 @@ export default function PriceListDetails() {
 
                       {/* Size/Unit */}
                       <div className="flex-1 text-base font-bold text-gray-900 text-right">
-                        {item.productUnitsPerCase ? `${item.productUnitsPerCase} ${item.productUnit || 'وحدة'}` : '-'}
+                        {item.productUnit || '-'}
                       </div>
 
                       {/* Product Code */}
@@ -266,7 +266,7 @@ export default function PriceListDetails() {
                       <div className="flex-1">
                         <div className="text-sm text-gray-500 mb-1">حجم العبوة</div>
                         <div className="text-base font-bold text-gray-900">
-                          {item.productUnitsPerCase ? `${item.productUnitsPerCase} ${item.productUnit || 'وحدة'}` : '-'}
+                          {item.productUnit || '-'}
                         </div>
                       </div>
                     </div>
