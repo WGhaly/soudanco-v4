@@ -164,7 +164,7 @@ router.get('/', async (req, res) => {
       }
     }
     
-    res.json(rewardsData);
+    return res.json({ success: true, data: rewardsData });
   } catch (error: any) {
     console.error('Error fetching customer rewards:', error);
     res.status(500).json({ error: 'Failed to fetch customer rewards' });

@@ -30,7 +30,7 @@ router.get('/', async (req, res) => {
       tiers = await db.select().from(rewardTiers).orderBy(desc(rewardTiers.year), rewardTiers.quarter, rewardTiers.minCartons);
     }
     
-    res.json(tiers);
+    return res.json({ success: true, data: tiers });
   } catch (error: any) {
     console.error('Error fetching reward tiers:', error);
     res.status(500).json({ error: 'Failed to fetch reward tiers' });

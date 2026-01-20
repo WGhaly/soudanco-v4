@@ -92,16 +92,18 @@ export default function Rewards() {
   const [showProcessDialog, setShowProcessDialog] = useState(false);
 
   // Fetch reward tiers
-  const { data: tiers = [], isLoading: tiersLoading } = useQuery({
+  const { data: tiersResponse, isLoading: tiersLoading } = useQuery({
     queryKey: ['reward-tiers', selectedQuarter, selectedYear],
     queryFn: () => fetchWithAuth(`/api/reward-tiers?quarter=${selectedQuarter}&year=${selectedYear}`),
   });
+  const tiers = tiersResponse?.data || [];
 
   // Fetch customer rewards
-  const { data: customerRewards = [], isLoading: rewardsLoading } = useQuery({
+  const { data: rewardsResponse, isLoading: rewardsLoading } = useQuery({
     queryKey: ['customer-rewards', selectedQuarter, selectedYear],
     queryFn: () => fetchWithAuth(`/api/customer-rewards?quarter=${selectedQuarter}&year=${selectedYear}`),
   });
+  const customerRewards = rewardsResponse?.data || [];
 
   // Create/Update tier mutation
   const tierMutation = useMutation({
@@ -231,9 +233,9 @@ export default function Rewards() {
   );
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6" dir="rtl">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Quarterly Rewards</h1>
+        <h1 className="text-3xl font-bold">المكافآت الربعية</h1>
         <div className="flex gap-2">
           <select
             value={selectedYear}
@@ -251,10 +253,10 @@ export default function Rewards() {
 
       <Tabs value={`q${selectedQuarter}`} onValueChange={(v) => setSelectedQuarter(parseInt(v.slice(1)))}>
         <TabsList>
-          <TabsTrigger value="q1">Q1 (Jan-Mar)</TabsTrigger>
-          <TabsTrigger value="q2">Q2 (Apr-Jun)</TabsTrigger>
-          <TabsTrigger value="q3">Q3 (Jul-Sep)</TabsTrigger>
-          <TabsTrigger value="q4">Q4 (Oct-Dec)</TabsTrigger>
+          <TabsTrigger value="q1">الربع الأول (يناير-مارس)</TabsTrigger>
+          <TabsTrigger value="q2">الربع الثاني (أبريل-يونيو)</TabsTrigger>
+          <TabsTrigger value="q3">الربع الثالث (يوليو-سبتمبر)</TabsTrigger>
+          <TabsTrigger value="q4">الربع الرابع (أكتوبر-ديسمبر)</TabsTrigger>
         </TabsList>
 
         {[1, 2, 3, 4].map((q) => (
@@ -262,46 +264,46 @@ export default function Rewards() {
             {/* Reward Tiers Section */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Reward Tiers</CardTitle>
+                <CardTitle>مستويات المكافآت</CardTitle>
                 <Button onClick={() => openTierDialog()}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Tier
+                  <Plus className="ml-2 h-4 w-4" />
+                  إضافة مستوى
                 </Button>
               </CardHeader>
               <CardContent>
                 {tiersLoading ? (
-                  <div>Loading tiers...</div>
+                  <div>جاري تحميل المستويات...</div>
                 ) : tiers.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No reward tiers configured for this quarter
+                    لا توجد مستويات مكافآت محددة لهذا الربع
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Tier Name</TableHead>
-                        <TableHead>Min Cartons</TableHead>
-                        <TableHead>Max Cartons</TableHead>
-                        <TableHead>Cashback/Carton</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>اسم المستوى</TableHead>
+                        <TableHead>الحد الأدنى للكراتين</TableHead>
+                        <TableHead>الحد الأقصى للكراتين</TableHead>
+                        <TableHead>المبلغ المسترد/كرتونة</TableHead>
+                        <TableHead>الحالة</TableHead>
+                        <TableHead>الإجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {tiers.map((tier: RewardTier) => (
                         <TableRow key={tier.id}>
                           <TableCell>
-                            {tier.name}
-                            {tier.nameAr && (
-                              <div className="text-sm text-muted-foreground">{tier.nameAr}</div>
+                            {tier.nameAr || tier.name}
+                            {tier.nameAr && tier.name && (
+                              <div className="text-sm text-muted-foreground">{tier.name}</div>
                             )}
                           </TableCell>
                           <TableCell>{tier.minCartons}</TableCell>
                           <TableCell>{tier.maxCartons ?? '∞'}</TableCell>
-                          <TableCell>EGP {tier.cashbackPerCarton}</TableCell>
+                          <TableCell>{tier.cashbackPerCarton} جنيه</TableCell>
                           <TableCell>
                             <Badge variant={tier.isActive ? 'default' : 'secondary'}>
-                              {tier.isActive ? 'Active' : 'Inactive'}
+                              {tier.isActive ? 'نشط' : 'غير نشط'}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -334,40 +336,39 @@ export default function Rewards() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Customer Rewards</CardTitle>
+                  <CardTitle>مكافآت العملاء</CardTitle>
                   {pendingRewards.length > 0 && (
                     <div className="text-sm text-muted-foreground mt-1">
-                      Total Pending: EGP {totalPendingAmount.toFixed(2)} ({pendingRewards.length}{' '}
-                      customers)
+                      إجمالي المعلق: {totalPendingAmount.toFixed(2)} جنيه ({pendingRewards.length}{' '}عميل)
                     </div>
                   )}
                 </div>
                 {pendingRewards.length > 0 && (
                   <Button onClick={() => setShowProcessDialog(true)}>
-                    <DollarSign className="mr-2 h-4 w-4" />
-                    Process All Rewards
+                    <DollarSign className="ml-2 h-4 w-4" />
+                    معالجة جميع المكافآت
                   </Button>
                 )}
               </CardHeader>
               <CardContent>
                 {rewardsLoading ? (
-                  <div>Loading rewards...</div>
+                  <div>جاري تحميل المكافآت...</div>
                 ) : customerRewards.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No customer rewards data available
+                    لا توجد بيانات مكافآت للعملاء
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Cartons Purchased</TableHead>
-                        <TableHead>Eligible Tier</TableHead>
-                        <TableHead>Calculated Reward</TableHead>
-                        <TableHead>Manual Adjustment</TableHead>
-                        <TableHead>Final Reward</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>العميل</TableHead>
+                        <TableHead>الكراتين المشتراة</TableHead>
+                        <TableHead>المستوى المؤهل</TableHead>
+                        <TableHead>المكافأة المحسوبة</TableHead>
+                        <TableHead>التعديل اليدوي</TableHead>
+                        <TableHead>المكافأة النهائية</TableHead>
+                        <TableHead>الحالة</TableHead>
+                        <TableHead>الإجراءات</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -382,12 +383,12 @@ export default function Rewards() {
                           <TableCell>{reward.totalCartonsPurchased}</TableCell>
                           <TableCell>
                             {reward.eligibleTier ? (
-                              <div>{reward.eligibleTier.name}</div>
+                              <div>{reward.eligibleTier.nameAr || reward.eligibleTier.name}</div>
                             ) : (
-                              <span className="text-muted-foreground">No tier</span>
+                              <span className="text-muted-foreground">لا يوجد مستوى</span>
                             )}
                           </TableCell>
-                          <TableCell>EGP {reward.calculatedReward}</TableCell>
+                          <TableCell>{reward.calculatedReward} جنيه</TableCell>
                           <TableCell>
                             {parseFloat(reward.manualAdjustment || '0') !== 0 && (
                               <span
@@ -403,7 +404,7 @@ export default function Rewards() {
                             )}
                           </TableCell>
                           <TableCell className="font-semibold">
-                            EGP {reward.finalReward}
+                            {reward.finalReward} جنيه
                           </TableCell>
                           <TableCell>
                             <Badge
@@ -415,7 +416,7 @@ export default function Rewards() {
                                   : 'destructive'
                               }
                             >
-                              {reward.status}
+                              {reward.status === 'processed' ? 'تم المعالجة' : reward.status === 'pending' ? 'معلق' : 'ملغي'}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -444,31 +445,31 @@ export default function Rewards() {
       <Dialog open={showTierDialog} onOpenChange={setShowTierDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingTier ? 'Edit Tier' : 'Add New Tier'}</DialogTitle>
+            <DialogTitle>{editingTier ? 'تعديل المستوى' : 'إضافة مستوى جديد'}</DialogTitle>
             <DialogDescription>
-              Configure reward tier for Q{selectedQuarter} {selectedYear}
+              إعداد مستوى المكافأة للربع {selectedQuarter} من {selectedYear}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Tier Name (English)</Label>
+              <Label>اسم المستوى (عربي)</Label>
+              <Input
+                value={tierForm.nameAr}
+                onChange={(e) => setTierForm({ ...tierForm, nameAr: e.target.value })}
+                placeholder="مثلاً: الفئة البرونزية"
+              />
+            </div>
+            <div>
+              <Label>اسم المستوى (إنجليزي)</Label>
               <Input
                 value={tierForm.name}
                 onChange={(e) => setTierForm({ ...tierForm, name: e.target.value })}
                 placeholder="e.g., Bronze Tier"
               />
             </div>
-            <div>
-              <Label>Tier Name (Arabic)</Label>
-              <Input
-                value={tierForm.nameAr}
-                onChange={(e) => setTierForm({ ...tierForm, nameAr: e.target.value })}
-                placeholder="e.g., الفئة البرونزية"
-              />
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Min Cartons</Label>
+                <Label>الحد الأدنى للكراتين</Label>
                 <Input
                   type="number"
                   value={tierForm.minCartons}
@@ -478,7 +479,7 @@ export default function Rewards() {
                 />
               </div>
               <div>
-                <Label>Max Cartons (optional)</Label>
+                <Label>الحد الأقصى للكراتين (اختياري)</Label>
                 <Input
                   type="number"
                   value={tierForm.maxCartons || ''}
@@ -488,12 +489,12 @@ export default function Rewards() {
                       maxCartons: e.target.value ? parseInt(e.target.value) : null,
                     })
                   }
-                  placeholder="Leave empty for unlimited"
+                  placeholder="اترك فارغاً لغير محدود"
                 />
               </div>
             </div>
             <div>
-              <Label>Cashback per Carton (EGP)</Label>
+              <Label>المبلغ المسترد لكل كرتونة (جنيه)</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -501,16 +502,16 @@ export default function Rewards() {
                 onChange={(e) =>
                   setTierForm({ ...tierForm, cashbackPerCarton: e.target.value })
                 }
-                placeholder="e.g., 5.00"
+                placeholder="مثلاً: 5.00"
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowTierDialog(false)}>
-              Cancel
+              إلغاء
             </Button>
             <Button onClick={handleSaveTier} disabled={tierMutation.isPending}>
-              {tierMutation.isPending ? 'Saving...' : 'Save'}
+              {tierMutation.isPending ? 'جاري الحفظ...' : 'حفظ'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -520,20 +521,20 @@ export default function Rewards() {
       <Dialog open={showAdjustDialog} onOpenChange={setShowAdjustDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Adjust Reward</DialogTitle>
+            <DialogTitle>تعديل المكافأة</DialogTitle>
             <DialogDescription>
-              Manually adjust the reward amount for {adjustingReward?.customer.businessName}
+              تعديل مبلغ المكافأة يدوياً لـ {adjustingReward?.customer.businessName}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Calculated Reward</Label>
+              <Label>المكافأة المحسوبة</Label>
               <div className="text-2xl font-bold">
-                EGP {adjustingReward?.calculatedReward}
+                {adjustingReward?.calculatedReward} جنيه
               </div>
             </div>
             <div>
-              <Label>Manual Adjustment</Label>
+              <Label>التعديل اليدوي</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -541,42 +542,41 @@ export default function Rewards() {
                 onChange={(e) =>
                   setAdjustmentForm({ ...adjustmentForm, manualAdjustment: e.target.value })
                 }
-                placeholder="e.g., -10.00 or +20.00"
+                placeholder="مثلاً: -10.00 أو +20.00"
               />
               <p className="text-sm text-muted-foreground mt-1">
-                Use negative values to decrease, positive to increase
+                استخدم قيم سالبة للتقليل، وموجبة للزيادة
               </p>
             </div>
             {adjustingReward && (
               <div>
-                <Label>Final Reward</Label>
+                <Label>المكافأة النهائية</Label>
                 <div className="text-2xl font-bold text-green-600">
-                  EGP{' '}
                   {(
                     parseFloat(adjustingReward.calculatedReward) +
                     parseFloat(adjustmentForm.manualAdjustment || '0')
-                  ).toFixed(2)}
+                  ).toFixed(2)} جنيه
                 </div>
               </div>
             )}
             <div>
-              <Label>Notes</Label>
+              <Label>ملاحظات</Label>
               <Textarea
                 value={adjustmentForm.notes}
                 onChange={(e) =>
                   setAdjustmentForm({ ...adjustmentForm, notes: e.target.value })
                 }
-                placeholder="Reason for adjustment..."
+                placeholder="سبب التعديل..."
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowAdjustDialog(false)}>
-              Cancel
+              إلغاء
             </Button>
             <Button onClick={handleSaveAdjustment} disabled={updateRewardMutation.isPending}>
-              {updateRewardMutation.isPending ? 'Saving...' : 'Save'}
+              {updateRewardMutation.isPending ? 'جاري الحفظ...' : 'حفظ'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -586,10 +586,9 @@ export default function Rewards() {
       <Dialog open={showProcessDialog} onOpenChange={setShowProcessDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Process All Rewards</DialogTitle>
+            <DialogTitle>معالجة جميع المكافآت</DialogTitle>
             <DialogDescription>
-              This will process rewards for all pending customers and add the amounts to their
-              wallets.
+              سيتم معالجة مكافآت جميع العملاء المعلقة وإضافة المبالغ إلى محافظهم.
             </DialogDescription>
           </DialogHeader>
           <Alert>
@@ -597,28 +596,27 @@ export default function Rewards() {
             <AlertDescription>
               <div className="space-y-2">
                 <p>
-                  <strong>{pendingRewards.length} customers</strong> will receive rewards
+                  <strong>{pendingRewards.length} عميل</strong> سيحصلون على مكافآت
                 </p>
                 <p>
-                  <strong>Total amount: EGP {totalPendingAmount.toFixed(2)}</strong>
+                  <strong>إجمالي المبلغ: {totalPendingAmount.toFixed(2)} جنيه</strong>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  This action cannot be undone. Make sure all adjustments are correct before
-                  proceeding.
+                  لا يمكن التراجع عن هذا الإجراء. تأكد من أن جميع التعديلات صحيحة قبل المتابعة.
                 </p>
               </div>
             </AlertDescription>
           </Alert>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowProcessDialog(false)}>
-              Cancel
+              إلغاء
             </Button>
             <Button
               onClick={handleProcessRewards}
               disabled={processRewardsMutation.isPending}
               variant="default"
             >
-              {processRewardsMutation.isPending ? 'Processing...' : 'Confirm & Process'}
+              {processRewardsMutation.isPending ? 'جاري المعالجة...' : 'تأكيد ومعالجة'}
             </Button>
           </DialogFooter>
         </DialogContent>
