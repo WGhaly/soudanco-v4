@@ -1,24 +1,40 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, Search, AlertCircle, RefreshCw, ArrowRight } from "lucide-react";
+import { Loader2, Search, AlertCircle, RefreshCw, ArrowRight, Calendar } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import PaymentsTable from "@/components/PaymentsTable";
-import { usePayments } from "@/hooks/usePayments";
+import { usePayments, usePaymentStats } from "@/hooks/usePayments";
 import { useCustomers } from "@/hooks/useCustomers";
+
+// Helper function to format currency
+function formatCurrency(amount: number | string): string {
+  const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+  return new Intl.NumberFormat('ar-EG', {
+    style: 'currency',
+    currency: 'EGP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(num);
+}
 
 export default function Payments() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [customerFilter, setCustomerFilter] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
   const [page, setPage] = useState(1);
 
   // API hooks
   const { data, isLoading, error, refetch, isFetching } = usePayments(page, 10, {
     status: statusFilter || undefined,
     customerId: customerFilter || undefined,
+    fromDate: fromDate || undefined,
+    toDate: toDate || undefined,
   });
   const { data: customersData } = useCustomers({ page: 1, limit: 100 });
+  const { data: statsData, isLoading: statsLoading } = usePaymentStats(fromDate || undefined, toDate || undefined);
 
   const handleStatusFilter = (value: string) => {
     setStatusFilter(value);
@@ -27,6 +43,12 @@ export default function Payments() {
 
   const handleCustomerFilter = (value: string) => {
     setCustomerFilter(value);
+    setPage(1);
+  };
+
+  const handleDateFilter = (from: string, to: string) => {
+    setFromDate(from);
+    setToDate(to);
     setPage(1);
   };
 
@@ -87,9 +109,9 @@ export default function Payments() {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col md:flex-row-reverse items-end gap-4">
+          <div className="flex flex-col md:flex-row-reverse items-end gap-4 flex-wrap">
             {/* Status Filter */}
-            <div className="flex-1 flex flex-col gap-1.5 w-full md:w-auto">
+            <div className="flex-1 flex flex-col gap-1.5 w-full md:w-auto min-w-[150px]">
               <label className="text-base font-medium text-gray-900 text-right">حالة الدفع</label>
               <div className="relative">
                 <select
@@ -110,7 +132,7 @@ export default function Payments() {
             </div>
 
             {/* Customer Filter */}
-            <div className="flex-1 flex flex-col gap-1.5 w-full md:w-auto">
+            <div className="flex-1 flex flex-col gap-1.5 w-full md:w-auto min-w-[150px]">
               <label className="text-base font-medium text-gray-900 text-right">العميل</label>
               <div className="relative">
                 <select
@@ -129,6 +151,67 @@ export default function Payments() {
                   <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
+            </div>
+
+            {/* From Date Filter */}
+            <div className="flex-1 flex flex-col gap-1.5 w-full md:w-auto min-w-[150px]">
+              <label className="text-base font-medium text-gray-900 text-right">من تاريخ</label>
+              <div className="relative">
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => handleDateFilter(e.target.value, toDate)}
+                  className="w-full px-4 py-2.5 rounded-full border border-gray-300 bg-white text-sm text-right text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            {/* To Date Filter */}
+            <div className="flex-1 flex flex-col gap-1.5 w-full md:w-auto min-w-[150px]">
+              <label className="text-base font-medium text-gray-900 text-right">إلى تاريخ</label>
+              <div className="relative">
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => handleDateFilter(fromDate, e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-full border border-gray-300 bg-white text-sm text-right text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            {/* Clear Filters Button */}
+            {(fromDate || toDate) && (
+              <button
+                onClick={() => handleDateFilter('', '')}
+                className="px-4 py-2.5 rounded-full border border-gray-300 bg-white text-sm text-gray-600 hover:bg-gray-50"
+              >
+                مسح التاريخ
+              </button>
+            )}
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Total Payments */}
+            <div className="flex flex-col gap-2 p-6 rounded-2xl bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+              <span className="text-sm text-green-600 font-medium">إجمالي المدفوعات</span>
+              <span className="text-3xl font-bold text-green-700">
+                {statsLoading ? '...' : formatCurrency(statsData?.data?.totalPayments || 0)}
+              </span>
+              {(fromDate || toDate) && (
+                <span className="text-xs text-green-500">
+                  {fromDate && `من ${fromDate}`} {toDate && `إلى ${toDate}`}
+                </span>
+              )}
+            </div>
+
+            {/* Uncovered Credit */}
+            <div className="flex flex-col gap-2 p-6 rounded-2xl bg-gradient-to-br from-red-50 to-red-100 border border-red-200">
+              <span className="text-sm text-red-600 font-medium">إجمالي الرصيد المستهلك غير المغطى</span>
+              <span className="text-3xl font-bold text-red-700">
+                {statsLoading ? '...' : formatCurrency(statsData?.data?.uncoveredCredit || 0)}
+              </span>
+              <span className="text-xs text-red-500">رصيد العملاء المتبقي للسداد</span>
             </div>
           </div>
 

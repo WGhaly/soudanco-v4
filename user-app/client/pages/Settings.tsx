@@ -1,4 +1,5 @@
 import PageHeader from "@/components/PageHeader";
+import PullToRefresh from "@/components/PullToRefresh";
 import { useAuth } from "@/lib/auth";
 
 export default function Settings() {
@@ -10,9 +11,10 @@ export default function Settings() {
   const lastName = nameParts.slice(1).join(" ") || "-";
 
   return (
-    <div className="min-h-screen flex flex-col items-end bg-[#F8F9FA] p-5 pb-24">
-      <div className="flex flex-col items-end gap-6 w-full">
-        <PageHeader title="اعدادات الحساب" />
+    <PullToRefresh>
+      <div className="min-h-screen flex flex-col items-end bg-[#F8F9FA] p-5 pb-24">
+        <div className="flex flex-col items-end gap-6 w-full">
+          <PageHeader title="اعدادات الحساب" />
         
         <div className="flex flex-col items-end gap-4 w-full">
           <h2 className="text-[#363636] text-right text-base font-medium leading-[120%] w-full">
@@ -70,6 +72,7 @@ export default function Settings() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

@@ -125,7 +125,7 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
       return res.status(404).json({ success: false, error: 'Order not found' });
     }
 
-    // Get order items
+    // Get order items with product images
     const items = await db
       .select({
         id: orderItems.id,
@@ -134,8 +134,10 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
         quantity: orderItems.quantity,
         unitPrice: orderItems.unitPrice,
         totalPrice: orderItems.totalPrice,
+        productImage: products.imageUrl,
       })
       .from(orderItems)
+      .leftJoin(products, eq(orderItems.productId, products.id))
       .where(eq(orderItems.orderId, orderId));
 
     // Get address if exists

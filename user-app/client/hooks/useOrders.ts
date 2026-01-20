@@ -12,6 +12,7 @@ export interface OrderItem {
   unitPrice: string;
   totalPrice: string;
   imageUrl?: string;
+  productImage?: string;
 }
 
 export interface Order {

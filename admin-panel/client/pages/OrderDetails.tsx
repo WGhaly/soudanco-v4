@@ -272,12 +272,16 @@ export default function OrderDetails() {
                         <td className="px-2.5 py-3 text-right text-body-text text-base font-normal leading-[130%]">{item.productName}</td>
                         <td className="px-2.5 py-3">
                           <div className="w-14 h-14 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <rect width="24" height="24" fill="#FD7E14" opacity="0.1"/>
-                              <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#FD7E14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M8.5 10C9.32843 10 10 9.32843 10 8.5C10 7.67157 9.32843 7 8.5 7C7.67157 7 7 7.67157 7 8.5C7 9.32843 7.67157 10 8.5 10Z" stroke="#FD7E14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M21 15L16 10L5 21" stroke="#FD7E14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
+                            {item.productImage ? (
+                              <img src={item.productImage} alt={item.productName} className="w-full h-full object-contain" />
+                            ) : (
+                              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="24" height="24" fill="#FD7E14" opacity="0.1"/>
+                                <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#FD7E14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M8.5 10C9.32843 10 10 9.32843 10 8.5C10 7.67157 9.32843 7 8.5 7C7.67157 7 7 7.67157 7 8.5C7 9.32843 7.67157 10 8.5 10Z" stroke="#FD7E14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M21 15L16 10L5 21" stroke="#FD7E14" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -291,11 +295,15 @@ export default function OrderDetails() {
                 {orderItems.map((item) => (
                   <div key={item.id} className="flex flex-col gap-3 p-4 rounded-lg border border-theme-border bg-white">
                     <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <rect width="24" height="24" fill="#FD7E14" opacity="0.1"/>
-                          <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#FD7E14" strokeWidth="2"/>
-                        </svg>
+                      <div className="w-14 h-14 rounded bg-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                        {item.productImage ? (
+                          <img src={item.productImage} alt={item.productName} className="w-full h-full object-contain" />
+                        ) : (
+                          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="24" height="24" fill="#FD7E14" opacity="0.1"/>
+                            <path d="M19 3H5C3.89543 3 3 3.89543 3 5V19C3 20.1046 3.89543 21 5 21H19C20.1046 21 21 20.1046 21 19V5C21 3.89543 20.1046 3 19 3Z" stroke="#FD7E14" strokeWidth="2"/>
+                          </svg>
+                        )}
                       </div>
                       <div className="flex-1 text-right">
                         <div className="text-body-text text-base font-normal">{item.productName}</div>

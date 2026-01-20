@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface ProductCardProps {
   image: string;
   title: string;
   subtitle: string;
   price: string;
+  productId?: string;
+  cartQuantity?: number; // Current quantity in cart
+  cartItemId?: string | null; // Cart item ID for updates
   onAddToCart?: (quantity: number) => void;
+  onUpdateQuantity?: (cartItemId: string, newQuantity: number) => void;
+  onRemoveFromCart?: (cartItemId: string) => void;
   outOfStock?: boolean;
   highlightOutOfStock?: boolean;
 }
@@ -15,56 +20,93 @@ export default function ProductCard({
   title,
   subtitle,
   price,
+  productId,
+  cartQuantity = 0,
+  cartItemId,
   onAddToCart,
+  onUpdateQuantity,
+  onRemoveFromCart,
   outOfStock = false,
   ...rest
 }: ProductCardProps) {
   const { highlightOutOfStock = false } = rest;
-  const [quantity, setQuantity] = useState(0);
+  
+  // Check if price is 0 or empty - treat as unavailable
+  const numericPrice = parseFloat(price.replace(/[^\d.-]/g, '')) || 0;
+  const isUnavailable = outOfStock || numericPrice <= 0;
+  
+  // Local quantity for UI - synced with cart
+  const [quantity, setQuantity] = useState(cartQuantity);
   const [showQuantityPopup, setShowQuantityPopup] = useState(false);
   const [inputQuantity, setInputQuantity] = useState("");
 
+  // Sync local quantity with cart quantity when cart updates
+  useEffect(() => {
+    setQuantity(cartQuantity);
+  }, [cartQuantity]);
+
   const handleFirstAdd = () => {
-    if (outOfStock) return;
-    setQuantity(1);
-    onAddToCart?.(1); // Add 1 item to cart
+    if (isUnavailable) return;
+    const newQty = 1;
+    setQuantity(newQty);
+    onAddToCart?.(newQty);
   };
 
   const handleIncrement = () => {
-    if (outOfStock) return;
-    setQuantity(prev => prev + 1);
-    onAddToCart?.(1); // Add 1 more item to cart
+    if (isUnavailable) return;
+    const newQty = quantity + 1;
+    setQuantity(newQty);
+    
+    if (cartItemId && onUpdateQuantity) {
+      // Item exists in cart - update its quantity
+      onUpdateQuantity(cartItemId, newQty);
+    } else {
+      // First time adding - add 1 to cart
+      onAddToCart?.(1);
+    }
   };
 
   const handleDecrement = () => {
-    if (quantity > 1) {
-      setQuantity(prev => prev - 1);
-      // Note: We don't remove from cart here - user can do that in cart page
-    } else if (quantity === 1) {
-      setQuantity(0);
-      // Reset display but item stays in cart until removed in cart page
+    if (quantity <= 0) return;
+    
+    const newQty = quantity - 1;
+    setQuantity(newQty);
+    
+    if (newQty === 0 && cartItemId) {
+      // Remove from cart
+      onRemoveFromCart?.(cartItemId);
+    } else if (cartItemId && onUpdateQuantity) {
+      // Update cart with new quantity
+      onUpdateQuantity(cartItemId, newQty);
     }
   };
 
   const handleQuantityClick = () => {
+    if (quantity === 0) return; // Don't open popup if nothing in cart
     setInputQuantity(quantity.toString());
     setShowQuantityPopup(true);
   };
 
   const handlePopupSubmit = () => {
     const newQuantity = parseInt(inputQuantity);
-    if (isNaN(newQuantity) || newQuantity < 1) {
+    if (isNaN(newQuantity) || newQuantity < 0) {
       setShowQuantityPopup(false);
       return;
     }
     
-    const difference = newQuantity - quantity;
-    if (difference > 0) {
-      // Adding more items
-      onAddToCart?.(difference);
-    }
-    // Note: If reducing, the cart page handles removal
     setQuantity(newQuantity);
+    
+    if (newQuantity === 0 && cartItemId) {
+      // Remove from cart
+      onRemoveFromCart?.(cartItemId);
+    } else if (cartItemId && onUpdateQuantity) {
+      // Update existing cart item
+      onUpdateQuantity(cartItemId, newQuantity);
+    } else if (newQuantity > 0) {
+      // Adding new item to cart
+      onAddToCart?.(newQuantity);
+    }
+    
     setShowQuantityPopup(false);
   };
 
@@ -75,14 +117,14 @@ export default function ProductCard({
 
   return (
     <>
-      <div className={`flex px-2.5 pt-2.5 pb-2 flex-col justify-end items-end gap-3 rounded-xl border border-[#DEE2E6] bg-white shadow-[0_0_5px_0_rgba(0,0,0,0.1)] ${outOfStock ? 'opacity-60' : ''}`} style={{ minHeight: 260 }}>
+      <div className={`flex px-2.5 pt-2.5 pb-2 flex-col justify-end items-end gap-3 rounded-xl border border-[#DEE2E6] bg-white shadow-[0_0_5px_0_rgba(0,0,0,0.1)] ${isUnavailable ? 'opacity-60' : ''}`} style={{ minHeight: 260 }}>
         <div className="relative w-full flex items-center justify-center bg-gray-50 rounded-xl" style={{ height: '120px', minHeight: '120px', maxHeight: '120px' }}>
           <img
             src={image}
             alt={title}
             className={`max-w-full max-h-full object-contain rounded-xl ${highlightOutOfStock ? 'grayscale-[60%] brightness-95' : ''}`}
           />
-          {outOfStock && (
+          {isUnavailable && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-xl">
               <span className={`text-sm font-medium px-4 py-2 rounded-full ${highlightOutOfStock ? 'bg-[#FD7E14] text-white' : 'bg-red-500 text-white'}`}>غير متوفر</span>
             </div>
@@ -106,7 +148,7 @@ export default function ProductCard({
           {/* Minus button on the left */}
           <button
             onClick={handleDecrement}
-            disabled={outOfStock || quantity === 0}
+            disabled={isUnavailable || quantity === 0}
             className="flex w-6 h-6 p-[7px] justify-center items-center rounded-full bg-[#D3D3D3] hover:bg-[#C0C0C0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -117,7 +159,7 @@ export default function ProductCard({
           {/* Quantity - clickable to open popup */}
           <button
             onClick={handleQuantityClick}
-            className="text-[#FD7E14] text-center text-xl font-medium leading-[120%] hover:underline cursor-pointer bg-transparent border-none"
+            className="text-[#FD7E14] text-center text-xl font-medium leading-[120%] hover:underline cursor-pointer bg-transparent border-none whitespace-nowrap min-w-[24px]"
           >
             {quantity}
           </button>
@@ -125,7 +167,7 @@ export default function ProductCard({
           {/* Plus button on the right */}
           <button
             onClick={handleIncrement}
-            disabled={outOfStock}
+            disabled={isUnavailable}
             className="flex w-6 h-6 p-[7px] justify-center items-center rounded-full bg-[#FD7E14] hover:bg-[#E56D04] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">

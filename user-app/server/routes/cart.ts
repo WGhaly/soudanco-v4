@@ -153,15 +153,37 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
     }> = [];
 
     let totalDiscount = 0;
+    
+    // Track best buy_get discount (only apply the best one)
+    let bestBuyGet: {
+      discount: any;
+      discountAmount: number;
+      freeItemsCount: number;
+      alreadyClaimed: boolean;
+      eligibleProductIds: string[] | null;
+    } | null = null;
+
+    // Track best pay_get discount (percentage, fixed, spend_bonus - only apply the best one)
+    let bestPayGet: {
+      discount: any;
+      discountAmount: number;
+    } | null = null;
 
     for (const discount of activeDiscounts) {
       const discountProductIds = discountProductMap[discount.id] || [];
       const isGlobalDiscount = discountProductIds.length === 0;
       
+      // For buy_get: qualification is based on TOTAL cart quantity, discount_products defines eligible FREE items
+      // For other types: discount_products defines which products the discount applies to
+      const isBuyGet = discount.type === 'buy_get';
+      
       // Filter cart items that this discount applies to (EXCLUDE free items from eligibility)
-      const applicableItems = (isGlobalDiscount 
+      // For buy_get: ALL paid items count toward qualification
+      const applicableItems = isBuyGet 
         ? paidItems 
-        : paidItems.filter(item => discountProductIds.includes(item.productId)));
+        : (isGlobalDiscount 
+            ? paidItems 
+            : paidItems.filter(item => discountProductIds.includes(item.productId)));
 
       if (applicableItems.length === 0) continue;
 
@@ -169,7 +191,6 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
       const applicableQuantity = applicableItems.reduce((sum, item) => sum + item.quantity, 0);
 
       let discountAmount = 0;
-      let isApplicable = false;
 
       switch (discount.type) {
         case 'percentage':
@@ -177,12 +198,14 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
           if (discount.minOrderAmount) {
             if (applicableSubtotal >= parseFloat(discount.minOrderAmount)) {
               discountAmount = applicableSubtotal * (parseFloat(discount.value) / 100);
-              isApplicable = true;
             }
           } else {
             // No minimum, apply percentage to all applicable items
             discountAmount = applicableSubtotal * (parseFloat(discount.value) / 100);
-            isApplicable = true;
+          }
+          // Track as pay_get candidate
+          if (discountAmount > 0 && (!bestPayGet || discountAmount > bestPayGet.discountAmount)) {
+            bestPayGet = { discount, discountAmount };
           }
           break;
 
@@ -191,40 +214,51 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
           if (discount.minOrderAmount) {
             if (applicableSubtotal >= parseFloat(discount.minOrderAmount)) {
               discountAmount = parseFloat(discount.value);
-              isApplicable = true;
             }
           } else {
             discountAmount = parseFloat(discount.value);
-            isApplicable = true;
+          }
+          // Track as pay_get candidate
+          if (discountAmount > 0 && (!bestPayGet || discountAmount > bestPayGet.discountAmount)) {
+            bestPayGet = { discount, discountAmount };
           }
           break;
 
         case 'buy_get':
-          // Buy X get Y free (applied only once - max Y free items)
+          // Buy X (any products) get Y free (from eligible products or any)
+          // discountProductIds for buy_get = which products can be chosen as FREE items
           if (discount.minQuantity && discount.bonusQuantity) {
             // Check if this discount has already been claimed
             const alreadyClaimed = claimedDiscountIds.has(discount.id);
             
+            // Check total cart quantity against minimum
             if (applicableQuantity >= discount.minQuantity) {
+              let freeItemsCount = 0;
+              
               if (alreadyClaimed) {
                 // Discount already claimed - still show it but don't allow re-claiming
                 const freeItemsInCart = freeItems.filter(item => item.sourceDiscountId === discount.id);
                 const claimedCount = freeItemsInCart.reduce((sum, item) => sum + item.quantity, 0);
                 const avgPrice = applicableSubtotal / applicableQuantity;
                 discountAmount = claimedCount * avgPrice;
-                isApplicable = true;
-                (discount as any).freeItemsCount = 0; // No more free items available
-                (discount as any).alreadyClaimed = true;
-                (discount as any).eligibleProductIds = discountProductIds.length > 0 ? discountProductIds : null;
+                freeItemsCount = 0; // No more free items available
               } else {
                 // Promotion not yet claimed - allow selection
-                const freeItemsCount = discount.bonusQuantity;
+                freeItemsCount = discount.bonusQuantity;
                 const avgPrice = applicableSubtotal / applicableQuantity;
                 discountAmount = freeItemsCount * avgPrice;
-                isApplicable = true;
-                (discount as any).freeItemsCount = freeItemsCount;
-                (discount as any).alreadyClaimed = false;
-                (discount as any).eligibleProductIds = discountProductIds.length > 0 ? discountProductIds : null;
+              }
+              
+              // Track as buy_get candidate (best one)
+              // eligibleProductIds = products that can be chosen as FREE items (null means any)
+              if (discountAmount > 0 && (!bestBuyGet || discountAmount > bestBuyGet.discountAmount)) {
+                bestBuyGet = {
+                  discount,
+                  discountAmount,
+                  freeItemsCount,
+                  alreadyClaimed,
+                  eligibleProductIds: discountProductIds.length > 0 ? discountProductIds : null,
+                };
               }
             }
           }
@@ -235,30 +269,56 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
           if (discount.minOrderAmount) {
             if (applicableSubtotal >= parseFloat(discount.minOrderAmount)) {
               discountAmount = applicableSubtotal * (parseFloat(discount.value) / 100);
-              isApplicable = true;
             }
+          }
+          // Track as pay_get candidate
+          if (discountAmount > 0 && (!bestPayGet || discountAmount > bestPayGet.discountAmount)) {
+            bestPayGet = { discount, discountAmount };
           }
           break;
       }
+    }
 
-      if (isApplicable && discountAmount > 0) {
-        totalDiscount += discountAmount;
-        appliedDiscounts.push({
-          id: discount.id,
-          name: discount.name,
-          nameAr: discount.nameAr,
-          type: discount.type,
-          value: discount.value,
-          discountAmount: parseFloat(discountAmount.toFixed(2)),
-          description: discount.description,
-          bonusQuantity: discount.bonusQuantity || undefined,
-          bonusProductId: discount.bonusProductId,
-          minQuantity: discount.minQuantity || undefined,
-          freeItemsCount: (discount as any).freeItemsCount || undefined,
-          eligibleProductIds: (discount as any).eligibleProductIds || undefined,
-          alreadyClaimed: (discount as any).alreadyClaimed || false,
-        });
-      }
+    // Apply the best buy_get discount (only one from this category)
+    if (bestBuyGet) {
+      const { discount, discountAmount, freeItemsCount, alreadyClaimed } = bestBuyGet;
+      totalDiscount += discountAmount;
+      appliedDiscounts.push({
+        id: discount.id,
+        name: discount.name,
+        nameAr: discount.nameAr,
+        type: discount.type,
+        value: discount.value,
+        discountAmount: parseFloat(discountAmount.toFixed(2)),
+        description: discount.description,
+        bonusQuantity: discount.bonusQuantity || undefined,
+        bonusProductId: discount.bonusProductId,
+        minQuantity: discount.minQuantity || undefined,
+        freeItemsCount: freeItemsCount || undefined,
+        eligibleProductIds: undefined, // Allow selection from ALL products for buy_get
+        alreadyClaimed: alreadyClaimed || false,
+      });
+    }
+
+    // Apply the best pay_get discount (only one from percentage/fixed/spend_bonus)
+    if (bestPayGet) {
+      const { discount, discountAmount } = bestPayGet;
+      totalDiscount += discountAmount;
+      appliedDiscounts.push({
+        id: discount.id,
+        name: discount.name,
+        nameAr: discount.nameAr,
+        type: discount.type,
+        value: discount.value,
+        discountAmount: parseFloat(discountAmount.toFixed(2)),
+        description: discount.description,
+        bonusQuantity: undefined,
+        bonusProductId: discount.bonusProductId,
+        minQuantity: discount.minQuantity || undefined,
+        freeItemsCount: undefined,
+        eligibleProductIds: undefined,
+        alreadyClaimed: false,
+      });
     }
 
     const finalTotal = Math.max(0, subtotal - totalDiscount);

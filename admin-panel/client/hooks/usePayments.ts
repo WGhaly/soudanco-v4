@@ -59,14 +59,37 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   return response.json();
 }
 
-export function usePayments(page = 1, limit = 10, filters?: { status?: string; customerId?: string }) {
+export function usePayments(page = 1, limit = 10, filters?: { status?: string; customerId?: string; fromDate?: string; toDate?: string }) {
   const params = new URLSearchParams({ page: String(page), limit: String(limit) });
   if (filters?.status) params.append('status', filters.status);
   if (filters?.customerId) params.append('customerId', filters.customerId);
+  if (filters?.fromDate) params.append('fromDate', filters.fromDate);
+  if (filters?.toDate) params.append('toDate', filters.toDate);
 
   return useQuery<PaymentsResponse>({
     queryKey: ['payments', page, limit, filters],
     queryFn: () => fetchWithAuth(`/api/payments?${params}`),
+  });
+}
+
+export interface PaymentStats {
+  totalPayments: string;
+  uncoveredCredit: string;
+  dailyPayments: Array<{
+    date: string;
+    total: number;
+    count: number;
+  }>;
+}
+
+export function usePaymentStats(fromDate?: string, toDate?: string) {
+  const params = new URLSearchParams();
+  if (fromDate) params.append('fromDate', fromDate);
+  if (toDate) params.append('toDate', toDate);
+
+  return useQuery<{ success: boolean; data: PaymentStats }>({
+    queryKey: ['paymentStats', fromDate, toDate],
+    queryFn: () => fetchWithAuth(`/api/payments/stats?${params}`),
   });
 }
 

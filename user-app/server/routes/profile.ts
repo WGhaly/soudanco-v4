@@ -510,12 +510,12 @@ router.put('/notifications/read-all', async (req: AuthenticatedRequest, res: Res
 // ============================================
 
 // GET /api/profile/discounts - Get active discounts for customer
-// Returns max 2 discounts: best from buy_get AND best from spend_bonus/percentage/fixed
+// Returns ALL active discounts for display in home page carousel
 router.get('/discounts', async (req: AuthenticatedRequest, res: Response) => {
   try {
     const now = new Date();
 
-    // Get active discounts
+    // Get all active discounts
     const activeDiscounts = await db
       .select({
         id: discounts.id,
@@ -539,47 +539,20 @@ router.get('/discounts', async (req: AuthenticatedRequest, res: Response) => {
         )
       );
 
-    // Separate discounts by category
-    const buyGetDiscounts = activeDiscounts.filter(d => d.type === 'buy_get');
-    const percentageDiscounts = activeDiscounts.filter(d => 
-      d.type === 'percentage' || d.type === 'fixed' || d.type === 'spend_bonus'
-    );
-
-    // Get the best buy_get discount (highest bonus quantity relative to min quantity)
-    const bestBuyGet = buyGetDiscounts.length > 0 
-      ? buyGetDiscounts.reduce((best, current) => {
-          const bestRatio = (best.bonusQuantity || 0) / (best.minQuantity || 1);
-          const currentRatio = (current.bonusQuantity || 0) / (current.minQuantity || 1);
-          return currentRatio > bestRatio ? current : best;
-        })
-      : null;
-
-    // Get the best percentage/spend_bonus discount (highest value)
-    const bestPercentage = percentageDiscounts.length > 0
-      ? percentageDiscounts.reduce((best, current) => {
-          const bestValue = parseFloat(best.value || '0');
-          const currentValue = parseFloat(current.value || '0');
-          return currentValue > bestValue ? current : best;
-        })
-      : null;
-
-    // Combine the top 2 (one from each category if available)
-    const topDiscounts = [bestBuyGet, bestPercentage].filter(Boolean);
-
-    // Transform to match frontend interface
-    const transformedDiscounts = topDiscounts.map(d => ({
-      id: d!.id,
-      discountId: d!.id,
-      discountName: d!.nameAr || d!.name,
-      discountType: d!.type,
-      discountValue: d!.value,
-      appliesTo: d!.description,
-      validFrom: d!.startDate ? d!.startDate.toISOString() : null,
-      validUntil: d!.endDate ? d!.endDate.toISOString() : null,
+    // Transform all active discounts to match frontend interface
+    const transformedDiscounts = activeDiscounts.map(d => ({
+      id: d.id,
+      discountId: d.id,
+      discountName: d.nameAr || d.name,
+      discountType: d.type,
+      discountValue: d.value,
+      appliesTo: d.description,
+      validFrom: d.startDate ? d.startDate.toISOString() : null,
+      validUntil: d.endDate ? d.endDate.toISOString() : null,
       isActive: true, // All returned discounts are active
-      minOrderAmount: d!.minOrderAmount,
-      minQuantity: d!.minQuantity,
-      bonusQuantity: d!.bonusQuantity,
+      minOrderAmount: d.minOrderAmount,
+      minQuantity: d.minQuantity,
+      bonusQuantity: d.bonusQuantity,
     }));
 
     return res.json({
@@ -675,7 +648,7 @@ router.get('/dashboard', async (req: AuthenticatedRequest, res: Response) => {
         creditLimit: customer.creditLimit,
         currentBalance: customer.currentBalance,
         walletBalance: customer.walletBalance,
-        availableCredit: (parseFloat(customer.creditLimit || '0') - parseFloat(customer.currentBalance || '0')).toFixed(2),
+        availableCredit: (parseFloat(customer.creditLimit || '0') - parseFloat(customer.currentBalance || '0') + parseFloat(customer.walletBalance || '0')).toFixed(2),
         // Order info
         totalOrders: customer.totalOrders,
         pendingOrders,

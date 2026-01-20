@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { db, payments, orders, customers } from '../db';
-import { eq, desc, sql } from 'drizzle-orm';
+import { eq, desc, sql, gte, lte, and, sum } from 'drizzle-orm';
 import { authenticateToken, AuthenticatedRequest, requireSupervisor } from '../middleware/auth';
 
 const router = Router();
@@ -20,7 +20,7 @@ function generatePaymentNumber(): string {
 // GET /api/payments - List all payments
 router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { page = '1', limit = '10', status, customerId } = req.query;
+    const { page = '1', limit = '10', status, customerId, fromDate, toDate } = req.query;
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
@@ -32,6 +32,15 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
     }
     if (customerId) {
       conditions.push(eq(payments.customerId, customerId as string));
+    }
+    if (fromDate) {
+      conditions.push(gte(payments.createdAt, new Date(fromDate as string)));
+    }
+    if (toDate) {
+      // Add one day to include the entire end date
+      const endDate = new Date(toDate as string);
+      endDate.setDate(endDate.getDate() + 1);
+      conditions.push(lte(payments.createdAt, endDate));
     }
 
     let query = db
@@ -88,6 +97,72 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   } catch (error) {
     console.error('List payments error:', error);
     return res.status(500).json({ success: false, error: 'Failed to fetch payments' });
+  }
+});
+
+// GET /api/payments/stats - Get payment statistics (must be before /:id)
+router.get('/stats', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { fromDate, toDate } = req.query;
+
+    // Build date conditions
+    const conditions = [eq(payments.status, 'completed')];
+    if (fromDate) {
+      conditions.push(gte(payments.createdAt, new Date(fromDate as string)));
+    }
+    if (toDate) {
+      const endDate = new Date(toDate as string);
+      endDate.setDate(endDate.getDate() + 1);
+      conditions.push(lte(payments.createdAt, endDate));
+    }
+
+    // Get total payments within date range
+    const [totalPayments] = await db
+      .select({ total: sql<string>`COALESCE(SUM(${payments.amount}), 0)` })
+      .from(payments)
+      .where(and(...conditions));
+
+    // Get daily payments for chart (last 30 days or within date range)
+    const startDate = fromDate 
+      ? new Date(fromDate as string) 
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const endDateChart = toDate ? new Date(toDate as string) : new Date();
+
+    const dailyPayments = await db
+      .select({
+        date: sql<string>`DATE(${payments.createdAt})`,
+        total: sql<string>`SUM(${payments.amount})`,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(payments)
+      .where(and(
+        eq(payments.status, 'completed'),
+        gte(payments.createdAt, startDate),
+        lte(payments.createdAt, endDateChart)
+      ))
+      .groupBy(sql`DATE(${payments.createdAt})`)
+      .orderBy(sql`DATE(${payments.createdAt})`);
+
+    // Get total uncovered credit (currentBalance across all customers)
+    const [uncoveredCredit] = await db
+      .select({ total: sql<string>`COALESCE(SUM(${customers.currentBalance}), 0)` })
+      .from(customers);
+
+    return res.json({
+      success: true,
+      data: {
+        totalPayments: totalPayments.total,
+        uncoveredCredit: uncoveredCredit.total,
+        dailyPayments: dailyPayments.map(d => ({
+          date: d.date,
+          total: parseFloat(d.total || '0'),
+          count: d.count,
+        })),
+      },
+    });
+  } catch (error) {
+    console.error('Payment stats error:', error);
+    return res.status(500).json({ success: false, error: 'Failed to fetch payment stats' });
   }
 });
 

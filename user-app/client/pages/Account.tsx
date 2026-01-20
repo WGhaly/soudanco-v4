@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
+import PullToRefresh from "@/components/PullToRefresh";
 import { useAuth } from "@/lib/auth";
 import { useDashboard } from "@/hooks/useProfile";
 
@@ -19,14 +20,15 @@ export default function Account() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24">
-      <PageHeader showBackButton={false} showCart={true} />
+    <PullToRefresh>
+      <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24">
+        <PageHeader showBackButton={false} showCart={true} />
       
-      <div className="flex flex-col justify-between items-end flex-1 w-full">
-        <div className="flex px-4 flex-col items-end gap-6 w-full">
-          {/* User Info */}
-          <div className="flex flex-row-reverse items-center gap-[7px] w-full">
-            <div className="flex flex-col items-end gap-3 flex-1">
+        <div className="flex flex-col justify-between items-end flex-1 w-full">
+          <div className="flex px-4 flex-col items-end gap-6 w-full">
+            {/* User Info */}
+            <div className="flex flex-row-reverse items-center gap-[7px] w-full">
+              <div className="flex flex-col items-end gap-3 flex-1">
               <h2 className="text-[#363636] text-right text-2xl font-normal leading-[150%] w-full">
                 {customer?.contactName || customer?.businessName || "المستخدم"}
               </h2>
@@ -154,6 +156,7 @@ export default function Account() {
       </div>
 
       <BottomNav />
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

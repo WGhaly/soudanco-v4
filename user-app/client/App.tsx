@@ -22,7 +22,8 @@ import Checkout from "./pages/Checkout";
 import Wallet from "./pages/Wallet";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient({
+// Export queryClient for use in auth module to clear cache on logout
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,

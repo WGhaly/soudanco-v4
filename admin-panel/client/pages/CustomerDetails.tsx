@@ -221,15 +221,15 @@ export default function CustomerDetails() {
                   <div className="flex flex-col md:flex-row-reverse items-start gap-6 self-stretch">
                     <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
                       <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
-                        المنطقة
+                        اسم جهة الاتصال
                       </label>
                       <div className="text-body-text text-right text-base font-bold leading-[150%]">
-                        {customer.addresses?.[0]?.region || customer.addresses?.[0]?.city || 'غير محدد'}
+                        {customer.contactName || 'غير محدد'}
                       </div>
                     </div>
                     <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
                       <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
-                        الاسم
+                        اسم النشاط التجاري
                       </label>
                       <div className="text-body-text text-right text-base font-bold leading-[150%]">
                         {customer.businessNameAr || customer.businessName}
@@ -277,6 +277,76 @@ export default function CustomerDetails() {
                     </div>
                   </div>
                 </div>
+
+                {/* Address Information Section */}
+                {customer.addresses && customer.addresses.length > 0 && (
+                  <div className="flex flex-col justify-center items-end gap-6 self-stretch">
+                    <h3 className="self-stretch text-gray-secondary text-right text-xl md:text-2xl font-medium leading-[120%]">
+                      العنوان
+                    </h3>
+
+                    {customer.addresses.map((address: any, index: number) => (
+                      <div key={address.id || index} className="flex flex-col gap-4 self-stretch p-4 rounded-lg border border-theme-border bg-white">
+                        <div className="flex items-center gap-2 justify-end">
+                          <span className="text-brand-primary text-base font-bold">{address.label || `عنوان ${index + 1}`}</span>
+                          {address.isDefault && (
+                            <span className="text-xs text-white bg-brand-primary px-2 py-1 rounded-full">افتراضي</span>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col md:flex-row-reverse items-start gap-6 self-stretch">
+                          <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                            <label className="text-new-black-color text-right text-sm font-medium leading-[120%]">
+                              العنوان
+                            </label>
+                            <div className="text-body-text text-right text-base font-normal leading-[150%]">
+                              {address.addressLine1 || 'غير محدد'}
+                              {address.addressLine2 && <><br />{address.addressLine2}</>}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row-reverse items-start gap-6 self-stretch">
+                          <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                            <label className="text-new-black-color text-right text-sm font-medium leading-[120%]">
+                              المنطقة
+                            </label>
+                            <div className="text-body-text text-right text-base font-normal leading-[150%]">
+                              {address.region || 'غير محدد'}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                            <label className="text-new-black-color text-right text-sm font-medium leading-[120%]">
+                              المدينة
+                            </label>
+                            <div className="text-body-text text-right text-base font-normal leading-[150%]">
+                              {address.city || 'غير محدد'}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row-reverse items-start gap-6 self-stretch">
+                          <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                            <label className="text-new-black-color text-right text-sm font-medium leading-[120%]">
+                              البلد
+                            </label>
+                            <div className="text-body-text text-right text-base font-normal leading-[150%]">
+                              {address.country || 'غير محدد'}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                            <label className="text-new-black-color text-right text-sm font-medium leading-[120%]">
+                              الرمز البريدي
+                            </label>
+                            <div className="text-body-text text-right text-base font-normal leading-[150%]">
+                              {address.postalCode || 'غير محدد'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Login Information Section */}
                 <div className="flex flex-col justify-center items-end gap-6 self-stretch">

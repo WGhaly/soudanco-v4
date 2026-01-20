@@ -4,10 +4,11 @@ import { Link } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
 import ProductCard from "@/components/ProductCard";
+import PullToRefresh from "@/components/PullToRefresh";
 import { useAuth } from "@/lib/auth";
 import { useProducts } from "@/hooks/useProducts";
 import { useDashboard, useCustomerDiscounts } from "@/hooks/useProfile";
-import { useAddToCart } from "@/hooks/useCart";
+import { useAddToCart, useCart, useUpdateCartItem, useRemoveCartItem } from "@/hooks/useCart";
 import { useToast } from "@/hooks/use-toast";
 
 const bannerImages = [
@@ -23,14 +24,28 @@ export default function Home() {
   const { data: dashboardData, isLoading: dashboardLoading } = useDashboard();
   const { data: discountsData } = useCustomerDiscounts();
   const addToCart = useAddToCart();
+  const { data: cartData } = useCart();
+  const updateCartItem = useUpdateCartItem();
+  const removeCartItem = useRemoveCartItem();
   
   const products = productsData?.data || [];
   const dashboard = dashboardData?.data;
   const discounts = discountsData?.data || [];
-  const activeDiscount = discounts.find(d => d.isActive);
+  const activeDiscounts = discounts.filter(d => d.isActive);
+
+  // Helper to get cart info for a product
+  const getCartInfo = (productId: string) => {
+    const cartItems = cartData?.data?.items || [];
+    const cartItem = cartItems.find((item: any) => item.productId === productId && !item.isFreeItem);
+    return {
+      cartQuantity: cartItem?.quantity || 0,
+      cartItemId: cartItem?.id || null,
+    };
+  };
 
   // Auto-rotate carousel
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentPromoSlide, setCurrentPromoSlide] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,6 +54,15 @@ export default function Home() {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Auto-rotate promotions carousel
+  useEffect(() => {
+    if (activeDiscounts.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentPromoSlide((prev) => (prev + 1) % activeDiscounts.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [activeDiscounts.length]);
 
   useEffect(() => {
     if (carouselRef.current) {
@@ -76,13 +100,47 @@ export default function Home() {
     );
   };
 
+  const handleUpdateQuantity = (cartItemId: string, newQuantity: number) => {
+    updateCartItem.mutate(
+      { id: cartItemId, quantity: newQuantity },
+      {
+        onError: (error) => {
+          toast({
+            title: "خطأ",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
+
+  const handleRemoveFromCart = (cartItemId: string) => {
+    removeCartItem.mutate(cartItemId, {
+      onSuccess: () => {
+        toast({
+          title: "تم الحذف",
+          description: "تم حذف المنتج من السلة",
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "خطأ",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
   const defaultImage = "https://api.builder.io/api/v1/image/assets/TEMP/86501bd89bfb43fe0882378e0ea38736bf4ebf29";
 
   return (
-    <div className="flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24 min-h-screen">
-      <PageHeader showBackButton={false} showCart={true} />
+    <PullToRefresh>
+      <div className="flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24 min-h-screen">
+        <PageHeader showBackButton={false} showCart={true} />
       
-      <div className="flex flex-col items-center gap-10 w-full">
+        <div className="flex flex-col items-center gap-10 w-full">
         {/* Ads Banner - Auto-rotating Carousel */}
         <div className="w-full flex flex-col items-center gap-3">
           <div 
@@ -126,10 +184,10 @@ export default function Home() {
 
           <div className="flex p-3 flex-col items-end gap-[11px] flex-1 rounded-2xl bg-white hover:shadow-md transition-shadow h-full">
             <p className="text-[#6C757D] text-right text-sm font-normal leading-[150%] w-full">
-              الحد<br />الائتماني
+              الرصيد<br />المتاح
             </p>
             <p className="text-[#212529] text-right text-xl font-medium leading-[120%] w-full">
-              {dashboardLoading ? "..." : `${parseFloat(dashboard?.creditLimit || "0").toLocaleString('ar-EG')} جنيه`}
+              {dashboardLoading ? "..." : `${parseFloat(dashboard?.availableCredit || "0").toLocaleString('ar-EG')} جنيه`}
             </p>
           </div>
 
@@ -143,24 +201,41 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Discount Goal */}
-        {activeDiscount && (
-          <div className="flex p-[13px] px-4 flex-col items-end gap-2 w-full rounded-lg bg-[rgba(253,126,20,0.1)] hover:bg-[rgba(253,126,20,0.15)] transition-colors cursor-pointer">
-            <h3 className="text-[#FD7E14] text-right text-base font-bold leading-[150%] w-full">
-              خصم {activeDiscount.discountValue} {activeDiscount.discountType === 'percentage' ? '%' : 'ج.م'}
-            </h3>
-            <p className="text-[#FD9843] text-right text-base font-medium leading-[120%] w-full flex-1">
-              {activeDiscount.discountName}
-            </p>
-            <div className="flex flex-row-reverse h-4 items-center w-full">
-              <div className="flex-1 h-full rounded-l-[30px] bg-[#FD7E14]"></div>
-              <div className="flex-1 h-full rounded-r-[30px] bg-[#FECBA1]"></div>
+        {/* Promotions Carousel */}
+        {activeDiscounts.length > 0 && (
+          <div className="w-full overflow-hidden">
+            <div 
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(${currentPromoSlide * 100}%)` }}
+            >
+              {activeDiscounts.map((discount, index) => (
+                <div 
+                  key={discount.id || index}
+                  className="w-full flex-shrink-0 px-0.5"
+                  style={{ direction: 'rtl' }}
+                >
+                  <div className="flex p-[13px] px-4 flex-col items-end gap-2 w-full rounded-lg bg-[rgba(253,126,20,0.1)]">
+                    <div className="flex items-center gap-2 w-full justify-end">
+                      <span className="text-[#FD7E14] text-2xl">🎉</span>
+                      <h3 className="text-[#FD7E14] text-right text-base font-bold leading-[150%]">
+                        {discount.discountType === 'buy_get' 
+                          ? `اشتري ${discount.minQuantity || ''} واحصل على ${discount.bonusQuantity || ''} مجاناً`
+                          : `خصم ${discount.discountValue} ${discount.discountType === 'percentage' ? '%' : 'ج.م'}`
+                        }
+                      </h3>
+                    </div>
+                    <p className="text-[#FD9843] text-right text-base font-medium leading-[120%] w-full">
+                      {discount.discountName}
+                    </p>
+                    {discount.validUntil && (
+                      <p className="text-[#FD9843] text-right text-xs font-normal leading-[150%] w-full">
+                        متاح حتى {new Date(discount.validUntil).toLocaleDateString('ar-EG')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-            {activeDiscount.validUntil && (
-              <p className="text-[#FD9843] text-right text-xs font-normal leading-[150%] w-full">
-                متاح حتى {new Date(activeDiscount.validUntil).toLocaleDateString('ar-EG')}
-              </p>
-            )}
           </div>
         )}
 
@@ -242,6 +317,7 @@ export default function Home() {
                 ) {
                   title = title.replace(/soda|Soda|صودا/g, '').replace(/\s+/g, ' ').trim();
                 }
+                const { cartQuantity, cartItemId } = getCartInfo(product.id);
                 return (
                   <div
                     key={product.id}
@@ -256,7 +332,12 @@ export default function Home() {
                       title={title}
                       subtitle={`${product.unitsPerCase} ${product.unit}`}
                       price={`${product.price} جم / ${product.unit}`}
+                      productId={product.id}
+                      cartQuantity={cartQuantity}
+                      cartItemId={cartItemId}
                       onAddToCart={(qty) => handleAddToCart(product.id, qty)}
+                      onUpdateQuantity={handleUpdateQuantity}
+                      onRemoveFromCart={handleRemoveFromCart}
                       outOfStock={product.stockStatus === 'out_of_stock'}
                     />
                   </div>
@@ -282,6 +363,7 @@ export default function Home() {
       </div>
 
       <BottomNav />
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

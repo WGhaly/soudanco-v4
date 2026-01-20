@@ -81,6 +81,41 @@ export default function AddDiscount() {
       return;
     }
     
+    if (!formData.validFrom) {
+      setError("تاريخ البداية مطلوب");
+      return;
+    }
+    
+    if (!formData.validUntil) {
+      setError("تاريخ النهاية مطلوب");
+      return;
+    }
+    
+    if (formData.validFrom > formData.validUntil) {
+      setError("تاريخ النهاية يجب أن يكون بعد تاريخ البداية");
+      return;
+    }
+    
+    if (selectedType === "buy-get") {
+      if (!formData.buyQuantity || parseInt(formData.buyQuantity) < 1) {
+        setError("عدد الكراتين للشراء مطلوب");
+        return;
+      }
+      if (!formData.getQuantity || parseInt(formData.getQuantity) < 1) {
+        setError("عدد الكراتين المجانية مطلوب");
+        return;
+      }
+    } else {
+      if (!formData.spendAmount || parseFloat(formData.spendAmount) <= 0) {
+        setError("الحد الأدنى للشراء مطلوب");
+        return;
+      }
+      if (!formData.bonusPercent || parseFloat(formData.bonusPercent) <= 0 || parseFloat(formData.bonusPercent) > 100) {
+        setError("نسبة الخصم يجب أن تكون بين 0 و 100");
+        return;
+      }
+    }
+    
     try {
       setError(null);
       const discountType = (selectedType === "buy-get" ? "buy_get" : "spend_bonus") as "fixed" | "percentage" | "buy_get" | "spend_bonus";
@@ -236,6 +271,17 @@ export default function AddDiscount() {
 
           {/* Form Content */}
           <div className="flex flex-col gap-6">
+            {/* Error Message */}
+            {error && (
+              <div className="flex items-center justify-end gap-2 px-4 py-3 rounded-lg bg-red-100 border border-red-300">
+                <span className="text-red-700 text-base">{error}</span>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18Z" stroke="#DC3545" strokeWidth="2"/>
+                  <path d="M10 6V10M10 14H10.01" stroke="#DC3545" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+            )}
+
             {/* Type Badge */}
             <div className="flex items-center justify-end gap-2.5 px-6 py-3 rounded-md border border-green-600 bg-green-100 flex-row-reverse">
               {selectedType === "buy-get" ? (
@@ -270,31 +316,31 @@ export default function AddDiscount() {
               <div className="flex items-start gap-6">
                 {/* Get Quantity */}
                 <div className="flex-1 flex flex-col gap-2">
-                  <label className="text-base font-medium text-gray-900 text-right w-full">احصل علي</label>
+                  <label className="text-base font-medium text-gray-900 text-right w-full">احصل علي (كرتونة)</label>
                   <div className="relative w-full">
                     <input
-                      type="text"
-                      placeholder="حدد العدد"
+                      type="number"
+                      min="1"
+                      placeholder="عدد الكراتين"
                       value={formData.getQuantity}
                       onChange={(e) => updateField("getQuantity", e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 rounded-full border border-gray-300 bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-4 py-2.5 rounded-full border border-gray-300 bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
                     />
-                    <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   </div>
                 </div>
 
                 {/* Buy Quantity */}
                 <div className="flex-1 flex flex-col gap-2">
-                  <label className="text-base font-medium text-gray-900 text-right w-full">اشترِ</label>
+                  <label className="text-base font-medium text-gray-900 text-right w-full">اشترِ (كرتونة)</label>
                   <div className="relative w-full">
                     <input
-                      type="text"
-                      placeholder="حدد العدد"
+                      type="number"
+                      min="1"
+                      placeholder="عدد الكراتين"
                       value={formData.buyQuantity}
                       onChange={(e) => updateField("buyQuantity", e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 rounded-full border border-gray-300 bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-4 py-2.5 rounded-full border border-gray-300 bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
                     />
-                    <ChevronDown className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   </div>
                 </div>
               </div>
@@ -302,14 +348,17 @@ export default function AddDiscount() {
               <div className="flex items-start gap-6">
                 {/* Bonus Percent */}
                 <div className="flex-1 flex flex-col gap-2">
-                  <label className="text-base font-medium text-gray-900 text-right w-full">احصل علي (خصم)</label>
+                  <label className="text-base font-medium text-gray-900 text-right w-full">نسبة الخصم (%)</label>
                   <div className="relative w-full">
                     <input
-                      type="text"
-                      placeholder="الرصيد"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      placeholder="النسبة المئوية"
                       value={formData.bonusPercent}
                       onChange={(e) => updateField("bonusPercent", e.target.value)}
-                      className="w-full px-3 py-3 rounded-full border border-gray-300 bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-3 py-3 pr-4 pl-10 rounded-full border border-gray-300 bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base font-bold text-gray-900">
                       %
@@ -319,14 +368,16 @@ export default function AddDiscount() {
 
                 {/* Spend Amount */}
                 <div className="flex-1 flex flex-col gap-2">
-                  <label className="text-base font-medium text-gray-900 text-right w-full">أنفق</label>
+                  <label className="text-base font-medium text-gray-900 text-right w-full">الحد الأدنى للشراء (جم)</label>
                   <div className="relative w-full">
                     <input
-                      type="text"
+                      type="number"
+                      min="0"
+                      step="0.01"
                       placeholder="المبلغ"
                       value={formData.spendAmount}
                       onChange={(e) => updateField("spendAmount", e.target.value)}
-                      className="w-full px-3 py-3 rounded-full border border-gray-300 bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-3 py-3 pr-4 pl-10 rounded-full border border-gray-300 bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base font-bold text-gray-900">
                       جم
@@ -346,13 +397,12 @@ export default function AddDiscount() {
                   <label className="text-base font-medium text-gray-900 text-right w-full">الي</label>
                   <div className="relative w-full">
                     <input
-                      type="text"
-                      placeholder="يرجي اختيار التاريخ"
+                      type="date"
                       value={formData.validUntil}
+                      min={formData.validFrom || new Date().toISOString().split('T')[0]}
                       onChange={(e) => updateField("validUntil", e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 rounded-full border border-white bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full px-4 py-2.5 rounded-full border border-gray-300 bg-white text-base text-right focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                     />
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   </div>
                 </div>
 
@@ -361,13 +411,18 @@ export default function AddDiscount() {
                   <label className="text-base font-medium text-gray-900 text-right w-full">من</label>
                   <div className="relative w-full">
                     <input
-                      type="text"
-                      placeholder="يرجي اختيار التاريخ"
+                      type="date"
                       value={formData.validFrom}
-                      onChange={(e) => updateField("validFrom", e.target.value)}
-                      className="w-full px-4 py-2.5 pr-10 rounded-full border border-white bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => {
+                        updateField("validFrom", e.target.value);
+                        // Reset validUntil if it's before validFrom
+                        if (formData.validUntil && e.target.value > formData.validUntil) {
+                          updateField("validUntil", "");
+                        }
+                      }}
+                      className="w-full px-4 py-2.5 rounded-full border border-gray-300 bg-white text-base text-right focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
                     />
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   </div>
                 </div>
               </div>

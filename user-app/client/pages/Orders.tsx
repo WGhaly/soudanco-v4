@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
+import PullToRefresh from "@/components/PullToRefresh";
 import { useOrders, useReorder } from "@/hooks/useOrders";
 import { useToast } from "@/hooks/use-toast";
 
@@ -50,8 +51,9 @@ export default function Orders() {
   const defaultImage = "https://api.builder.io/api/v1/image/assets/TEMP/d66240650b148c54f8c91f74cdc154658b07306a";
 
   return (
-    <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-32">
-      <PageHeader title="الطلبات" />
+    <PullToRefresh>
+      <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-32">
+        <PageHeader title="الطلبات" />
       
       <div className="flex flex-col items-end gap-6 w-full">
         {/* Filter Section */}
@@ -207,6 +209,7 @@ export default function Orders() {
       </div>
 
       <BottomNav />
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

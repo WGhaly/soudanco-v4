@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
+import PullToRefresh from "@/components/PullToRefresh";
 import { useCart, useUpdateCartItem, useRemoveCartItem, useClearCart, useAddToCart } from "@/hooks/useCart";
 import { useProducts } from "@/hooks/useProducts";
 import { useToast } from "@/hooks/use-toast";
@@ -173,8 +174,9 @@ export default function Cart() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
-      <div className="flex flex-col p-5 pb-6 items-end gap-6 flex-1">
+    <PullToRefresh>
+      <div className="min-h-screen flex flex-col bg-[#F8F9FA]">
+        <div className="flex flex-col p-5 pb-6 items-end gap-6 flex-1">
         <div className="flex flex-row-reverse justify-between items-center w-full">
           <PageHeader title="سلة التسوق" />
           {cartItems.length > 0 && (
@@ -238,24 +240,24 @@ export default function Cart() {
                 </div>
 
                 {/* Quantity and Price column */}
-                <div className="flex w-[100px] flex-col items-center gap-2.5 flex-shrink-0">
-                  <div className="flex p-1 items-center gap-4 self-stretch rounded-[21px] bg-white shadow-[0_0_15px_0_rgba(0,0,0,0.2)]">
+                <div className="flex w-[110px] flex-col items-center gap-2.5 flex-shrink-0">
+                  <div className="flex p-1 items-center justify-between w-full rounded-[21px] bg-white shadow-[0_0_15px_0_rgba(0,0,0,0.2)]">
                     <button
                       onClick={() => handleUpdateQuantity(item.id, item.quantity, -1)}
                       disabled={updateItem.isPending}
-                      className="flex w-6 h-6 p-[7px] justify-center items-center rounded-full bg-[#D3D3D3] hover:bg-[#C0C0C0] transition-colors disabled:opacity-50"
+                      className="flex w-6 h-6 p-[7px] justify-center items-center rounded-full bg-[#D3D3D3] hover:bg-[#C0C0C0] transition-colors disabled:opacity-50 flex-shrink-0"
                     >
                       <svg width="12" height="2" viewBox="0 0 12 2" fill="none">
                         <path d="M0 1H12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
                       </svg>
                     </button>
-                    <span className="text-[#FD7E14] text-center text-xl font-medium leading-[120%]">
+                    <span className="text-[#FD7E14] text-center text-lg font-medium leading-[120%] whitespace-nowrap flex-1 px-1">
                       {item.quantity}
                     </span>
                     <button
                       onClick={() => handleUpdateQuantity(item.id, item.quantity, 1)}
                       disabled={updateItem.isPending || item.stockStatus === 'out_of_stock'}
-                      className="flex w-6 h-6 p-[7px] justify-center items-center rounded-full bg-[#FD7E14] hover:bg-[#E56D04] transition-colors disabled:opacity-50"
+                      className="flex w-6 h-6 p-[7px] justify-center items-center rounded-full bg-[#FD7E14] hover:bg-[#E56D04] transition-colors disabled:opacity-50 flex-shrink-0"
                     >
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                         <path d="M6 0V12M0 6H12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
@@ -283,14 +285,9 @@ export default function Cart() {
                   <div key={discount.id} className="flex flex-col gap-2 w-full p-2 rounded-lg bg-[#E8F5E9]">
                     <div className="flex flex-row-reverse justify-between items-center w-full">
                       <div className="flex flex-col items-end">
-                        <span className="text-[#2E7D32] text-sm font-medium">
-                          🎉 {discount.nameAr || discount.name}
+                        <span className="text-[#2E7D32] text-sm font-medium text-right">
+                          🎉 {discount.nameAr}
                         </span>
-                        {discount.description && (
-                          <span className="text-[#4CAF50] text-xs">
-                            {discount.description}
-                          </span>
-                        )}
                       </div>
                       <span className="text-[#2E7D32] text-sm font-bold">
                         -{discount.discountAmount} جم
@@ -484,5 +481,6 @@ export default function Cart() {
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 }

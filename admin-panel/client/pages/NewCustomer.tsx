@@ -123,7 +123,7 @@ export default function NewCustomer() {
       }
       
       if (isEditMode && id) {
-        await updateCustomer.mutateAsync({ id, ...customerPayload });
+        await updateCustomer.mutateAsync({ id, data: customerPayload });
       } else {
         await createCustomer.mutateAsync(customerPayload);
       }

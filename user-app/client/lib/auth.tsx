@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { queryClient } from '@/App';
 
 interface Customer {
   id: string;
@@ -148,6 +149,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Ignore
     }
 
+    // Clear all cached data to prevent stale data on next login
+    queryClient.clear();
+    
     setUser(null);
     setCustomer(null);
     setAccessToken(null);

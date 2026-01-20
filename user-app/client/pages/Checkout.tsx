@@ -153,7 +153,7 @@ export default function Checkout() {
                       <span className="text-[#363636] text-right text-base font-normal leading-[130%] w-full">
                         {item.productNameAr || item.productName}
                       </span>
-                      <span className="text-[#CED4DA] text-right text-sm font-normal leading-[150%] w-full">
+                      <span className="text-[#CED4DA] text-right text-sm font-normal leading-[150%] w-full whitespace-nowrap">
                         {item.unit} × {item.quantity}
                       </span>
                       <span className="text-[#212529] text-right text-sm font-medium leading-[120%] w-full">

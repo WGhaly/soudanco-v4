@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import PullToRefresh from "@/components/PullToRefresh";
 import { useOrder, useCancelOrder } from "@/hooks/useOrders";
 
 export default function OrderDetail() {
@@ -35,22 +36,21 @@ export default function OrderDetail() {
     return labels[status] || status;
   };
 
-  // Define order stages matching the design (4 stages) - order from right to left: تم التوصيل → تم الشحن → تم الإعداد → تم الدفع
+  // Define order stages matching the design (3 stages) - order from right to left: تم التوصيل → تم الشحن → تم الإعداد
   const orderStages = [
     { id: 'delivered', label: 'تم التوصيل', icon: 'M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z' },
     { id: 'shipped', label: 'تم الشحن', icon: 'M16 3H1V16H16V3ZM16 8H20L23 11V16H16V8ZM5.5 18.5C6.32843 18.5 7 17.8284 7 17C7 16.1716 6.32843 15.5 5.5 15.5C4.67157 15.5 4 16.1716 4 17C4 17.8284 4.67157 18.5 5.5 18.5ZM18.5 18.5C19.3284 18.5 20 17.8284 20 17C20 16.1716 19.3284 15.5 18.5 15.5C17.6716 15.5 17 16.1716 17 17C17 17.8284 17.6716 18.5 18.5 18.5Z' },
     { id: 'processing', label: 'تم الإعداد', icon: 'M20 7H4C2.89543 7 2 7.89543 2 9V19C2 20.1046 2.89543 21 4 21H20C21.1046 21 22 20.1046 22 19V9C22 7.89543 21.1046 7 20 7ZM16 11H8V13H16V11Z' },
-    { id: 'paid', label: 'تم الدفع', icon: 'M17 9V7C17 5.89543 16.1046 5 15 5H5C3.89543 5 3 5.89543 3 7V13C3 14.1046 3.89543 15 5 15H7M9 19H19C20.1046 19 21 18.1046 21 17V11C21 9.89543 20.1046 9 19 9H9C7.89543 9 7 9.89543 7 11V17C7 18.1046 7.89543 19 9 19ZM16 14C16 15.1046 15.1046 16 14 16C12.8954 16 12 15.1046 12 14C12 12.8954 12.8954 12 14 12C15.1046 12 16 12.8954 16 14Z' },
   ];
 
   const getStageIndex = (status: string) => {
     if (status === 'cancelled') return -1;
-    // Map backend status to our 4 stages (progress: paid → processing → shipped → delivered)
-    // Index: paid=3, processing=2, shipped=1, delivered=0
+    // Map backend status to our 3 stages (progress: processing → shipped → delivered)
+    // Index: processing=2, shipped=1, delivered=0
     const statusMap: Record<string, number> = {
-      'pending': 3,      // paid stage
-      'confirmed': 3,    // paid stage
-      'paid': 3,         // paid stage
+      'pending': 2,      // processing stage
+      'confirmed': 2,    // processing stage
+      'paid': 2,         // processing stage
       'processing': 2,   // processing stage
       'shipped': 1,      // shipped stage
       'delivered': 0,    // delivered stage
@@ -81,8 +81,9 @@ export default function OrderDetail() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24">
-      <PageHeader title="الطلبات" />
+    <PullToRefresh>
+      <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24">
+        <PageHeader title="الطلبات" />
 
       <div className="flex flex-col items-end gap-6 w-full">
         <div className="flex px-4 flex-col items-end gap-2.5 w-full">
@@ -145,15 +146,6 @@ export default function OrderDetail() {
         <div className="flex h-[88px] flex-row-reverse items-center gap-4 w-full">
           <div className="flex px-3 py-2 flex-col items-end gap-2 flex-1 rounded-2xl bg-white">
             <span className="text-[#363636] text-right text-base font-medium leading-[120%] w-full">
-              نوع الدفع
-            </span>
-            <span className="text-[#212529] text-right text-base font-bold leading-[150%] w-full">
-              دفع مقدم
-            </span>
-          </div>
-
-          <div className="flex px-3 py-2 flex-col items-end gap-2 flex-1 rounded-2xl bg-white">
-            <span className="text-[#363636] text-right text-base font-medium leading-[120%] w-full">
               حالة الطلب
             </span>
             <span className="text-[#212529] text-right text-base font-bold leading-[150%] w-full">
@@ -197,8 +189,8 @@ export default function OrderDetail() {
               >
                 {/* Product Image */}
                 <div className="w-20 flex justify-start">
-                  {item.productImage ? (
-                    <img src={item.productImage} alt={item.productNameAr || item.productName} className="h-16 w-14 rounded-lg object-contain" />
+                  {(item.productImage || item.imageUrl) ? (
+                    <img src={item.productImage || item.imageUrl} alt={item.productNameAr || item.productName} className="h-16 w-14 rounded-lg object-contain" />
                   ) : (
                     <div className="h-16 w-14 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 text-xs">{item.productNameAr || item.productName}</div>
                   )}
@@ -267,5 +259,6 @@ export default function OrderDetail() {
         )}
       </div>
     </div>
+    </PullToRefresh>
   );
 }

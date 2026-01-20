@@ -2,8 +2,9 @@ import { useState } from "react";
 import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
 import ProductCard from "@/components/ProductCard";
+import PullToRefresh from "@/components/PullToRefresh";
 import { useProducts, useCategories } from "@/hooks/useProducts";
-import { useAddToCart } from "@/hooks/useCart";
+import { useCart, useAddToCart, useUpdateCartItem, useRemoveCartItem } from "@/hooks/useCart";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Products() {
@@ -22,11 +23,24 @@ export default function Products() {
   });
   
   const { data: categoriesData } = useCategories();
+  const { data: cartData } = useCart();
   const addToCart = useAddToCart();
+  const updateCartItem = useUpdateCartItem();
+  const removeCartItem = useRemoveCartItem();
 
   const products = productsData?.data || [];
   const categories = categoriesData?.data || [];
   const pagination = productsData?.pagination;
+  const cartItems = cartData?.data?.items || [];
+
+  // Helper to get cart info for a product
+  const getCartInfo = (productId: string) => {
+    const cartItem = cartItems.find(item => item.productId === productId && !item.isFreeItem);
+    return {
+      quantity: cartItem?.quantity || 0,
+      itemId: cartItem?.id,
+    };
+  };
 
   const handleAddToCart = (productId: string, quantity: number) => {
     addToCart.mutate(
@@ -49,11 +63,39 @@ export default function Products() {
     );
   };
 
+  const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
+    updateCartItem.mutate(
+      { itemId, quantity: newQuantity },
+      {
+        onError: (error) => {
+          toast({
+            title: "خطأ",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      }
+    );
+  };
+
+  const handleRemoveFromCart = (itemId: string) => {
+    removeCartItem.mutate(itemId, {
+      onError: (error) => {
+        toast({
+          title: "خطأ",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
   const defaultImage = "https://api.builder.io/api/v1/image/assets/TEMP/86501bd89bfb43fe0882378e0ea38736bf4ebf29";
 
   return (
-    <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24">
-      <PageHeader title="المنتجات" showCart={true} />
+    <PullToRefresh>
+      <div className="min-h-screen flex flex-col items-end gap-6 bg-[#F8F9FA] p-5 pb-24">
+        <PageHeader title="المنتجات" showCart={true} />
       
       <div className="flex flex-col items-end gap-6 w-full">
         {/* Search Bar */}
@@ -137,18 +179,26 @@ export default function Products() {
           <>
             <div className="grid grid-cols-2 gap-4 w-full">
               {products.length > 0 ? (
-                products.map((product, idx) => (
+                products.map((product, idx) => {
+                  const cartInfo = getCartInfo(product.id);
+                  return (
                     <ProductCard
                       key={product.id}
+                      productId={product.id}
                       image={product.imageUrl || defaultImage}
                       title={product.nameAr || product.name}
                       subtitle={`${product.unitsPerCase} ${product.unit}`}
                       price={`${product.price} جم / ${product.unit}`}
+                      cartQuantity={cartInfo.quantity}
+                      cartItemId={cartInfo.itemId}
                       onAddToCart={(quantity) => handleAddToCart(product.id, quantity)}
+                      onUpdateQuantity={cartInfo.itemId ? (qty) => handleUpdateQuantity(cartInfo.itemId!, qty) : undefined}
+                      onRemoveFromCart={cartInfo.itemId ? () => handleRemoveFromCart(cartInfo.itemId!) : undefined}
                       outOfStock={product.stockStatus === 'out_of_stock'}
                       highlightOutOfStock={idx === 0 && product.stockStatus === 'out_of_stock'}
                     />
-                  ))
+                  );
+                })
               ) : (
                 <div className="col-span-2 flex items-center justify-center py-8">
                   <p className="text-[#ADB5BD] text-center text-base font-normal">
@@ -185,6 +235,7 @@ export default function Products() {
       </div>
 
       <BottomNav />
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

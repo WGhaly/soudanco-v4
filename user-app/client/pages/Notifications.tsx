@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
+import PullToRefresh from "@/components/PullToRefresh";
 import NotificationItem from "@/components/NotificationItem";
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead, Notification } from "@/hooks/useProfile";
 
@@ -72,8 +73,9 @@ export default function Notifications() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-end bg-[#F8F9FA] pb-24">
-      <div className="w-full max-w-md bg-white">
+    <PullToRefresh>
+      <div className="min-h-screen flex flex-col items-end bg-[#F8F9FA] pb-24">
+        <div className="w-full max-w-md bg-white">
         <div className="flex h-[50px] pt-[21px] flex-col items-end w-full bg-white">
           <div className="flex w-full flex-row-reverse justify-between items-center px-4">
             <span className="text-sm font-medium">9:41</span>
@@ -249,6 +251,7 @@ export default function Notifications() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }

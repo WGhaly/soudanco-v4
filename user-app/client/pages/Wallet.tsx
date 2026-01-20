@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import PageHeader from "@/components/PageHeader";
 import BottomNav from "@/components/BottomNav";
+import PullToRefresh from "@/components/PullToRefresh";
 import { useDashboard, useWalletTopUp } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,9 +136,10 @@ export default function Wallet() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FA] pb-24">
-      <div className="p-5 flex-1">
-        <PageHeader title="المحفظة" />
+    <PullToRefresh>
+      <div className="min-h-screen flex flex-col bg-[#F8F9FA] pb-24">
+        <div className="p-5 flex-1">
+          <PageHeader title="المحفظة" />
         
         {/* Total Available Balance */}
         <div className="bg-gradient-to-br from-[#FD7E14] to-[#E06500] rounded-2xl p-6 mb-6 mt-6 text-white">
@@ -353,6 +355,7 @@ export default function Wallet() {
       </div>
 
       <BottomNav />
-    </div>
+      </div>
+    </PullToRefresh>
   );
 }
