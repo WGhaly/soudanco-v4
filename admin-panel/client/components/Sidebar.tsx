@@ -86,6 +86,15 @@ const navItems: NavItem[] = [
       </svg>
     ),
   },
+  {
+    label: "المكافآت",
+    href: "/rewards",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 1.66667L12.5817 6.88334L18.3333 7.72501L14.1667 11.7833L15.1633 17.5L10 14.8083L4.83667 17.5L5.83333 11.7833L1.66667 7.72501L7.41833 6.88334L10 1.66667Z" fill="currentColor" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+  },
 ];
 
 const bottomNavItems: NavItem[] = [

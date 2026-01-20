@@ -9,7 +9,9 @@ export const userRoleEnum = pgEnum('user_role', ['admin', 'supervisor', 'custome
 export const orderStatusEnum = pgEnum('order_status', ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled']);
 export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'completed', 'failed', 'refunded']);
 export const paymentMethodEnum = pgEnum('payment_method', ['cash', 'bank_transfer', 'credit']);
+export const paymentTypeEnum = pgEnum('payment_type', ['user_topup', 'cash_payment', 'reward']);
 export const discountTypeEnum = pgEnum('discount_type', ['percentage', 'fixed', 'buy_get', 'spend_bonus']);
+export const rewardStatusEnum = pgEnum('reward_status', ['pending', 'processed', 'cancelled']);
 export const stockStatusEnum = pgEnum('stock_status', ['in_stock', 'low_stock', 'out_of_stock']);
 export const notificationTypeEnum = pgEnum('notification_type', ['order', 'payment', 'discount', 'system']);
 
@@ -214,6 +216,7 @@ export const payments = pgTable('payments', {
   orderId: uuid('order_id').references(() => orders.id),
   amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
   method: paymentMethodEnum('method').notNull(),
+  type: paymentTypeEnum('type').notNull().default('user_topup'),
   status: paymentStatusEnum('status').notNull().default('pending'),
   reference: varchar('reference', { length: 255 }),
   notes: text('notes'),
@@ -252,6 +255,47 @@ export const discountProducts = pgTable('discount_products', {
   id: uuid('id').defaultRandom().primaryKey(),
   discountId: uuid('discount_id').notNull().references(() => discounts.id, { onDelete: 'cascade' }),
   productId: uuid('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
+});
+
+// ============================================
+// REWARD TIERS TABLE
+// ============================================
+
+export const rewardTiers = pgTable('reward_tiers', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: varchar('name', { length: 255 }).notNull(),
+  nameAr: varchar('name_ar', { length: 255 }),
+  quarter: integer('quarter').notNull(), // 1, 2, 3, or 4
+  year: integer('year').notNull(), // e.g., 2024
+  minCartons: integer('min_cartons').notNull(), // minimum cartons to qualify
+  maxCartons: integer('max_cartons'), // optional max cartons for this tier
+  cashbackPerCarton: decimal('cashback_per_carton', { precision: 10, scale: 2 }).notNull(),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// ============================================
+// CUSTOMER QUARTERLY REWARDS TABLE
+// ============================================
+
+export const customerQuarterlyRewards = pgTable('customer_quarterly_rewards', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  customerId: uuid('customer_id').notNull().references(() => customers.id),
+  quarter: integer('quarter').notNull(), // 1, 2, 3, or 4
+  year: integer('year').notNull(), // e.g., 2024
+  totalCartonsPurchased: integer('total_cartons_purchased').notNull().default(0),
+  eligibleTierId: uuid('eligible_tier_id').references(() => rewardTiers.id),
+  calculatedReward: decimal('calculated_reward', { precision: 12, scale: 2 }).notNull().default('0'),
+  manualAdjustment: decimal('manual_adjustment', { precision: 12, scale: 2 }).default('0'),
+  finalReward: decimal('final_reward', { precision: 12, scale: 2 }).notNull().default('0'),
+  status: rewardStatusEnum('status').notNull().default('pending'),
+  paymentId: uuid('payment_id').references(() => payments.id), // created when processed
+  processedAt: timestamp('processed_at'),
+  processedBy: uuid('processed_by').references(() => users.id), // admin who triggered
+  notes: text('notes'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });
 
 // ============================================
@@ -304,6 +348,7 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
   paymentMethods: many(customerPaymentMethods),
   orders: many(orders),
   payments: many(payments),
+  quarterlyRewards: many(customerQuarterlyRewards),
 }));
 
 export const customerAddressesRelations = relations(customerAddresses, ({ one }) => ({
@@ -415,6 +460,29 @@ export const discountProductsRelations = relations(discountProducts, ({ one }) =
 export const notificationsRelations = relations(notifications, ({ one }) => ({
   user: one(users, {
     fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
+
+export const rewardTiersRelations = relations(rewardTiers, ({ many }) => ({
+  customerQuarterlyRewards: many(customerQuarterlyRewards),
+}));
+
+export const customerQuarterlyRewardsRelations = relations(customerQuarterlyRewards, ({ one }) => ({
+  customer: one(customers, {
+    fields: [customerQuarterlyRewards.customerId],
+    references: [customers.id],
+  }),
+  eligibleTier: one(rewardTiers, {
+    fields: [customerQuarterlyRewards.eligibleTierId],
+    references: [rewardTiers.id],
+  }),
+  payment: one(payments, {
+    fields: [customerQuarterlyRewards.paymentId],
+    references: [payments.id],
+  }),
+  processedByUser: one(users, {
+    fields: [customerQuarterlyRewards.processedBy],
     references: [users.id],
   }),
 }));

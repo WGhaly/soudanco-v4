@@ -14,6 +14,8 @@ import paymentsRoutes from "./routes/payments";
 import discountsRoutes from "./routes/discounts";
 import supervisorsRoutes from "./routes/supervisors";
 import statsRoutes from "./routes/stats";
+import rewardTiersRoutes from "./routes/reward-tiers";
+import customerRewardsRoutes from "./routes/customer-rewards";
 
 export function createServer() {
   const app = express();
@@ -45,6 +47,8 @@ export function createServer() {
   app.use("/api/discounts", discountsRoutes);
   app.use("/api/supervisors", supervisorsRoutes);
   app.use("/api/stats", statsRoutes);
+  app.use("/api/reward-tiers", rewardTiersRoutes);
+  app.use("/api/customer-rewards", customerRewardsRoutes);
 
   // Example route (can be removed later)
   app.get("/api/demo", handleDemo);

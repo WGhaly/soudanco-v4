@@ -24,6 +24,7 @@ import AddDiscount from "./pages/AddDiscount";
 import DiscountDetails from "./pages/DiscountDetails";
 import Payments from "./pages/Payments";
 import PaymentDetails from "./pages/PaymentDetails";
+import Rewards from "./pages/Rewards";
 
 import PlaceholderPage from "./pages/PlaceholderPage";
 import NotFound from "./pages/NotFound";
@@ -73,6 +74,7 @@ export function App() {
               <Route path="/discounts/add" element={<ProtectedRoute><AddDiscount /></ProtectedRoute>} />
               <Route path="/discounts/:id" element={<ProtectedRoute><DiscountDetails /></ProtectedRoute>} />
               <Route path="/discounts/:id/edit" element={<ProtectedRoute><AddDiscount /></ProtectedRoute>} />
+              <Route path="/rewards" element={<ProtectedRoute><Rewards /></ProtectedRoute>} />
 
               <Route path="/settings" element={<ProtectedRoute><PlaceholderPage /></ProtectedRoute>} />
               <Route path="/logout" element={<Navigate to="/login" replace />} />
