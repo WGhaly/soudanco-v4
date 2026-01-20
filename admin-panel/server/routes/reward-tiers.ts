@@ -2,12 +2,12 @@ import { Router } from 'express';
 import { db } from '../db';
 import { rewardTiers } from '../db/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { authMiddleware } from '../middleware/auth';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
 // Apply auth middleware to all routes
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 /**
  * GET /api/reward-tiers

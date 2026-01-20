@@ -2,13 +2,13 @@ import { Router } from 'express';
 import { db } from '../db';
 import { customerQuarterlyRewards, customers, orders, orderItems, rewardTiers, payments, users } from '../db/schema';
 import { eq, and, gte, lte, sql, desc, asc } from 'drizzle-orm';
-import { authMiddleware } from '../middleware/auth';
+import { authenticateToken } from '../middleware/auth';
 import { getQuarterDateRange } from '../utils/quarters';
 
 const router = Router();
 
 // Apply auth middleware to all routes
-router.use(authMiddleware);
+router.use(authenticateToken);
 
 /**
  * Calculate total cartons purchased by a customer in a quarter
