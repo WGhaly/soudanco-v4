@@ -102,7 +102,7 @@ export default function Home() {
 
   const handleUpdateQuantity = (cartItemId: string, newQuantity: number) => {
     updateCartItem.mutate(
-      { id: cartItemId, quantity: newQuantity },
+      { itemId: cartItemId, quantity: newQuantity },
       {
         onError: (error) => {
           toast({

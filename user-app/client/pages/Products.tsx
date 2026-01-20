@@ -192,8 +192,8 @@ export default function Products() {
                       cartQuantity={cartInfo.quantity}
                       cartItemId={cartInfo.itemId}
                       onAddToCart={(quantity) => handleAddToCart(product.id, quantity)}
-                      onUpdateQuantity={cartInfo.itemId ? (qty) => handleUpdateQuantity(cartInfo.itemId!, qty) : undefined}
-                      onRemoveFromCart={cartInfo.itemId ? () => handleRemoveFromCart(cartInfo.itemId!) : undefined}
+                      onUpdateQuantity={cartInfo.itemId ? (itemId, qty) => handleUpdateQuantity(itemId, qty) : undefined}
+                      onRemoveFromCart={cartInfo.itemId ? (itemId) => handleRemoveFromCart(itemId) : undefined}
                       outOfStock={product.stockStatus === 'out_of_stock'}
                       highlightOutOfStock={idx === 0 && product.stockStatus === 'out_of_stock'}
                     />
