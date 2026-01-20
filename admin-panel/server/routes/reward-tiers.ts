@@ -17,18 +17,18 @@ router.get('/', async (req, res) => {
   try {
     const { quarter, year } = req.query;
     
-    let query = db.select().from(rewardTiers);
+    let tiers;
     
     if (quarter && year) {
-      query = query.where(
+      tiers = await db.select().from(rewardTiers).where(
         and(
           eq(rewardTiers.quarter, parseInt(quarter as string)),
           eq(rewardTiers.year, parseInt(year as string))
         )
-      );
+      ).orderBy(desc(rewardTiers.year), rewardTiers.quarter, rewardTiers.minCartons);
+    } else {
+      tiers = await db.select().from(rewardTiers).orderBy(desc(rewardTiers.year), rewardTiers.quarter, rewardTiers.minCartons);
     }
-    
-    const tiers = await query.orderBy(desc(rewardTiers.year), rewardTiers.quarter, rewardTiers.minCartons);
     
     res.json(tiers);
   } catch (error: any) {

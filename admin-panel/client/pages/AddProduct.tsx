@@ -264,7 +264,7 @@ export default function AddProduct() {
                     >
                       <option value="">اختر الحجم</option>
                       <option value="1 لتر">1 لتر</option>
-                      <option value="350 مل">350 مل</option>
+                      <option value="250 مل">250 مل</option>
                     </select>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                       <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

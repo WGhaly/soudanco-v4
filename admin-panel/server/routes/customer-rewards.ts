@@ -1,9 +1,17 @@
-import { Router } from 'express';
+import { Router, Request } from 'express';
 import { db } from '../db';
 import { customerQuarterlyRewards, customers, orders, orderItems, rewardTiers, payments, users } from '../db/schema';
 import { eq, and, gte, lte, sql, desc, asc } from 'drizzle-orm';
 import { authenticateToken } from '../middleware/auth';
 import { getQuarterDateRange } from '../utils/quarters';
+
+// Extend Express Request to include user from auth middleware
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    role: string;
+  };
+}
 
 const router = Router();
 
@@ -219,7 +227,7 @@ router.put('/:id', async (req, res) => {
  * POST /api/customer-rewards/process
  * Process all pending rewards for a quarter
  */
-router.post('/process', async (req, res) => {
+router.post('/process', async (req: AuthenticatedRequest, res) => {
   try {
     const { quarter, year } = req.body;
     const adminUserId = req.user?.id; // From auth middleware

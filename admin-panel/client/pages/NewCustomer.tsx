@@ -37,7 +37,7 @@ export default function NewCustomer() {
       city: "",
       region: "" as string | undefined,
       postalCode: "" as string | undefined,
-      country: "Saudi Arabia",
+      country: "Egypt",
     },
   });
   
@@ -243,7 +243,7 @@ export default function NewCustomer() {
                   value={formData.phone}
                   onChange={(e) => handleChange("phone", e.target.value)}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 text-right"
-                  placeholder="+966 XXX XXX XXX"
+                  placeholder="+20 XXX XXX XXXX"
                 />
                 {errors.phone && (
                   <p className="text-red-500 text-sm mt-1 text-right">{errors.phone}</p>
@@ -322,8 +322,19 @@ export default function NewCustomer() {
                 </label>
                 <input
                   type="number"
+                  step="1"
                   value={formData.creditLimit}
-                  onChange={(e) => handleChange("creditLimit", e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '' || /^\d+$/.test(value)) {
+                      handleChange("creditLimit", value);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === '.' || e.key === ',' || e.key === '-' || e.key === 'e' || e.key === 'E') {
+                      e.preventDefault();
+                    }
+                  }}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 text-right"
                   placeholder="0"
                 />

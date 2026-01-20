@@ -473,7 +473,7 @@ export default function AddDiscount() {
                 />
               </button>
               <label className="text-base font-medium text-gray-900 flex-1 text-right">
-                تفعيل العرض
+                {formData.isActive ? "نشط" : "غير نشط"}
               </label>
             </div>
           </div>
