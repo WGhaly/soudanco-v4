@@ -321,9 +321,22 @@ export default function AddDiscount() {
                     <input
                       type="number"
                       min="1"
+                      step="1"
                       placeholder="عدد الكراتين"
                       value={formData.getQuantity}
-                      onChange={(e) => updateField("getQuantity", e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Only allow whole numbers
+                        if (value === '' || /^\d+$/.test(value)) {
+                          updateField("getQuantity", value);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent decimal point and minus sign
+                        if (e.key === '.' || e.key === ',' || e.key === '-' || e.key === 'e' || e.key === 'E') {
+                          e.preventDefault();
+                        }
+                      }}
                       className="w-full px-4 py-2.5 rounded-full border border-gray-300 bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
@@ -336,9 +349,22 @@ export default function AddDiscount() {
                     <input
                       type="number"
                       min="1"
+                      step="1"
                       placeholder="عدد الكراتين"
                       value={formData.buyQuantity}
-                      onChange={(e) => updateField("buyQuantity", e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Only allow whole numbers
+                        if (value === '' || /^\d+$/.test(value)) {
+                          updateField("buyQuantity", value);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent decimal point and minus sign
+                        if (e.key === '.' || e.key === ',' || e.key === '-' || e.key === 'e' || e.key === 'E') {
+                          e.preventDefault();
+                        }
+                      }}
                       className="w-full px-4 py-2.5 rounded-full border border-gray-300 bg-white text-base text-right placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>

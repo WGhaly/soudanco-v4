@@ -138,9 +138,14 @@ export default function ProductCard({
           <p className="text-[#212529] text-right text-sm font-normal leading-[150%] w-full">
             {subtitle}
           </p>
-          <p className="text-[#FD7E14] text-right text-base font-bold leading-[150%] w-full">
-            {price}
-          </p>
+          <div className="flex items-center justify-end gap-1.5 w-full">
+            <p className="text-[#FD7E14] text-right text-base font-bold leading-[150%]">
+              {price}
+            </p>
+            <span className="text-[#6C757D] text-xs font-normal bg-[#E9ECEF] px-2 py-0.5 rounded">
+              كرتونة
+            </span>
+          </div>
         </div>
 
         {/* Always show quantity controls */}

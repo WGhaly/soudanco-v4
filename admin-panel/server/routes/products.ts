@@ -42,10 +42,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
         },
       })
       .from(products)
-      .leftJoin(categories, eq(products.categoryId, categories.id))
-      .orderBy(desc(products.createdAt))
-      .limit(limitNum)
-      .offset(offset);
+      .leftJoin(categories, eq(products.categoryId, categories.id));
 
     // Apply search filter
     if (search) {
@@ -70,6 +67,12 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
     } else if (status === 'inactive') {
       query = query.where(eq(products.isActive, false)) as typeof query;
     }
+
+    // Apply ordering, pagination AFTER filters
+    query = query
+      .orderBy(desc(products.createdAt))
+      .limit(limitNum)
+      .offset(offset) as typeof query;
 
     const result = await query;
 
