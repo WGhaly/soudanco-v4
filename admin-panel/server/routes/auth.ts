@@ -9,7 +9,7 @@ const router = Router();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-change-in-production';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'default-refresh-secret-change-in-production';
-const ACCESS_TOKEN_EXPIRY = '15m';
+const ACCESS_TOKEN_EXPIRY = '1h'; // Changed from 15m to 1h
 const REFRESH_TOKEN_EXPIRY = '7d';
 
 function generateTokens(payload: JwtPayload) {
