@@ -42,6 +42,7 @@ export const customers = pgTable('customers', {
   phone: varchar('phone', { length: 20 }).notNull(),
   email: varchar('email', { length: 255 }),
   area: varchar('area', { length: 100 }),
+  rewardCategory: varchar('reward_category', { length: 50 }), // platinum, gold, silver, bronze
   priceListId: uuid('price_list_id').references(() => priceLists.id),
   supervisorId: uuid('supervisor_id').references(() => supervisors.id),
   creditLimit: decimal('credit_limit', { precision: 12, scale: 2 }).default('0'),

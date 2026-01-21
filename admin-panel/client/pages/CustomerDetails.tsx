@@ -276,6 +276,21 @@ export default function CustomerDetails() {
                       </div>
                     </div>
                   </div>
+                  
+                  <div className="flex flex-col md:flex-row-reverse items-start gap-6 self-stretch">
+                    <div className="flex flex-col items-stretch gap-3 flex-1 w-full">
+                      <label className="text-new-black-color text-right text-base font-medium leading-[120%]">
+                        فئة المكافآت
+                      </label>
+                      <div className="text-body-text text-right text-base font-bold leading-[150%]">
+                        {customer.rewardCategory === 'platinum' ? 'بلاتينيوم' :
+                         customer.rewardCategory === 'gold' ? 'ذهبي' :
+                         customer.rewardCategory === 'silver' ? 'فضي' :
+                         customer.rewardCategory === 'bronze' ? 'برونزي' : 'بدون فئة'}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-stretch gap-3 flex-1 w-full"></div>
+                  </div>
                 </div>
 
                 {/* Address Information Section */}

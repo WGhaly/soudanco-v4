@@ -28,6 +28,7 @@ export default function NewCustomer() {
     contactName: "",
     phone: "",
     priceListId: "",
+    rewardCategory: "",
     creditLimit: "0",
     isActive: true,
     address: {
@@ -54,6 +55,7 @@ export default function NewCustomer() {
         contactName: customer.contactName || "",
         phone: customer.phone || "",
         priceListId: customer.priceListId || "",
+        rewardCategory: customer.rewardCategory || "",
         creditLimit: customer.creditLimit?.toString() || "0",
         isActive: customer.isActive !== false,
         address: {
@@ -310,6 +312,23 @@ export default function NewCustomer() {
                       {pl.nameAr || pl.name}
                     </option>
                   ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
+                  فئة المكافآت
+                </label>
+                <select
+                  value={formData.rewardCategory}
+                  onChange={(e) => handleChange("rewardCategory", e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 text-right"
+                >
+                  <option value="">بدون فئة</option>
+                  <option value="platinum">بلاتينيوم</option>
+                  <option value="gold">ذهبي</option>
+                  <option value="silver">فضي</option>
+                  <option value="bronze">برونزي</option>
                 </select>
               </div>
             </div>
