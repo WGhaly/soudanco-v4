@@ -167,7 +167,11 @@ router.get('/', async (req, res) => {
     return res.json({ success: true, data: rewardsData });
   } catch (error: any) {
     console.error('Error fetching customer rewards:', error);
-    res.status(500).json({ error: 'Failed to fetch customer rewards' });
+    console.error('Error details:', error.message, error.stack);
+    res.status(500).json({ 
+      error: 'Failed to fetch customer rewards',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

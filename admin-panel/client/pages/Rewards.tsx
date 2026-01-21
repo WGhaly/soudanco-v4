@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchWithAuth } from '@/lib/fetchWithAuth';
+import Sidebar from '@/components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,7 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { AlertCircle, Plus, Edit, Trash2, DollarSign } from 'lucide-react';
+import { AlertCircle, Plus, Edit, Trash2, DollarSign, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface RewardTier {
@@ -233,23 +234,28 @@ export default function Rewards() {
   );
 
   return (
-    <div className="p-6 space-y-6" dir="rtl">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">المكافآت الربعية</h1>
-        <div className="flex gap-2">
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-            className="border rounded px-3 py-2"
-          >
-            {[currentYear - 1, currentYear, currentYear + 1].map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+    <div className="flex min-h-screen bg-[#FFF]" dir="rtl">
+      <Sidebar />
+      
+      <main className="flex-1 p-6 md:p-10 lg:p-[60px]">
+        <div className="space-y-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold text-primary">المكافآت الربعية</h1>
+            <div className="flex gap-2">
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                className="border rounded px-3 py-2 bg-white"
+                dir="ltr"
+              >
+                {[currentYear - 1, currentYear, currentYear + 1].map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
       <Tabs value={`q${selectedQuarter}`} onValueChange={(v) => setSelectedQuarter(parseInt(v.slice(1)))}>
         <TabsList>
@@ -272,7 +278,9 @@ export default function Rewards() {
               </CardHeader>
               <CardContent>
                 {tiersLoading ? (
-                  <div>جاري تحميل المستويات...</div>
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
                 ) : tiers.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     لا توجد مستويات مكافآت محددة لهذا الربع
@@ -352,7 +360,9 @@ export default function Rewards() {
               </CardHeader>
               <CardContent>
                 {rewardsLoading ? (
-                  <div>جاري تحميل المكافآت...</div>
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
                 ) : customerRewards.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     لا توجد بيانات مكافآت للعملاء
@@ -621,6 +631,8 @@ export default function Rewards() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+        </div>
+      </main>
     </div>
   );
 }

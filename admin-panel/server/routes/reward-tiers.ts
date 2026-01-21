@@ -33,7 +33,11 @@ router.get('/', async (req, res) => {
     return res.json({ success: true, data: tiers });
   } catch (error: any) {
     console.error('Error fetching reward tiers:', error);
-    res.status(500).json({ error: 'Failed to fetch reward tiers' });
+    console.error('Error details:', error.message, error.stack);
+    res.status(500).json({ 
+      error: 'Failed to fetch reward tiers',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
