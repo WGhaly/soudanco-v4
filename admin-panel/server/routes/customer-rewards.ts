@@ -1,7 +1,7 @@
 import { Router, Request } from 'express';
 import { db } from '../db';
 import { customerQuarterlyRewards, customers, orders, orderItems, rewardTiers, payments, users } from '../db/schema';
-import { eq, and, gte, lte, sql, desc, asc } from 'drizzle-orm';
+import { eq, and, gte, lte, sql, desc, asc, ilike } from 'drizzle-orm';
 import { authenticateToken } from '../middleware/auth';
 import { getQuarterDateRange } from '../utils/quarters';
 
@@ -49,8 +49,11 @@ async function calculateCustomerCartons(customerId: string, quarter: number, yea
 async function findEligibleTier(cartons: number, quarter: number, year: number, customerCategory: string | null) {
   // If customer has no category, they don't qualify for any tier
   if (!customerCategory) {
+    console.log('No customer category provided');
     return null;
   }
+  
+  console.log(`Finding tier for category: ${customerCategory}, cartons: ${cartons}, Q${quarter}/${year}`);
   
   const tiers = await db
     .select()
@@ -64,6 +67,8 @@ async function findEligibleTier(cartons: number, quarter: number, year: number, 
       )
     )
     .orderBy(desc(rewardTiers.minCartons));
+  
+  console.log(`Found ${tiers.length} matching tiers:`, tiers.map(t => ({ name: t.name, min: t.minCartons, max: t.maxCartons, cashback: t.cashbackPerCarton })));
   
   // Find the tier where cartons >= minCartons and cartons <= maxCartons (or maxCartons is null)
   for (const tier of tiers) {
@@ -106,6 +111,8 @@ router.get('/', async (req, res) => {
       // Calculate cartons
       const totalCartons = await calculateCustomerCartons(customer.id, q, y);
       
+      console.log(`Customer: ${customer.businessName}, Category: ${customer.rewardCategory}, Cartons: ${totalCartons}`);
+      
       // Find eligible tier based on customer's reward category
       const eligibleTier = await findEligibleTier(totalCartons, q, y, customer.rewardCategory);
       
@@ -113,6 +120,8 @@ router.get('/', async (req, res) => {
       const calculatedReward = eligibleTier
         ? parseFloat(eligibleTier.cashbackPerCarton) * totalCartons
         : 0;
+      
+      console.log(`Eligible tier: ${eligibleTier?.name || 'none'}, Calculated reward: ${calculatedReward}`);
       
       // Check if record exists
       const [existingReward] = await db
