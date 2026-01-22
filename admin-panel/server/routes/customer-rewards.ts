@@ -55,30 +55,38 @@ async function findEligibleTier(cartons: number, quarter: number, year: number, 
   
   console.log(`Finding tier for category: ${customerCategory}, cartons: ${cartons}, Q${quarter}/${year}`);
   
-  const tiers = await db
+  // Use a more reliable case-insensitive comparison
+  const allTiers = await db
     .select()
     .from(rewardTiers)
     .where(
       and(
         eq(rewardTiers.quarter, quarter),
         eq(rewardTiers.year, year),
-        eq(rewardTiers.isActive, true),
-        sql`LOWER(${rewardTiers.name}) = LOWER(${customerCategory})`
+        eq(rewardTiers.isActive, true)
       )
-    )
-    .orderBy(desc(rewardTiers.minCartons));
+    );
   
-  console.log(`Found ${tiers.length} matching tiers:`, tiers.map(t => ({ name: t.name, min: t.minCartons, max: t.maxCartons, cashback: t.cashbackPerCarton })));
+  console.log(`All active tiers for Q${quarter}/${year}:`, allTiers.map(t => ({ name: t.name, min: t.minCartons, max: t.maxCartons })));
+  
+  // Filter by category name (case-insensitive) in JavaScript
+  const tiers = allTiers
+    .filter(t => t.name?.toLowerCase().trim() === customerCategory.toLowerCase().trim())
+    .sort((a, b) => b.minCartons - a.minCartons);
+  
+  console.log(`Found ${tiers.length} matching tiers for category "${customerCategory}":`, tiers.map(t => ({ name: t.name, min: t.minCartons, max: t.maxCartons, cashback: t.cashbackPerCarton })));
   
   // Find the tier where cartons >= minCartons and cartons <= maxCartons (or maxCartons is null)
   for (const tier of tiers) {
     if (cartons >= tier.minCartons) {
       if (tier.maxCartons === null || cartons <= tier.maxCartons) {
+        console.log(`Matched tier: ${tier.name}, cashback: ${tier.cashbackPerCarton}`);
         return tier;
       }
     }
   }
   
+  console.log('No matching tier found for carton count');
   return null;
 }
 

@@ -98,6 +98,13 @@ export default function Rewards() {
     queryFn: () => fetchWithAuth(`/api/reward-tiers?quarter=${selectedQuarter}&year=${selectedYear}`),
   });
   const tiers = tiersResponse?.data || [];
+  
+  // Fetch all reward categories (master data)
+  const { data: categoriesResponse, isLoading: categoriesLoading } = useQuery({
+    queryKey: ['reward-categories'],
+    queryFn: () => fetchWithAuth('/api/reward-tiers/categories'),
+  });
+  const categories = categoriesResponse?.data || [];
 
   // Fetch customer rewards
   const { data: rewardsResponse, isLoading: rewardsLoading } = useQuery({
@@ -467,19 +474,46 @@ export default function Rewards() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>اسم الفئة (عربي)</Label>
+              <Label>الفئة</Label>
+              <select
+                value={tierForm.name}
+                onChange={(e) => {
+                  const selectedCategory = categories.find((c: any) => c.name === e.target.value);
+                  setTierForm({
+                    ...tierForm,
+                    name: e.target.value,
+                    nameAr: selectedCategory?.nameAr || '',
+                  });
+                }}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 text-right"
+                disabled={categoriesLoading}
+              >
+                <option value="">اختر فئة موجودة</option>
+                {categories.map((category: any) => (
+                  <option key={category.name} value={category.name}>
+                    {category.nameAr || category.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1 text-right">
+                الفئات المتاحة عبر جميع الأرباع والسنوات
+              </p>
+            </div>
+            <div className="text-center text-gray-500 text-sm">أو</div>
+            <div>
+              <Label>أو أدخل فئة جديدة (عربي)</Label>
               <Input
                 value={tierForm.nameAr}
                 onChange={(e) => setTierForm({ ...tierForm, nameAr: e.target.value })}
-                placeholder="مثلاً: البرونزية"
+                placeholder="مثلاً: البلاتينيوم"
               />
             </div>
             <div>
-              <Label>اسم الفئة (إنجليزي)</Label>
+              <Label>اسم الفئة الجديدة (إنجليزي)</Label>
               <Input
                 value={tierForm.name}
                 onChange={(e) => setTierForm({ ...tierForm, name: e.target.value })}
-                placeholder="e.g., Bronze"
+                placeholder="e.g., Platinum"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
