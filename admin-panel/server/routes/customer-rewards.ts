@@ -44,9 +44,14 @@ async function calculateCustomerCartons(customerId: string, quarter: number, yea
 }
 
 /**
- * Find the eligible tier for a customer based on cartons purchased
+ * Find the eligible tier for a customer based on cartons purchased and reward category
  */
-async function findEligibleTier(cartons: number, quarter: number, year: number) {
+async function findEligibleTier(cartons: number, quarter: number, year: number, customerCategory: string | null) {
+  // If customer has no category, they don't qualify for any tier
+  if (!customerCategory) {
+    return null;
+  }
+  
   const tiers = await db
     .select()
     .from(rewardTiers)
@@ -54,7 +59,8 @@ async function findEligibleTier(cartons: number, quarter: number, year: number) 
       and(
         eq(rewardTiers.quarter, quarter),
         eq(rewardTiers.year, year),
-        eq(rewardTiers.isActive, true)
+        eq(rewardTiers.isActive, true),
+        sql`LOWER(${rewardTiers.name}) = LOWER(${customerCategory})`
       )
     )
     .orderBy(desc(rewardTiers.minCartons));
@@ -100,8 +106,8 @@ router.get('/', async (req, res) => {
       // Calculate cartons
       const totalCartons = await calculateCustomerCartons(customer.id, q, y);
       
-      // Find eligible tier
-      const eligibleTier = await findEligibleTier(totalCartons, q, y);
+      // Find eligible tier based on customer's reward category
+      const eligibleTier = await findEligibleTier(totalCartons, q, y, customer.rewardCategory);
       
       // Calculate reward
       const calculatedReward = eligibleTier
