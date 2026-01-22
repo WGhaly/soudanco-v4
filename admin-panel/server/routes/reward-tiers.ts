@@ -10,6 +10,31 @@ const router = Router();
 router.use(authenticateToken);
 
 /**
+ * GET /api/reward-tiers/categories
+ * Get all unique reward category names across all quarters and years
+ */
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await db
+      .selectDistinct({ name: rewardTiers.name, nameAr: rewardTiers.nameAr })
+      .from(rewardTiers)
+      .where(eq(rewardTiers.isActive, true))
+      .orderBy(rewardTiers.name);
+    
+    // Filter out null/empty names
+    const validCategories = categories.filter(c => c.name && c.name.trim());
+    
+    return res.json({ success: true, data: validCategories });
+  } catch (error: any) {
+    console.error('Error fetching reward categories:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch reward categories',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+/**
  * GET /api/reward-tiers
  * List all reward tiers, optionally filter by quarter and year
  */

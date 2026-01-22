@@ -4,6 +4,8 @@ import { ArrowRight, Loader2, Plus } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 import { useCreateCustomer, useCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
 import { usePriceLists } from "@/hooks/usePriceLists";
+import { useQuery } from "@tanstack/react-query";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
 
 export default function NewCustomer() {
   const navigate = useNavigate();
@@ -17,7 +19,14 @@ export default function NewCustomer() {
   // Fetch price lists
   const { data: priceListsData, isLoading: priceListsLoading } = usePriceLists(1, 100);
   
+  // Fetch reward categories
+  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
+    queryKey: ['reward-categories'],
+    queryFn: () => fetchWithAuth('/api/reward-tiers/categories'),
+  });
+  
   const priceLists = priceListsData?.data || [];
+  const rewardCategories = categoriesData?.data || [];
   
   // Form state
   const [formData, setFormData] = useState({
@@ -323,12 +332,14 @@ export default function NewCustomer() {
                   value={formData.rewardCategory}
                   onChange={(e) => handleChange("rewardCategory", e.target.value)}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 text-right"
+                  disabled={categoriesLoading}
                 >
                   <option value="">بدون فئة</option>
-                  <option value="platinum">بلاتينيوم</option>
-                  <option value="gold">ذهبي</option>
-                  <option value="silver">فضي</option>
-                  <option value="bronze">برونزي</option>
+                  {rewardCategories.map((category: any) => (
+                    <option key={category.name} value={category.name}>
+                      {category.nameAr || category.name}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
