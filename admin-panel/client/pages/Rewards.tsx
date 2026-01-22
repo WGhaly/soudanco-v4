@@ -210,6 +210,11 @@ export default function Rewards() {
   };
 
   const handleSaveTier = () => {
+    // Validate that a category is selected
+    if (!tierForm.name) {
+      alert('الرجاء اختيار فئة المكافآت');
+      return;
+    }
     tierMutation.mutate(tierForm);
   };
 
@@ -462,20 +467,31 @@ export default function Rewards() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>اسم المستوى (عربي)</Label>
-              <Input
-                value={tierForm.nameAr}
-                onChange={(e) => setTierForm({ ...tierForm, nameAr: e.target.value })}
-                placeholder="مثلاً: الفئة البرونزية"
-              />
-            </div>
-            <div>
-              <Label>اسم المستوى (إنجليزي)</Label>
-              <Input
+              <Label>فئة المكافآت</Label>
+              <select
                 value={tierForm.name}
-                onChange={(e) => setTierForm({ ...tierForm, name: e.target.value })}
-                placeholder="e.g., Bronze Tier"
-              />
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const arabicNames = {
+                    platinum: 'بلاتينيوم',
+                    gold: 'ذهبي',
+                    silver: 'فضي',
+                    bronze: 'برونزي',
+                  };
+                  setTierForm({
+                    ...tierForm,
+                    name: value,
+                    nameAr: arabicNames[value as keyof typeof arabicNames] || '',
+                  });
+                }}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 text-right"
+              >
+                <option value="">اختر الفئة</option>
+                <option value="platinum">بلاتينيوم (Platinum)</option>
+                <option value="gold">ذهبي (Gold)</option>
+                <option value="silver">فضي (Silver)</option>
+                <option value="bronze">برونزي (Bronze)</option>
+              </select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
