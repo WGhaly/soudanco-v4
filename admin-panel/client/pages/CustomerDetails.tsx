@@ -283,10 +283,13 @@ export default function CustomerDetails() {
                         فئة المكافآت
                       </label>
                       <div className="text-body-text text-right text-base font-bold leading-[150%]">
-                        {customer.rewardCategory === 'platinum' ? 'بلاتينيوم' :
-                         customer.rewardCategory === 'gold' ? 'ذهبي' :
-                         customer.rewardCategory === 'silver' ? 'فضي' :
-                         customer.rewardCategory === 'bronze' ? 'برونزي' : 'بدون فئة'}
+                        {customer.rewardCategory ? (
+                          customer.rewardCategory.toLowerCase() === 'platinum' ? 'بلاتينيوم' :
+                          customer.rewardCategory.toLowerCase() === 'gold' ? 'ذهبي' :
+                          customer.rewardCategory.toLowerCase() === 'silver' ? 'فضي' :
+                          customer.rewardCategory.toLowerCase() === 'bronze' ? 'برونزي' :
+                          customer.rewardCategory
+                        ) : 'بدون فئة'}
                       </div>
                     </div>
                     <div className="flex flex-col items-stretch gap-3 flex-1 w-full"></div>

@@ -27,6 +27,7 @@ export interface Customer {
   createdAt: string;
   priceListId?: string;
   supervisorId?: string;
+  rewardCategory?: string | null;
   priceList?: {
     id: string;
     name: string;
@@ -98,6 +99,7 @@ interface UpdateCustomerData {
   email?: string;
   priceListId?: string;
   supervisorId?: string;
+  rewardCategory?: string | null;
   creditLimit?: string;
   isActive?: boolean;
 }
