@@ -123,6 +123,8 @@ export default function NewCustomer() {
         contactName: formData.contactName,
         phone: formData.phone,
         priceListId: formData.priceListId || undefined,
+        supervisorId: formData.supervisorId || undefined,
+        rewardCategory: formData.rewardCategory || null,
         creditLimit: formData.creditLimit,
         isActive: formData.isActive,
         address: formData.address,

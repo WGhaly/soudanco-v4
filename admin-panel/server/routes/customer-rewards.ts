@@ -67,7 +67,7 @@ async function findEligibleTier(cartons: number, quarter: number, year: number, 
       )
     );
   
-  console.log(`All active tiers for Q${quarter}/${year}:`, allTiers.map(t => ({ name: t.name, min: t.minCartons, max: t.maxCartons })));
+  console.log(`All active tiers for Q${quarter}/${year}:`, allTiers.map(t => ({ name: t.name, min: t.minCartons, max: t.maxCartons, cashback: t.cashbackPerCarton })));
   
   // Filter by category name (case-insensitive) in JavaScript
   const tiers = allTiers
@@ -76,11 +76,17 @@ async function findEligibleTier(cartons: number, quarter: number, year: number, 
   
   console.log(`Found ${tiers.length} matching tiers for category "${customerCategory}":`, tiers.map(t => ({ name: t.name, min: t.minCartons, max: t.maxCartons, cashback: t.cashbackPerCarton })));
   
+  // If no cartons purchased, no reward
+  if (cartons === 0) {
+    console.log('No cartons purchased, no reward');
+    return null;
+  }
+  
   // Find the tier where cartons >= minCartons and cartons <= maxCartons (or maxCartons is null)
   for (const tier of tiers) {
     if (cartons >= tier.minCartons) {
       if (tier.maxCartons === null || cartons <= tier.maxCartons) {
-        console.log(`Matched tier: ${tier.name}, cashback: ${tier.cashbackPerCarton}`);
+        console.log(`✓ Matched tier: ${tier.name}, min: ${tier.minCartons}, max: ${tier.maxCartons}, cashback: ${tier.cashbackPerCarton}, reward: ${parseFloat(tier.cashbackPerCarton) * cartons}`);
         return tier;
       }
     }
@@ -119,7 +125,8 @@ router.get('/', async (req, res) => {
       // Calculate cartons
       const totalCartons = await calculateCustomerCartons(customer.id, q, y);
       
-      console.log(`Customer: ${customer.businessName}, Category: ${customer.rewardCategory}, Cartons: ${totalCartons}`);
+      console.log(`\n=== Processing Customer: ${customer.businessName} ===`);
+      console.log(`Category: ${customer.rewardCategory}, Cartons: ${totalCartons}`);
       
       // Find eligible tier based on customer's reward category
       const eligibleTier = await findEligibleTier(totalCartons, q, y, customer.rewardCategory);
@@ -129,7 +136,7 @@ router.get('/', async (req, res) => {
         ? parseFloat(eligibleTier.cashbackPerCarton) * totalCartons
         : 0;
       
-      console.log(`Eligible tier: ${eligibleTier?.name || 'none'}, Calculated reward: ${calculatedReward}`);
+      console.log(`Result - Tier: ${eligibleTier?.name || 'NONE'}, Cashback/Carton: ${eligibleTier?.cashbackPerCarton || '0'}, Total Reward: ${calculatedReward.toFixed(2)}`);
       
       // Check if record exists
       const [existingReward] = await db
@@ -159,7 +166,11 @@ router.get('/', async (req, res) => {
         
         rewardsData.push({
           ...updated,
-          customer,
+          customer: {
+            businessName: customer.businessName,
+            phone: customer.phone,
+            rewardCategory: customer.rewardCategory,
+          },
           eligibleTier,
         });
       } else {
@@ -181,7 +192,11 @@ router.get('/', async (req, res) => {
         
         rewardsData.push({
           ...newReward,
-          customer,
+          customer: {
+            businessName: customer.businessName,
+            phone: customer.phone,
+            rewardCategory: customer.rewardCategory,
+          },
           eligibleTier,
         });
       }

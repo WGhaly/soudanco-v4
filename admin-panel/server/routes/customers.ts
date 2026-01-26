@@ -184,6 +184,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       phone,
       priceListId,
       supervisorId,
+      rewardCategory,
       creditLimit,
       address,
     } = req.body;
@@ -229,6 +230,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       email: email.toLowerCase(),
       priceListId: priceListId || null,
       supervisorId: supervisorId || null,
+      rewardCategory: rewardCategory || null,
       creditLimit: creditLimit || '0',
       currentBalance: '0',
       walletBalance: '0',
@@ -279,6 +281,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res: Response) => {
       email,
       priceListId,
       supervisorId,
+      rewardCategory,
       creditLimit,
       isActive,
     } = req.body;
@@ -308,6 +311,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res: Response) => {
         email: email ?? existing.email,
         priceListId: priceListId !== undefined ? priceListId : existing.priceListId,
         supervisorId: supervisorId !== undefined ? supervisorId : existing.supervisorId,
+        rewardCategory: rewardCategory !== undefined ? rewardCategory : existing.rewardCategory,
         creditLimit: creditLimit ?? existing.creditLimit,
         isActive: isActive !== undefined ? isActive : existing.isActive,
         updatedAt: new Date(),

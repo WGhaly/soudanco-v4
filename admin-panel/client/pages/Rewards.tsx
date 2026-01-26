@@ -60,6 +60,7 @@ interface CustomerReward {
   customer: {
     businessName: string;
     phone: string;
+    rewardCategory: string | null;
   };
   eligibleTier: RewardTier | null;
 }
@@ -244,6 +245,11 @@ export default function Rewards() {
     (sum: number, r: CustomerReward) => sum + parseFloat(r.finalReward),
     0
   );
+  
+  // Count customers without reward categories
+  const customersWithoutCategory = customerRewards.filter(
+    (r: CustomerReward) => !r.customer.rewardCategory
+  );
 
   return (
     <div className="flex min-h-screen bg-[#FFF]" dir="rtl">
@@ -268,6 +274,16 @@ export default function Rewards() {
               </select>
             </div>
           </div>
+          
+          {customersWithoutCategory.length > 0 && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>تنبيه:</strong> هناك {customersWithoutCategory.length} عميل بدون فئة مكافآت محددة.
+                لن يحصلوا على أي مكافآت حتى يتم تعيين فئة لهم من صفحة العملاء.
+              </AlertDescription>
+            </Alert>
+          )}
 
       <Tabs value={`q${selectedQuarter}`} onValueChange={(v) => setSelectedQuarter(parseInt(v.slice(1)))}>
         <TabsList>
@@ -397,7 +413,12 @@ export default function Rewards() {
                       {customerRewards.map((reward: CustomerReward) => (
                         <TableRow key={reward.id}>
                           <TableCell>
-                            <div>{reward.customer.businessName}</div>
+                            <div className="flex items-center gap-2">
+                              <span>{reward.customer.businessName}</span>
+                              {!reward.customer.rewardCategory && (
+                                <Badge variant="destructive" className="text-xs">لا توجد فئة</Badge>
+                              )}
+                            </div>
                             <div className="text-sm text-muted-foreground">
                               {reward.customer.phone}
                             </div>
@@ -406,11 +427,17 @@ export default function Rewards() {
                           <TableCell>
                             {reward.eligibleTier ? (
                               <div>{reward.eligibleTier.nameAr || reward.eligibleTier.name}</div>
+                            ) : reward.customer.rewardCategory ? (
+                              <span className="text-yellow-600">لا يتأهل</span>
                             ) : (
-                              <span className="text-muted-foreground">لا يوجد مستوى</span>
+                              <span className="text-red-600">بحاجة لفئة</span>
                             )}
                           </TableCell>
-                          <TableCell>{reward.calculatedReward} جنيه</TableCell>
+                          <TableCell>
+                            <span className={!reward.customer.rewardCategory || parseFloat(reward.calculatedReward) === 0 ? 'text-red-600' : ''}>
+                              {reward.calculatedReward} جنيه
+                            </span>
+                          </TableCell>
                           <TableCell>
                             {parseFloat(reward.manualAdjustment || '0') !== 0 && (
                               <span
