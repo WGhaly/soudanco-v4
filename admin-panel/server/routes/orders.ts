@@ -65,6 +65,35 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
       .limit(limitNum)
       .offset(offset);
 
+    // Fetch items for each order
+    const orderIds = result.map(o => o.id);
+    const allItems = orderIds.length > 0
+      ? await db
+          .select({
+            orderId: orderItems.orderId,
+            id: orderItems.id,
+            quantity: orderItems.quantity,
+            productName: orderItems.productName,
+          })
+          .from(orderItems)
+          .where(sql`${orderItems.orderId} IN (${sql.join(orderIds.map(id => sql`${id}`), sql`, `)})`)
+      : [];
+
+    // Group items by orderId
+    const itemsByOrderId: Record<string, typeof allItems> = {};
+    allItems.forEach(item => {
+      if (!itemsByOrderId[item.orderId]) {
+        itemsByOrderId[item.orderId] = [];
+      }
+      itemsByOrderId[item.orderId].push(item);
+    });
+
+    // Attach items to each order
+    const resultWithItems = result.map(order => ({
+      ...order,
+      items: itemsByOrderId[order.id] || [],
+    }));
+
     // Count with same filters
     let countQuery = db.select({ count: sql<number>`count(*)` }).from(orders);
     if (conditions.length > 0) {
@@ -74,7 +103,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
 
     return res.json({
       success: true,
-      data: result,
+      data: resultWithItems,
       pagination: {
         page: pageNum,
         limit: limitNum,

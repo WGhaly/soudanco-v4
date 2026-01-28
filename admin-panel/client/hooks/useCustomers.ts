@@ -18,6 +18,7 @@ export interface Customer {
   contactName: string;
   phone: string;
   email?: string;
+  area?: string;
   creditLimit: string;
   currentBalance: string;
   walletBalance?: string;
@@ -77,6 +78,7 @@ interface CreateCustomerData {
   businessNameAr?: string;
   contactName: string;
   phone: string;
+  area?: string;
   priceListId?: string;
   supervisorId?: string;
   creditLimit?: string;
@@ -97,6 +99,7 @@ interface UpdateCustomerData {
   contactName?: string;
   phone?: string;
   email?: string;
+  area?: string;
   priceListId?: string;
   supervisorId?: string;
   rewardCategory?: string | null;
@@ -105,10 +108,11 @@ interface UpdateCustomerData {
 }
 
 // Fetch all customers
-async function fetchCustomers(params?: { search?: string; status?: string; page?: number; limit?: number }): Promise<CustomersResponse> {
+async function fetchCustomers(params?: { search?: string; status?: string; area?: string; page?: number; limit?: number }): Promise<CustomersResponse> {
   const searchParams = new URLSearchParams();
   if (params?.search) searchParams.set('search', params.search);
   if (params?.status) searchParams.set('status', params.status);
+  if (params?.area) searchParams.set('area', params.area);
   if (params?.page) searchParams.set('page', params.page.toString());
   if (params?.limit) searchParams.set('limit', params.limit.toString());
 
@@ -182,7 +186,7 @@ async function deleteCustomer(id: string): Promise<void> {
 }
 
 // Hooks
-export function useCustomers(params?: { search?: string; status?: string; page?: number; limit?: number }) {
+export function useCustomers(params?: { search?: string; status?: string; area?: string; page?: number; limit?: number }) {
   return useQuery({
     queryKey: ['customers', params],
     queryFn: () => fetchCustomers(params),
