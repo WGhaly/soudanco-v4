@@ -354,7 +354,7 @@ async function seed() {
         stockQuantity: 350,
         lowStockThreshold: 100,
         stockStatus: 'in_stock',
-        imageUrl: `${IMAGE_BASE_URL}/spicy-tangarine-305ml.png`,
+        imageUrl: `${IMAGE_BASE_URL}/spicy-tangarine-250ml.png`,
         isActive: true,
       },
     ]).returning();
