@@ -5,7 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import CustomersTable from "@/components/CustomersTable";
 import { useCustomers, useUpdateCustomer, useDeleteCustomer } from "@/hooks/useCustomers";
 import { useToast } from "@/hooks/use-toast";
-import { EGYPTIAN_AREAS } from "@/shared/constants";
+import { EGYPTIAN_AREAS } from "../../shared/constants";
 
 export default function Customers() {
   const navigate = useNavigate();

@@ -6,7 +6,7 @@ import { useCreateCustomer, useCustomer, useUpdateCustomer } from "@/hooks/useCu
 import { usePriceLists } from "@/hooks/usePriceLists";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
-import { EGYPTIAN_AREAS } from "@/shared/constants";
+import { EGYPTIAN_AREAS } from "../../shared/constants";
 
 export default function NewCustomer() {
   const navigate = useNavigate();
