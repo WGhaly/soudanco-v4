@@ -15,7 +15,7 @@ router.use(requireSupervisor);
 // ============================================
 router.get('/', async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { search, status, page = '1', limit = '10' } = req.query;
+    const { search, status, area, page = '1', limit = '10' } = req.query;
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
     const offset = (pageNum - 1) * limitNum;
@@ -28,6 +28,7 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
         contactName: customers.contactName,
         phone: customers.phone,
         email: customers.email,
+        area: customers.area,
         creditLimit: customers.creditLimit,
         currentBalance: customers.currentBalance,
         walletBalance: customers.walletBalance,
@@ -63,6 +64,11 @@ router.get('/', async (req: AuthenticatedRequest, res: Response) => {
           ilike(customers.email, searchTerm)
         )
       ) as typeof query;
+    }
+
+    // Apply area filter
+    if (area) {
+      query = query.where(eq(customers.area, area as string)) as typeof query;
     }
 
     // Apply status filter
@@ -114,6 +120,8 @@ router.get('/:id', async (req: AuthenticatedRequest, res: Response) => {
         contactName: customers.contactName,
         phone: customers.phone,
         email: customers.email,
+        area: customers.area,
+        rewardCategory: customers.rewardCategory,
         creditLimit: customers.creditLimit,
         currentBalance: customers.currentBalance,
         walletBalance: customers.walletBalance,
@@ -182,6 +190,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       businessNameAr,
       contactName,
       phone,
+      area,
       priceListId,
       supervisorId,
       rewardCategory,
@@ -228,6 +237,7 @@ router.post('/', async (req: AuthenticatedRequest, res: Response) => {
       contactName,
       phone,
       email: email.toLowerCase(),
+      area: area || null,
       priceListId: priceListId || null,
       supervisorId: supervisorId || null,
       rewardCategory: rewardCategory || null,
@@ -279,6 +289,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res: Response) => {
       contactName,
       phone,
       email,
+      area,
       priceListId,
       supervisorId,
       rewardCategory,
@@ -309,6 +320,7 @@ router.put('/:id', async (req: AuthenticatedRequest, res: Response) => {
         contactName: contactName ?? existing.contactName,
         phone: phone ?? existing.phone,
         email: email ?? existing.email,
+        area: area !== undefined ? area : existing.area,
         priceListId: priceListId !== undefined ? priceListId : existing.priceListId,
         supervisorId: supervisorId !== undefined ? supervisorId : existing.supervisorId,
         rewardCategory: rewardCategory !== undefined ? rewardCategory : existing.rewardCategory,

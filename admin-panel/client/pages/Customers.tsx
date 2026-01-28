@@ -5,11 +5,13 @@ import Sidebar from "@/components/Sidebar";
 import CustomersTable from "@/components/CustomersTable";
 import { useCustomers, useUpdateCustomer, useDeleteCustomer } from "@/hooks/useCustomers";
 import { useToast } from "@/hooks/use-toast";
+import { EGYPTIAN_AREAS } from "@/shared/constants";
 
 export default function Customers() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
+  const [areaFilter, setAreaFilter] = useState("");
   const [page, setPage] = useState(1);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
@@ -17,7 +19,8 @@ export default function Customers() {
   const { data, isLoading, error } = useCustomers({ 
     page, 
     limit: 10, 
-    search: searchQuery || undefined 
+    search: searchQuery || undefined,
+    area: areaFilter || undefined 
   });
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
@@ -25,6 +28,12 @@ export default function Customers() {
   // Handle search with debounce reset to page 1
   const handleSearch = (value: string) => {
     setSearchQuery(value);
+    setPage(1);
+  };
+
+  // Handle area filter change
+  const handleAreaFilter = (value: string) => {
+    setAreaFilter(value);
     setPage(1);
   };
 
@@ -94,6 +103,22 @@ export default function Customers() {
                 />
                 <Search className="w-5 h-5 text-gray-400" />
               </div>
+            </div>
+
+            {/* Area Filter */}
+            <div className="flex items-center gap-2">
+              <select
+                value={areaFilter}
+                onChange={(e) => handleAreaFilter(e.target.value)}
+                className="px-4 py-2 rounded-full border border-themeBorder bg-white text-right"
+              >
+                <option value="">كل المناطق</option>
+                {EGYPTIAN_AREAS.map((area) => (
+                  <option key={area} value={area}>
+                    {area}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Add Button */}

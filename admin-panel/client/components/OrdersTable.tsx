@@ -170,7 +170,8 @@ export default function OrdersTable({ orders, onCancelOrder, pagination }: Order
           <tbody>
             {orders.map((order) => {
               const paymentStatus = getPaymentStatus(order.paidAmount, order.total);
-              const itemsCount = order.items?.length || 0;
+              // Calculate total quantity across all items
+              const totalQuantity = order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
               
               return (
                 <tr key={order.id} className="border-b border-theme-border last:border-b-0 hover:bg-gray-50">
@@ -186,7 +187,7 @@ export default function OrdersTable({ orders, onCancelOrder, pagination }: Order
                     {order.customer?.businessNameAr || order.customer?.businessName || '-'}
                   </td>
                   <td className="px-2.5 py-5 text-right text-body-text text-base font-normal leading-[130%]">
-                    {itemsCount} عناصر
+                    {totalQuantity} عناصر
                   </td>
                   <td className="px-2.5 py-5 text-right text-body-text text-base font-bold leading-[150%]">
                     {formatCurrency(order.total)}
@@ -260,7 +261,8 @@ export default function OrdersTable({ orders, onCancelOrder, pagination }: Order
       <div className="md:hidden flex flex-col gap-4 w-full">
         {orders.map((order) => {
           const paymentStatus = getPaymentStatus(order.paidAmount, order.total);
-          const itemsCount = order.items?.length || 0;
+          // Calculate total quantity across all items
+          const totalQuantity = order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
           
           return (
             <Link
@@ -282,7 +284,7 @@ export default function OrdersTable({ orders, onCancelOrder, pagination }: Order
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-body-text text-sm">{getStatusLabel(order.status)}</span>
-                <span className="text-body-text text-sm">{itemsCount} عناصر</span>
+                <span className="text-body-text text-sm">{totalQuantity} عناصر</span>
               </div>
               <div className="text-right text-body-text text-base font-bold">
                 {formatCurrency(order.total)}

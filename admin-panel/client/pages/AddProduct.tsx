@@ -95,7 +95,7 @@ export default function AddProduct() {
         nameAr: productName,
         sku: sku,
         unit: packageSize || "case",
-        basePrice: basePrice && basePrice.trim() !== "" ? basePrice : "0.00",
+        basePrice: "0.00", // Always set to 0 - prices are set via price lists
         isActive: isAvailable,
         priceListItems, // Include price list items
       };
@@ -293,25 +293,6 @@ export default function AddProduct() {
 
               {/* Availability and Category */}
               <div className="flex items-center gap-6 self-stretch flex-col md:flex-row">
-                {/* Base Price Field */}
-                <div className="flex flex-col items-start gap-2 flex-1 self-stretch w-full">
-                  <div className="flex justify-end items-start gap-1 self-stretch">
-                    <label className="text-new-black text-right text-base font-medium leading-[120%]">
-                      السعر الأساسي
-                    </label>
-                  </div>
-                  <div className="flex px-3 py-3 justify-center items-center gap-2.5 self-stretch rounded-full border border-theme-border bg-white">
-                    <input
-                      type="number"
-                      value={basePrice}
-                      onChange={(e) => setBasePrice(e.target.value)}
-                      placeholder="0.00"
-                      className="flex-1 text-gray-900 text-right text-base font-normal leading-[130%] outline-none bg-transparent placeholder:text-gray-400"
-                    />
-                    <span className="text-gray-400">جم</span>
-                  </div>
-                </div>
-
                 <div className="flex px-0 py-3 justify-end items-end gap-3.5 flex-1 self-stretch w-full">
                   <div className="text-body-text text-right text-base font-medium leading-[120%]">
                     متاح

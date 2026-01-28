@@ -6,6 +6,7 @@ import { useCreateCustomer, useCustomer, useUpdateCustomer } from "@/hooks/useCu
 import { usePriceLists } from "@/hooks/usePriceLists";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { EGYPTIAN_AREAS } from "@/shared/constants";
 
 export default function NewCustomer() {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export default function NewCustomer() {
     businessNameAr: "",
     contactName: "",
     phone: "",
+    area: "",
     priceListId: "",
     rewardCategory: "",
     creditLimit: "0",
@@ -63,6 +65,7 @@ export default function NewCustomer() {
         businessNameAr: customer.businessNameAr || "",
         contactName: customer.contactName || "",
         phone: customer.phone || "",
+        area: customer.area || "",
         priceListId: customer.priceListId || "",
         rewardCategory: customer.rewardCategory || "",
         creditLimit: customer.creditLimit?.toString() || "0",
@@ -122,6 +125,7 @@ export default function NewCustomer() {
         businessNameAr: formData.businessNameAr,
         contactName: formData.contactName,
         phone: formData.phone,
+        area: formData.area || undefined,
         priceListId: formData.priceListId || undefined,
         supervisorId: formData.supervisorId || undefined,
         rewardCategory: formData.rewardCategory || null,
@@ -447,15 +451,20 @@ export default function NewCustomer() {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2 text-right">
-                      المنطقة
+                      المنطقة *
                     </label>
-                    <input
-                      type="text"
-                      value={formData.address.region}
-                      onChange={(e) => handleAddressChange("region", e.target.value)}
+                    <select
+                      value={formData.area}
+                      onChange={(e) => handleChange("area", e.target.value)}
                       className="w-full px-4 py-2 rounded-lg border border-gray-300 text-right"
-                      placeholder="المنطقة"
-                    />
+                    >
+                      <option value="">اختر المنطقة</option>
+                      {EGYPTIAN_AREAS.map((area) => (
+                        <option key={area} value={area}>
+                          {area}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   
                   <div>
